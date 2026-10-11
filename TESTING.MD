@@ -1,6 +1,6 @@
 # Testing
 
-M1 and the login/banner revision are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plan 004 menus are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -65,32 +65,34 @@ The Node runner reports **32 passing entries**: 29 nested scenarios plus three
 parents. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
-are also removed. It never drops a schema.
+are also removed; browser cleanup removes only its own hashed admin cookie token. It never drops a schema.
 Do not run the API suite and browser suite concurrently: their report assertions
 expect their own isolated execution window.
 
 ## Browser acceptance
 
-Eight journeys run at **360×800, 390×844, and 1440×900**: **24 Chromium checks**.
+Ten journeys run at **360×800, 390×844, and 1440×900**: **30 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
 | Login, ordered rotation and menu | Keyboard Escape/focus, placeholder action, logout/relogin, same run retained |
 | Two tabs | Independent retained selection while sharing the user sequence |
-| Admin users and banners | Create login, upload actual image, persist order/link/enable settings |
+| Admin customers and banners | Email login creation/search/details, selected password/access changes, empty activity, image upload/settings/replacement with retained old URL |
 | Complete promotion → enrollment → goal → contribution | State/balances persist through refresh; secure backend milestones |
 | Later browser session | Same run/assignment, different server-owned visit, one repeat-use event |
 | Reset | Clean new run; historical first use remains queryable |
 | Independent profiles / unavailable service | Distinct run IDs, eligibility enforced and clear unavailable UI |
 | Visibility | Below-fold inline promotion absent until viewed; brief visibility insufficient; sustained visibility and deduplication |
-| Protected report / configuration | Login, explicit denominators, actor filter, new variant run, logout |
+| Protected report / configuration | Direct admin entry, explicit denominators, retained actor filter, selected new variant run, logout |
+| Admin-only routes/menu | Child-route sign-in/reload, filter persistence, keyboard containment/Escape/focus, active links, back/forward, missing pages/customer, expired access clearing private data; no customer bootstrap/events/Clarity |
+| Independent sessions | Customer-only admin denial, both sessions, admin logout preserves customer, customer logout preserves admin, admin navigation leaves banking run/presentations unchanged |
 | Abandonment | Enrollment start without invented completion or first use |
 | Direct service entry | First use without a promotion click |
 | Form failures / keyboard | Error keeps entered text/amount; keyboard link, checkbox, and submission actions |
 | Responsive / privacy | No page overflow; no Clarity requests during complete journey; explicit masking attributes |
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and
-report were visually inspected. The report's wide table scrolls inside its card.
+report and admin customer/home/menu surfaces were visually inspected. The report's wide table scrolls inside its card.
 The shared hamburger menu works on mobile and desktop without page overflow.
 
 The browser observation is best-effort evidence of behavior, never proof of
@@ -108,7 +110,8 @@ npm run smoke:public
 The public smoke uses HTTPS at 360/1440px, checks Secure/HttpOnly/SameSite cookies,
 creates users, signs in, completes enrollment/goal/contribution, proves saved
 state across relogin, cycles banners on Summary reload, preserves menu return,
-uses a placeholder action, opens reporting, signs out, and resets. It asserts no browser errors or Clarity
+uses a placeholder action, opens the separate admin report/customer/banner pages,
+checks admin sign-out/reload while preserving the customer login, and resets. It asserts no browser errors or Clarity
 requests. Its labeled automated history is intentionally retained in `demo`.
 
 A production multipart upload was decoded/published by the hardened service,
@@ -130,7 +133,7 @@ The current production CSP blocks third-party collection; M2 must deliberately
 update its allowlist after verification. Automated success proves software and
 instrumentation behavior, not customer adoption improvement.
 
-Post-release user-creation fix: all 32 API/migration entries passed; the admin
+Historical user-creation fix: all 32 API/migration entries passed; the admin
 creation/upload/login browser journey was rerun at 360/390/1440px to verify email
-usernames and native rejection of spaces. The prior full 24-journey result is
-retained above; targeted reruns do not imply a new full-suite run.
+usernames and native rejection of spaces. Plan 004 subsequently passed the final full 30-journey suite, including these
+email validation regressions, history navigation, and banner replacement.

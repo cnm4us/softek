@@ -5,6 +5,7 @@ import { fixtureUser, cleanUsers } from '../fixtures.js';
 import sharp from 'sharp';
 import { unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { assetDirectory } from '../../apps/api/src/banner-assets.js';
 const headers = { 'X-Demo-Automation': process.env.AUTOMATION_SECRET! };
 test.use({ extraHTTPHeaders: headers });
@@ -55,6 +56,15 @@ async function resetDemo(page: Page) {
 test.beforeEach(async ({ page }) => {
   page.on('dialog', (dialog) => void dialog.accept());
 });
+test.afterEach(async ({ context }) => {
+  const cookie = (await context.cookies()).find(
+    (c) => c.name === 'softek_admin',
+  );
+  if (cookie)
+    await pool.query('DELETE FROM admin_sessions WHERE token_hash=?', [
+      createHash('sha256').update(cookie.value).digest('hex'),
+    ]);
+});
 async function count(runId: string, name: string, placement?: string) {
   const r = await pool.query(
     'SELECT COUNT(*) AS n FROM adoption_events WHERE run_id=? AND name=? AND (? IS NULL OR placement=?)',
@@ -89,7 +99,7 @@ test('banner rotation, menu actions, keyboard close, logout and relogin', async 
   await expect(banner).toHaveAttribute('href', '/savings-goals');
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await expect(
-    page.getByRole('dialog', { name: 'Banking menu' }),
+    page.getByRole('dialog', { name: 'Customer Menu' }),
   ).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(
@@ -180,14 +190,14 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
   await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'Demo users', exact: true }),
+    page.getByRole('heading', { name: 'Admin Home', exact: true }),
   ).toBeVisible();
+  await menu(page, 'Manage Customers');
+  await page
+    .getByRole('link', { name: 'Create customer', exact: true })
+    .click();
   const username = `test.ui-${Date.now()}@example.com`;
-  const form = page
-    .locator('.admin-revision > section')
-    .first()
-    .locator('form')
-    .first();
+  const form = page.locator('form');
   const usernameInput = form.getByLabel('Username', { exact: true });
   await usernameInput.fill('invalid username');
   expect(
@@ -204,14 +214,47 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
   await form.getByLabel('Display name', { exact: true }).fill('Demo UI User');
   await form.getByLabel('Initial password').fill('temporary-test-password');
   await form.getByLabel('Activity mode').selectOption('automation');
-  await form.getByRole('button', { name: 'Create user' }).click();
-  await expect(page.getByRole('status')).toContainText('Demo user created.');
+  await form.getByRole('button', { name: 'Create customer' }).click();
+  await expect(page.getByRole('status')).toContainText('Customer created.');
   const [created] = await pool.query(
     'SELECT id FROM demo_users WHERE username=?',
     [username],
   );
   userIds.push(created.id);
-  const bannerSection = page.locator('.admin-revision > section').nth(1),
+  await page
+    .getByRole('button', { name: 'View activity', exact: true })
+    .click();
+  await expect(
+    page.getByText('No recorded activity for this customer yet.'),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Disable customer', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Customer disabled');
+  await page
+    .getByRole('button', { name: 'Enable customer', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Customer enabled.');
+  await page
+    .getByLabel(`New password for ${username}`)
+    .fill('replaced-test-password');
+  await page
+    .getByRole('button', { name: 'Reset password', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Password replaced');
+  await expect(page.getByLabel(`New password for ${username}`)).toHaveValue('');
+  await menu(page, 'Manage Customers');
+  await page.getByLabel('Search customers').fill('no-such-test-customer');
+  await expect(page.getByText('No customers match your search.')).toBeVisible();
+  await page.getByLabel('Search customers').fill(username);
+  await expect(page.locator('.customer-row')).toHaveCount(1);
+  await page.locator('.customer-row').click();
+  await expect(
+    page.getByRole('heading', { name: 'Customer Details', exact: true }),
+  ).toBeVisible();
+  await noOverflow(page);
+  await menu(page, 'Manage Banners');
+  const bannerSection = page.locator('.admin-revision > section'),
     upload = bannerSection.locator('form').first();
   const buffer = await sharp({
     create: { width: 1200, height: 400, channels: 3, background: '#205747' },
@@ -241,11 +284,54 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
       .locator('.admin-banner')
       .filter({ has: page.locator('input[value="UI Upload Test"]') }),
   ).toBeVisible();
+  const uploadedCard = page
+    .locator('.admin-banner')
+    .filter({ has: page.locator('input[value="UI Upload Test"]') });
+  await uploadedCard
+    .getByLabel('Internal destination')
+    .selectOption('bill-pay');
+  await uploadedCard
+    .getByRole('button', { name: 'Save banner', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText(
+    'Banner settings saved.',
+  );
+  await page.reload();
+  await expect(uploadedCard.getByLabel('Internal destination')).toHaveValue(
+    'bill-pay',
+  );
+  const oldImageUrl = await uploadedCard.locator('img').getAttribute('src');
+  await uploadedCard
+    .locator('summary')
+    .filter({ hasText: 'Replace image' })
+    .click();
+  await uploadedCard
+    .getByLabel('Replacement image')
+    .setInputFiles({ name: 'replacement.png', mimeType: 'image/png', buffer });
+  await uploadedCard
+    .getByRole('button', { name: 'Replace image', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText(
+    'Banner uploaded and enabled.',
+  );
+  const [replacement] = await pool.query(
+    "SELECT id,asset_key FROM demo_banners WHERE title='UI Upload Test' AND id<>? ORDER BY created_at DESC LIMIT 1",
+    [uploaded.id],
+  );
+  uploads.push(replacement);
+  expect(replacement.asset_key).not.toBe(uploaded.asset_key);
+  expect((await page.request.get(oldImageUrl!)).status()).toBe(200);
+  const [retained] = await pool.query(
+    'SELECT enabled FROM demo_banners WHERE id=?',
+    [uploaded.id],
+  );
+  expect(Boolean(retained.enabled)).toBe(false);
+  await noOverflow(page);
   await page.goto('/');
   await page.getByLabel('Username', { exact: true }).fill(username);
   await page
     .getByLabel('Password', { exact: true })
-    .fill('temporary-test-password');
+    .fill('replaced-test-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Account Summary', exact: true }),
@@ -403,11 +489,11 @@ test('protected controls show explicit funnel denominators and start a new varia
 }) => {
   await entry(page);
   const original = await state(page);
-  await menu(page, 'Demo controls');
+  await page.goto('/controls/report');
   await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'Adoption report', exact: true }),
+    page.getByRole('heading', { name: 'Adoption Report', exact: true }),
   ).toBeVisible();
   await page
     .locator('.report-filters')
@@ -424,6 +510,9 @@ test('protected controls show explicit funnel denominators and start a new varia
     path: `artifacts/report-${test.info().project.name}.png`,
     fullPage: true,
   });
+  await menu(page, 'Manage Customers');
+  await page.getByLabel('Search customers').fill(original.user.username);
+  await page.locator('.customer-row').click();
   const userCard = page
     .locator('.admin-user')
     .filter({ hasText: original.user.username });
@@ -440,6 +529,11 @@ test('protected controls show explicit funnel denominators and start a new varia
   ids.push(configured.runId);
   expect(configured.variant).toBe('baseline');
   expect(configured.runId).not.toBe(original.runId);
+  await menu(page, 'Adoption Report');
+  await expect(
+    page.locator('.report-filters').getByLabel('Activity'),
+  ).toHaveValue('automation');
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByLabel('Admin password')).toBeVisible();
 });
@@ -502,5 +596,189 @@ test('abandonment and direct entry preserve form errors and keyboard actions', a
   expect((await state(page)).goals[0].currentMinor).toBe(0);
   expect(await count(direct.runId, 'promotion_clicked')).toBe(0);
   expect(await count(direct.runId, 'first_use')).toBe(1);
+  await noOverflow(page);
+});
+
+test('admin-only child routes, menu keyboard, missing pages, and expired access', async ({
+  page,
+  context,
+}) => {
+  const customerRequests: string[] = [];
+  page.on('request', (r) => {
+    if (
+      /\/api\/(state|interactions|events|banners\/next)(?:[/?]|$)/.test(
+        r.url(),
+      ) ||
+      /clarity\.ms/.test(r.url())
+    )
+      customerRequests.push(r.url());
+  });
+  await page.goto('/controls/customers');
+  await expect(page.getByLabel('Admin password')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open menu' })).toHaveCount(0);
+  await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByLabel('Search customers')).toBeVisible();
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Admin Menu', exact: true });
+  await expect(dialog).toBeVisible();
+  await page.screenshot({
+    path: `artifacts/admin-menu-${test.info().project.name}.png`,
+  });
+  await expect(
+    dialog.getByRole('link', { name: 'Manage Customers' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(
+    dialog.getByRole('link', { name: 'Account Summary' }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Close menu', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(
+    dialog.getByRole('button', { name: 'Sign out', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(
+    page.getByRole('button', { name: 'Close menu', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Open menu', exact: true }),
+  ).toBeFocused();
+  await noOverflow(page);
+  await page.screenshot({
+    path: `artifacts/admin-customers-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await menu(page, 'Adoption Report');
+  await page
+    .locator('.report-filters')
+    .getByLabel('Activity')
+    .selectOption('automation');
+  await page
+    .locator('.report-filters')
+    .getByLabel('Variant')
+    .selectOption('baseline');
+  await expect(
+    page.getByText('Eligible denominator', { exact: true }),
+  ).toBeVisible();
+  await menu(page, 'Manage Banners');
+  await expect(
+    page.getByRole('heading', { name: 'Banner images', exact: true }),
+  ).toBeVisible();
+  await menu(page, 'Adoption Report');
+  await expect(
+    page.locator('.report-filters').getByLabel('Activity'),
+  ).toHaveValue('automation');
+  await expect(
+    page.locator('.report-filters').getByLabel('Variant'),
+  ).toHaveValue('baseline');
+  await page.reload();
+  await expect(
+    page.getByRole('heading', { name: 'Adoption Report', exact: true }),
+  ).toBeVisible();
+  await page.goto('/controls/customers/missing-test-id');
+  await expect(
+    page.getByText('Customer not found. Choose a customer from the list.'),
+  ).toBeVisible();
+  await page.goto('/controls/unknown');
+  await expect(
+    page.getByRole('heading', { name: 'Admin page not found' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Back to Admin Home' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Admin Home', exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `artifacts/admin-home-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.goBack();
+  await expect(
+    page.getByRole('heading', { name: 'Admin page not found' }),
+  ).toBeVisible();
+  await page.goForward();
+  await expect(
+    page.getByRole('heading', { name: 'Admin Home', exact: true }),
+  ).toBeVisible();
+  const cookie = (await context.cookies()).find(
+    (c) => c.name === 'softek_admin',
+  )!;
+  await pool.query('DELETE FROM admin_sessions WHERE token_hash=?', [
+    createHash('sha256').update(cookie.value).digest('hex'),
+  ]);
+  await menu(page, 'Manage Customers');
+  await expect(page.getByLabel('Admin password')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('admin session expired');
+  await expect(page.getByLabel('Search customers')).toHaveCount(0);
+  expect(customerRequests).toEqual([]);
+});
+
+test('customer-only protection and independent sign-out with both sessions', async ({
+  page,
+  context,
+}) => {
+  await entry(page);
+  const original = await state(page);
+  await page.goto('/controls/customers');
+  await expect(page.getByLabel('Admin password')).toBeVisible();
+  await expect(page.getByLabel('Search customers')).toHaveCount(0);
+  const response = await context.request.get('/api/admin/users');
+  expect(response.status()).toBe(401);
+  await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByLabel('Search customers')).toBeVisible();
+  await page.getByLabel('Search customers').fill(original.user.username);
+  await page.locator('.customer-row').click();
+  await page
+    .getByRole('button', { name: 'View activity', exact: true })
+    .click();
+  await expect(
+    page.getByText('Recent customer activity', { exact: true }),
+  ).toBeVisible();
+  await menu(page, 'Manage Banners');
+  await page
+    .getByRole('heading', { name: 'Banner images', exact: true })
+    .waitFor();
+  const unchanged = await state(page);
+  expect(unchanged.runId).toBe(original.runId);
+  // Menu navigation and admin reads do not create another banking banner presentation.
+  const [presentations] = await pool.query(
+    'SELECT COUNT(*) AS n FROM banner_presentations WHERE run_id=?',
+    [original.runId],
+  );
+  expect(Number(presentations.n)).toBe(1);
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByLabel('Admin password')).toBeVisible();
+  expect((await state(page)).runId).toBe(original.runId);
+  await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page
+    .getByRole('heading', { name: 'Banner images', exact: true })
+    .waitFor();
+  await page.goto('/');
+  await page
+    .getByRole('heading', { name: 'Account Summary', exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  const customerMenu = page.getByRole('dialog', {
+    name: 'Customer Menu',
+    exact: true,
+  });
+  await expect(
+    customerMenu.getByRole('link', { name: 'Manage Customers' }),
+  ).toHaveCount(0);
+  await expect(
+    customerMenu.getByRole('link', { name: 'Account Summary' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByLabel('Username', { exact: true })).toBeVisible();
+  await page.goto('/controls/banners');
+  await expect(
+    page.getByRole('heading', { name: 'Banner images', exact: true }),
+  ).toBeVisible();
+  expect((await context.request.get('/api/state')).status()).toBe(401);
   await noOverflow(page);
 });

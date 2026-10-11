@@ -52,6 +52,8 @@ desktop. Database changes must use versioned migrations.
 The banking demo is live at `https://demo.bawebtech.com` through Nginx/Certbot.
 M1 and Plan 001 include real demo-user login, persistent user-owned runs,
 protected user/banner administration, ordered image rotation, savings goals,
-reset, and adoption reporting. Clarity collection remains disabled pending M2.
+reset, and adoption reporting. Plan 004 separates the Admin Menu and Customer
+Menu, with focused `/controls/*` pages and independent sign-outs. Clarity
+collection remains disabled pending M2.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

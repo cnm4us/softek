@@ -56,6 +56,26 @@ image/CSS assets, route transitions, and actual automation capture before relyin
 on the evaluation. See current official [Identify API](https://learn.microsoft.com/en-us/clarity/setup-and-installation/identify-api)
 and [heatmap URL filters](https://learn.microsoft.com/en-us/clarity/heatmaps/heatmaps-overview).
 
+## Approved menu revision (2026-10-11, America/Los_Angeles)
+
+The user approved two distinct menus: **Admin Menu** and **Customer Menu**.
+Implemented in the shared Harbor shell. Details: [Plan 004](plans/004-admin-and-customer-menus.md).
+
+- Admin Menu: Manage Customers, Manage Banners, Adoption Report, and admin
+  sign-out. All customer management belongs here, including creation, access,
+  password replacement, banking resets, eligibility/variant/activity mode,
+  Clarity ID copy, and individual activity.
+- Customer Menu: Account Summary, Transfers, Bill Pay, Cards, Savings Goals,
+  Statements, Support, and customer sign-out.
+- Admin uses its protected independent login; customers use their own logins.
+  Both surfaces retain the uniform mobile-first theme and desktop hamburger.
+- Customer administration uses a compact searchable list and selected-customer
+  details. Banners and reporting have their own protected admin pages.
+
+Routes and secondary demo-utility placement in Plan 004 are working choices.
+No account-template simplification, new banking service, or Clarity collection
+change was approved as part of this menu revision.
+
 ## First milestone: one complete adoption experiment
 
 Implemented working choice: one fictional institution, two customer profiles

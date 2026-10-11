@@ -19,7 +19,7 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 546 kB (161 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 559 kB (164 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 
@@ -33,7 +33,8 @@ its backlog ID.
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | M3 service expansion | Savings goals is the first working choice; no Access Softek offering is assumed |
 
-M1 and Plan 001 are complete. Q-003 is the next evaluation dependency:
+M1 and Plan 001 are complete. [Plan 004](plans/004-admin-and-customer-menus.md)
+covers the Admin/Customer menu organization and focused protected pages. Q-003 remains the next Clarity evaluation dependency:
 verify consent/masking behavior and required CSP domains in a controlled pilot.
 Owner-reported settings are recorded in PROJECT_STATE.md; actual playback and
 Chris's project access remain unverified. Host/database operation is documented in

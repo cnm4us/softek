@@ -1,4 +1,5 @@
 import { api, type State } from './api';
+import { isAdminRoute } from './routes';
 export const eventNames = [
   'eligible',
   'promotion_visible',
@@ -24,6 +25,7 @@ declare global {
 }
 export function collectionAvailable(state: State) {
   return (
+    !isAdminRoute(location.pathname) &&
     state.analytics.enabled &&
     import.meta.env.VITE_CLARITY_ENABLED === 'true' &&
     Boolean(state.analytics.projectId?.match(/^[a-z0-9]{6,30}$/))
@@ -114,6 +116,7 @@ export async function observe(
     | 'enrollment_started',
   placement: 'banner' | 'sidebar' | 'direct' = 'direct',
 ) {
+  if (isAdminRoute(location.pathname)) return { accepted: false, events: [] };
   const presentation =
     placement === 'sidebar'
       ? matchMedia('(min-width: 1100px)').matches

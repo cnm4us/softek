@@ -6,14 +6,12 @@ import {
   useEffect,
   useRef,
   useState,
-  type ReactNode,
   type FormEvent,
 } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   BrowserRouter,
   Link,
-  NavLink,
   Route,
   Routes,
   useNavigate,
@@ -23,9 +21,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Check,
-  ChevronRight,
   CreditCard,
-  Landmark,
   Leaf,
   LockKeyhole,
   Plus,
@@ -33,8 +29,6 @@ import {
   Sprout,
   Target,
   Wallet,
-  Menu,
-  X,
   LogOut,
 } from 'lucide-react';
 import { api, ApiError, minor, money, type State } from './api';
@@ -48,13 +42,16 @@ import {
 import {
   ImageBanner,
   Placeholder,
-  RevisionControls,
   sections,
   interaction,
   rememberBanner,
   restoreBanner,
   type Banner,
 } from './revision';
+import { Card, Alert, Heading } from './ui';
+import { AppShell } from './shell';
+import { AdminApp } from './admin';
+import { isAdminRoute } from './routes';
 import './theme.css';
 
 type Context = {
@@ -70,46 +67,6 @@ const Demo = createContext<Context>({
   login: async () => {},
 });
 const useDemo = () => useContext(Demo);
-function Card({
-  title,
-  children,
-  className = '',
-}: {
-  title?: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={`surface card ${className}`}>
-      {title && <h2>{title}</h2>}
-      {children}
-    </section>
-  );
-}
-function Alert({ message }: { message: string }) {
-  return message ? (
-    <p className="alert" role="alert">
-      {message}
-    </p>
-  ) : null;
-}
-function Heading({
-  eyebrow,
-  title,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="page-heading">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2 className="feature-title">{title}</h2>
-      {children && <p className="lead">{children}</p>}
-    </div>
-  );
-}
 function Entry() {
   const { login } = useDemo();
   const [username, setUsername] = useState(''),
@@ -747,289 +704,6 @@ function GoalCard({ goal }: { goal: State['goals'][number] }) {
     </Card>
   );
 }
-type Report = {
-  filters: { start: string; end: string; cutoff: string };
-  totalRuns: number;
-  eligibleRuns: number;
-  retiredRuns: number;
-  actors: { human: number; automation: number };
-  eventCount: number;
-  reach: { name: string; count: number; denominator: number }[];
-  funnel: { name: string; count: number; denominator: number }[];
-  serviceUse: {
-    enrolled: number;
-    firstUse: number;
-    repeatUse: number;
-    directFirstUse: number;
-  };
-  placements: { placement: string; visible: number; clicked: number }[];
-};
-const labels: Record<string, string> = {
-  eligible: 'Eligible',
-  promotion_visible: 'Promotion visible',
-  promotion_clicked: 'Promotion clicked',
-  details_viewed: 'Details viewed',
-  enrollment_started: 'Enrollment started',
-  enrollment_completed: 'Enrolled',
-  first_use: 'First use',
-  repeat_use: 'Repeat use',
-};
-function Controls() {
-  const { state, refresh } = useDemo();
-  const [auth, setAuth] = useState<string | null>(null),
-    [checked, setChecked] = useState(false),
-    [password, setPassword] = useState(''),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [report, setReport] = useState<Report | null>(null);
-  const [actor, setActor] = useState('human'),
-    [variantFilter, setVariantFilter] = useState('all'),
-    [start, setStart] = useState(''),
-    [end, setEnd] = useState(''),
-    [cutoff, setCutoff] = useState('');
-  useEffect(() => {
-    void api<{ authenticated: boolean; csrf?: string }>('/admin/status')
-      .then((s) => setAuth(s.csrf ?? null))
-      .catch((e) => setError(e.message))
-      .finally(() => setChecked(true));
-  }, []);
-  const load = useCallback(async () => {
-    const q = new URLSearchParams({ actor, variant: variantFilter });
-    for (const [key, value] of Object.entries({ start, end, cutoff }))
-      if (value) q.set(key, new Date(value + 'Z').toISOString());
-    setError('');
-    try {
-      setReport(await api<Report>('/admin/report?' + q));
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }, [actor, variantFilter, start, end, cutoff]);
-  useEffect(() => {
-    if (auth) void load();
-  }, [auth, load]);
-  async function login(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const result = await api<{ csrf: string }>('/admin/login', { password });
-      setPassword('');
-      setAuth(result.csrf);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  if (!checked) return <p role="status">Loading demo controls…</p>;
-  return (
-    <div data-clarity-mask="true">
-      <Heading
-        eyebrow="DEMONSTRATION WORKSPACE"
-        title="Demo controls & reporting."
-      />
-      {!auth ? (
-        <Card title="Protected demo controls" className="reading-width">
-          <div className="icon-circle">
-            <LockKeyhole size={24} />
-          </div>
-          <p>Sign in with the demo administrator password.</p>
-          <form onSubmit={(e) => void login(e)}>
-            <label>
-              Admin password
-              <input
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <Alert message={error} />
-            <button className="button" disabled={busy}>
-              {busy ? 'Signing in…' : 'Sign in'}
-            </button>
-          </form>
-        </Card>
-      ) : (
-        <>
-          <div className="controls-top">
-            <p className="small-note">
-              Current profile: {state?.profile.name ?? 'No active demo'}.
-              Changes start a new independent run and preserve the previous
-              history.
-            </p>
-            <button
-              className="text-button"
-              onClick={() => {
-                void api('/admin/logout', {}, auth)
-                  .then(() => {
-                    setAuth(null);
-                    setReport(null);
-                  })
-                  .catch((e) => setError(e.message));
-              }}
-            >
-              Sign out
-            </button>
-          </div>
-          <Alert message={error} />
-          <RevisionControls csrf={auth} onChanged={refresh} />
-          <Card title="Adoption report">
-            <p>
-              One institution · Savings goals · Savings launch campaign. Counts
-              represent distinct participant runs, including retired runs.
-            </p>
-            <div className="report-filters">
-              <label>
-                Activity
-                <select
-                  value={actor}
-                  onChange={(e) => setActor(e.target.value)}
-                >
-                  <option value="human">Human</option>
-                  <option value="automation">Automated journeys</option>
-                  <option value="all">All activity</option>
-                </select>
-              </label>
-              <label>
-                Variant
-                <select
-                  value={variantFilter}
-                  onChange={(e) => setVariantFilter(e.target.value)}
-                >
-                  <option value="all">All variants</option>
-                  <option value="baseline">Baseline</option>
-                  <option value="value">Value</option>
-                </select>
-              </label>
-              <label>
-                Runs started after (UTC)
-                <input
-                  type="datetime-local"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                />
-              </label>
-              <label>
-                Runs started before (UTC)
-                <input
-                  type="datetime-local"
-                  value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                />
-              </label>
-              <label>
-                Observe through (UTC)
-                <input
-                  type="datetime-local"
-                  value={cutoff}
-                  onChange={(e) => setCutoff(e.target.value)}
-                />
-              </label>
-              <button className="button secondary" onClick={() => void load()}>
-                Refresh report
-              </button>
-            </div>
-            {report && (
-              <>
-                <div className="metrics">
-                  <div>
-                    <strong>{report.totalRuns}</strong>
-                    <span>Total runs</span>
-                  </div>
-                  <div>
-                    <strong>{report.eligibleRuns}</strong>
-                    <span>Eligible denominator</span>
-                  </div>
-                  <div>
-                    <strong>{report.retiredRuns}</strong>
-                    <span>Retired runs</span>
-                  </div>
-                  <div>
-                    <strong>
-                      {report.actors.human} / {report.actors.automation}
-                    </strong>
-                    <span>Human / automated</span>
-                  </div>
-                </div>
-                <p className="small-note">
-                  UTC cohort: {new Date(report.filters.start).toISOString()}{' '}
-                  through {new Date(report.filters.end).toISOString()}.
-                  Observation cutoff:{' '}
-                  {new Date(report.filters.cutoff).toISOString()}.
-                </p>
-                <h3>Ordered adoption funnel</h3>
-                <p className="small-note">
-                  Each stage requires all previous stages in order. Conversion
-                  uses the previous qualifying stage as its denominator.
-                </p>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Stage</th>
-                        <th>Runs</th>
-                        <th>Previous stage</th>
-                        <th>Conversion</th>
-                        <th>All eligible reach</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {report.funnel.map((row, i) => (
-                        <tr key={row.name}>
-                          <th>{labels[row.name]}</th>
-                          <td>{row.count}</td>
-                          <td>{row.denominator}</td>
-                          <td>
-                            {row.denominator
-                              ? Math.round(
-                                  (row.count / row.denominator) * 100,
-                                ) + '%'
-                              : '—'}
-                          </td>
-                          <td>
-                            {report.reach[i]?.count} / {report.eligibleRuns}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <h3>Service use, including direct entry</h3>
-                <p>
-                  Enrolled: {report.serviceUse.enrolled} · First use:{' '}
-                  {report.serviceUse.firstUse} · Repeat on a later visit:{' '}
-                  {report.serviceUse.repeatUse} · First use without a prior
-                  promotion click: {report.serviceUse.directFirstUse}
-                </p>
-                <div className="placement-summary">
-                  {report.placements.map((p) => (
-                    <p key={p.placement}>
-                      <strong>
-                        {p.placement === 'sidebar'
-                          ? 'Sidebar / mobile inline'
-                          : 'Banner'}
-                      </strong>
-                      <br />
-                      {p.visible} visible · {p.clicked} clicked
-                    </p>
-                  ))}
-                </div>
-                <p className="small-note">
-                  Exposure requires at least 50% visibility for one continuous
-                  second in an active tab. Browser observations indicate
-                  behavior; enrollment and use are confirmed by the server.{' '}
-                  {report.eventCount} structured events in this selection.
-                </p>
-              </>
-            )}
-          </Card>
-        </>
-      )}
-    </div>
-  );
-}
 function About() {
   return (
     <div className="reading-width">
@@ -1104,22 +778,19 @@ function AnalyticsChoice() {
   );
 }
 const initialSummaryDocument = location.pathname === '/';
-let bootstrap: Promise<{ state: State; banner: Banner | null }> | undefined;
-function App() {
+let summaryDocumentInitialized = false;
+function CustomerApp() {
   const [state, setState] = useState<State | null>(null),
     [banner, setBanner] = useState<Banner | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
-    [menuOpen, setMenuOpen] = useState(false),
     [resetting, setResetting] = useState(false);
   const navigate = useNavigate(),
-    location = useLocation(),
-    menuButton = useRef<HTMLButtonElement>(null),
-    menuPanel = useRef<HTMLElement>(null);
-  const closeMenu = () => {
-    setMenuOpen(false);
-    menuButton.current?.focus();
-  };
+    location = useLocation();
+  const bootstrap = useRef<Promise<{
+    state: State;
+    banner: Banner | null;
+  }> | null>(null);
   const refresh = useCallback(async () => {
     try {
       const next = await api<State>('/state');
@@ -1138,14 +809,17 @@ function App() {
     }
   }, []);
   useEffect(() => {
-    bootstrap ??= (async () => {
+    const refreshDocument =
+      initialSummaryDocument && !summaryDocumentInitialized;
+    summaryDocumentInitialized = true;
+    bootstrap.current ??= (async () => {
       const next = await api<State>('/state');
       return {
         state: next,
-        banner: await restoreBanner(next, initialSummaryDocument),
+        banner: await restoreBanner(next, refreshDocument),
       };
     })();
-    void bootstrap
+    void bootstrap.current
       .then((result) => {
         setState(result.state);
         setBanner(result.banner);
@@ -1197,7 +871,6 @@ function App() {
       sessionStorage.removeItem('softek_banner');
       await refresh();
       navigate('/');
-      closeMenu();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1205,10 +878,7 @@ function App() {
     }
   }
   useEffect(() => {
-    closeMenu();
-    document.getElementById('main')?.focus({ preventScroll: true });
-    window.scrollTo(0, 0);
-    if (state && !['/controls', '/login'].includes(location.pathname))
+    if (state && location.pathname !== '/login')
       void interaction(state, 'page_view').catch(() => {});
   }, [location.pathname, state?.runId]);
   useEffect(() => {
@@ -1221,256 +891,136 @@ function App() {
     window.addEventListener('demo-action', handler);
     return () => window.removeEventListener('demo-action', handler);
   }, [state]);
-  useEffect(() => {
-    if (!menuOpen) return;
-    const controls = () =>
-      Array.from(
-        menuPanel.current?.querySelectorAll<HTMLElement>(
-          'a[href],button:not(:disabled)',
-        ) ?? [],
-      );
-    controls()[0]?.focus();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const keys = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        closeMenu();
-      }
-      if (e.key === 'Tab') {
-        const items = controls(),
-          first = items[0],
-          last = items.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
-        }
-      }
-    };
-    document.addEventListener('keydown', keys);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener('keydown', keys);
-    };
-  }, [menuOpen]);
-  const controlsPage = location.pathname === '/controls';
-  const title = controlsPage
-    ? 'Demo Administration'
-    : (sections.find((s) => s.href === location.pathname)?.label ??
-      (
-        {
-          '/savings-goals': 'Savings Goals',
-          '/enroll': 'Savings Goals',
-          '/about': 'About Harbor',
-        } as Record<string, string>
-      )[location.pathname] ??
-      'Harbor');
-  useEffect(() => {
-    document.title = `${state || controlsPage ? title : 'Sign in'} · Harbor Community Bank`;
-  }, [title, state, controlsPage]);
+  const title =
+    sections.find((s) => s.href === location.pathname)?.label ??
+    (
+      {
+        '/savings-goals': 'Savings Goals',
+        '/enroll': 'Savings Goals',
+        '/about': 'About Harbor',
+      } as Record<string, string>
+    )[location.pathname] ??
+    'Harbor';
   return (
     <Demo.Provider value={{ state, banner, refresh, login }}>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <header
-        className={`site-header ${state || controlsPage ? 'section-header' : 'login-header'}`}
-      >
-        {state || controlsPage ? (
-          <div>
-            <p className="section-eyebrow">HARBOR COMMUNITY BANK</p>
-            <h1>{title}</h1>
-          </div>
-        ) : (
-          <Link
-            to="/"
-            className="brand"
-            aria-label="Harbor Community Bank home"
-          >
-            <span className="brand-mark">
-              <Landmark size={26} />
-            </span>
-            <span>
-              <strong>Harbor</strong>
-              <span className="brand-subtitle">COMMUNITY BANK</span>
-            </span>
-          </Link>
-        )}
-        {state || controlsPage ? (
-          <button
-            ref={menuButton}
-            className="menu-button"
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            aria-controls="bank-menu"
-            onClick={() => {
-              setMenuOpen(true);
-              if (state && !controlsPage)
-                void interaction(state, 'menu_open').catch(() => {});
-            }}
-          >
-            <Menu size={24} />
-          </button>
-        ) : null}
-      </header>
-      {menuOpen && (
-        <div className="menu-overlay">
-          <button
-            className="menu-backdrop"
-            tabIndex={-1}
-            aria-label="Close navigation"
-            onClick={closeMenu}
-          />
-          <nav
-            ref={menuPanel}
-            id="bank-menu"
-            className="bank-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Banking menu"
-          >
-            <div className="menu-top">
-              <strong>Harbor</strong>
-              <button
-                className="menu-button"
-                aria-label="Close menu"
-                onClick={closeMenu}
-              >
-                <X size={22} />
-              </button>
-            </div>
+      <AppShell
+        area="Customer"
+        title={state ? title : null}
+        authenticated={Boolean(state)}
+        sections={sections}
+        greeting={state?.profile.firstName}
+        onMenuOpen={() => {
+          if (state) void interaction(state, 'menu_open').catch(() => {});
+        }}
+        onSelect={(key) => {
+          if (state)
+            void interaction(state, 'menu_selected', { targetKey: key }).catch(
+              () => {},
+            );
+        }}
+        actions={
+          <>
+            <Link to="/about">About this demo</Link>
             {state && (
-              <p className="menu-greeting" data-clarity-mask="true">
-                Welcome, {state.profile.firstName}
-              </p>
+              <>
+                <button
+                  className="text-button"
+                  disabled={resetting}
+                  onClick={() => void reset()}
+                >
+                  {resetting ? 'Resetting…' : 'Reset my demo'}
+                </button>
+                <button className="text-button" onClick={() => void logout()}>
+                  <LogOut size={17} />
+                  Sign out
+                </button>
+              </>
             )}
-            {sections.map((section) => (
-              <NavLink
-                end={section.href === '/'}
-                key={section.key}
-                to={section.href}
-                onClick={() => {
-                  if (state && !controlsPage)
-                    void interaction(state, 'menu_selected', {
-                      targetKey: section.key,
-                    }).catch(() => {});
-                  closeMenu();
-                }}
-              >
-                {section.label}
-                <ChevronRight size={16} />
-              </NavLink>
-            ))}
-            <div className="menu-secondary">
-              <Link to="/about" onClick={closeMenu}>
-                About this demo
-              </Link>
-              <Link
-                to="/controls"
-                onClick={() => {
-                  if (window.clarity) {
-                    window.clarity('consentv2', {
-                      ad_Storage: 'denied',
-                      analytics_Storage: 'denied',
-                    });
-                    window.location.assign('/controls');
-                  } else closeMenu();
-                }}
-              >
-                Demo controls
-              </Link>
-              {state && (
-                <>
-                  <button
-                    className="text-button"
-                    disabled={resetting}
-                    onClick={() => void reset()}
-                  >
-                    {resetting ? 'Resetting…' : 'Reset my demo'}
-                  </button>
-                  <button className="text-button" onClick={() => void logout()}>
-                    <LogOut size={17} />
-                    Sign out
-                  </button>
-                </>
-              )}
-            </div>
-          </nav>
-        </div>
-      )}
-      <div className="app-layout">
-        <main id="main" tabIndex={-1}>
-          <Alert message={error} />
-          {loading ? (
-            <p role="status">Preparing your Harbor experience…</p>
-          ) : error && !state && !controlsPage ? (
-            <Card title="Let’s reconnect">
-              <p>We couldn’t reach your accounts.</p>
-              <button
-                className="button"
-                onClick={() => void refresh().catch(() => {})}
-              >
-                Try again
-              </button>
-            </Card>
-          ) : (
-            <Routes>
-              <Route path="/controls" element={<Controls />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/login" element={<Entry />} />
-              {state ? (
-                <>
-                  <Route path="/" element={<Overview />} />
-                  <Route path="/savings-goals" element={<Details />} />
-                  <Route path="/enroll" element={<Enrollment />} />
-                  <Route path="/goals" element={<Goals />} />
-                  {sections
-                    .filter((s) => !['summary', 'goals'].includes(s.key))
-                    .map((section) => (
-                      <Route
-                        key={section.key}
-                        path={section.href}
-                        element={
-                          <Placeholder
-                            title={section.label}
-                            kind={section.key}
-                          />
-                        }
-                      />
-                    ))}
-                  <Route
-                    path="*"
-                    element={
-                      <Card title="Page not found">
-                        <Link className="button" to="/">
-                          Back to Account Summary
-                        </Link>
-                      </Card>
-                    }
-                  />
-                </>
-              ) : (
-                <Route path="*" element={<Entry />} />
-              )}
-            </Routes>
-          )}
-        </main>
-      </div>
-      {!controlsPage && <AnalyticsChoice />}
-      <footer className="site-footer">
-        Harbor Community Bank · Fictional demonstration · No real money moves
-        {!state && <Link to="/controls"> · Demo controls</Link>}
-      </footer>
+          </>
+        }
+        footer={!state && <a href="/controls"> · Admin sign-in</a>}
+      >
+        <Alert message={error} />
+        {loading ? (
+          <p role="status">Preparing your Harbor experience…</p>
+        ) : error && !state ? (
+          <Card title="Let’s reconnect">
+            <p>We couldn’t reach your accounts.</p>
+            <button
+              className="button"
+              onClick={() => void refresh().catch(() => {})}
+            >
+              Try again
+            </button>
+          </Card>
+        ) : (
+          <Routes>
+            <Route path="/about" element={<About />} />
+            <Route path="/login" element={<Entry />} />
+            {state ? (
+              <>
+                <Route path="/" element={<Overview />} />
+                <Route path="/savings-goals" element={<Details />} />
+                <Route path="/enroll" element={<Enrollment />} />
+                <Route path="/goals" element={<Goals />} />
+                {sections
+                  .filter((s) => !['summary', 'goals'].includes(s.key))
+                  .map((section) => (
+                    <Route
+                      key={section.key}
+                      path={section.href}
+                      element={
+                        <Placeholder title={section.label} kind={section.key} />
+                      }
+                    />
+                  ))}
+                <Route
+                  path="*"
+                  element={
+                    <Card title="Page not found">
+                      <Link className="button" to="/">
+                        Back to Account Summary
+                      </Link>
+                    </Card>
+                  }
+                />
+              </>
+            ) : (
+              <Route path="*" element={<Entry />} />
+            )}
+          </Routes>
+        )}
+        <AnalyticsChoice />
+      </AppShell>
     </Demo.Provider>
   );
+}
+function AdminDocument() {
+  const [captureActive] = useState(() => Boolean(window.clarity));
+  useEffect(() => {
+    if (captureActive) {
+      window.clarity?.('consentv2', {
+        ad_Storage: 'denied',
+        analytics_Storage: 'denied',
+      });
+      sessionStorage.removeItem('softek_analytics_consent');
+      window.location.replace(window.location.href);
+    }
+  }, [captureActive]);
+  return captureActive ? (
+    <p role="status">Opening admin access…</p>
+  ) : (
+    <AdminApp />
+  );
+}
+function Application() {
+  const location = useLocation();
+  return isAdminRoute(location.pathname) ? <AdminDocument /> : <CustomerApp />;
 }
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <Application />
     </BrowserRouter>
   </StrictMode>,
 );

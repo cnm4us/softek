@@ -96,7 +96,8 @@ admin DB, migration, and test credentials.
 | `VITE_CLARITY_ENABLED` | Public build gate, false |
 
 Open your private `.env` in VS Code to retrieve `DEMO_ADMIN_SECRET`, then sign in
-at `/controls`. A banking login is not required for admin access. In Users, create
+at `/controls`. A banking login is not required for admin access. Open the
+upper-right **Admin Menu → Manage Customers**, then **Create customer**, to create
 a unique username (case-insensitive ASCII, 3–40 characters; email addresses with
 @ and plus aliases are accepted within that limit), fictional display
 label, password (8–128 characters), profile, eligibility, variant, and actor.
@@ -107,6 +108,16 @@ enable/disable, or explicitly reset/reconfigure a selected user. Password reset
 and disable revoke authentication without clearing banking state. The report defaults to human activity. Switch to automated journeys
 to view deployed smoke checks. Admin sessions expire after one hour.
 
+Admin home is `/controls`; the customer list is `/controls/customers`, creation
+is `/controls/customers/new`, and selected actions are under `/controls/customers/:userId`.
+Adoption Report is `/controls/report`. Direct child links/reloads require the same
+admin sign-in and preserve the requested destination. Report filters persist during
+admin menu navigation, then reset on reload/sign-out. Missing pages/customers have
+return links. Admin sign-out preserves a banking session; customer sign-out preserves
+admin access. Customer navigation uses the separate **Customer Menu**. The customer
+login footer links to admin sign-in; the admin footer links to the customer site.
+
+
 Clarity needs both collection gates, a valid verified project ID, a matching
 frontend build, visitor opt-in, and an approved Nginx CSP. The current CSP permits
 only same-origin scripts/connections. Updating it for verified Clarity domains
@@ -116,7 +127,8 @@ playback, account switching, consent behavior, and Chris's access remain M2 chec
 
 ## Banner administration
 
-Use Banners in `/controls` to upload, preview, set accessible link text, choose an
+Use **Admin Menu → Manage Banners** (`/controls/banners`) to upload, preview,
+set accessible link text, choose an
 internal destination, set order, enable/disable, or upload a replacement. JPEG,
 PNG, and WebP are supported; maximum upload 5 MiB and dimensions 4096×4096.
 Recommended artwork is 3:1 (1200×400), with important text inside image margins.

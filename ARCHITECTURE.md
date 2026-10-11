@@ -288,3 +288,39 @@ The optional `?banner=` heatmap parameter is deferred pending that validation.
 contract (assigned alias, viewport, waits, click/skip, menu routes); it is not a
 runner or scheduler. Routine authenticated Playwright/public smoke journeys remain
 collection-off. The small Clarity capture pilot belongs to Plan 002.
+
+## Admin and Customer route boundaries — Plan 004
+
+The shared `AppShell` supplies Harbor section titles, theme, a focus-contained
+upper-right menu, route focus, and static document titles. Its route/action
+registry and visible dialog label identify **Admin Menu** or **Customer Menu**.
+Selected customer names and usernames never enter document titles.
+
+`routes.ts` defines the `/controls` and all `/controls/*` admin boundary.
+`Application` mounts `AdminApp` or `CustomerApp` independently: admin pages check
+only the admin session and load their own protected data. They never bootstrap
+banking state or depend on customer refresh. Admin and customer cookies, CSRF,
+and sign-out remain independent, even when both sessions exist. Protected server
+APIs remain the authorization authority; expired admin requests unmount private
+tool state and show sign-in at the requested destination.
+
+`/controls` remains the entry/home; `/controls/customers` is a searchable compact
+list, `/controls/customers/new` creates a login, and `/controls/customers/:userId`
+shows one selected customer's actions. Existing protected list data resolves the
+selected UUID; activity loads on demand. Forms are keyed by customer ID so switching
+customers clears inputs. `/controls/banners` and `/controls/report` load separately.
+Report filters live in bounded admin session UI state across menu navigation and
+reset on document reload/sign-out. Only the latest filter response can replace
+report data. No schema or API contract change was needed.
+
+The Customer Menu retains banking routes plus secondary About/reset utilities.
+Admin entry is on the customer login footer; direct `/controls` works without
+banking authentication. Customer bootstrap is retained only for its component
+lifetime, with a document-level guard preventing duplicate Summary refreshes or
+advancement on SPA menu returns. Data reads/admin navigation do not advance banners.
+
+The admin subtree is wholly masked, with no customer consent UI, page/menu events,
+or Clarity initialization. Analytics helpers also reject every admin descendant.
+Crossing into admin from an already captured SPA document denies consent and opens
+a new document before rendering private tools. These boundaries are verified with
+collection off; actual SDK playback/masking remains Plan 002 acceptance.

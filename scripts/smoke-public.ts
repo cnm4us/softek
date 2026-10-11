@@ -127,18 +127,38 @@ try {
     assert.equal(saved.runId, initial.runId);
     assert.equal(saved.user.id, initial.user.id);
     assert.equal(saved.goals[0].currentMinor, 1000);
-    await menu('Demo controls');
+    await page.goto(origin + '/controls/report');
     await page
-      .getByRole('heading', { name: 'Adoption report', exact: true })
+      .getByRole('heading', { name: 'Adoption Report', exact: true })
       .waitFor();
     await page
       .locator('.report-filters')
       .getByLabel('Activity')
       .selectOption('automation');
     await page.getByText('Eligible denominator', { exact: true }).waitFor();
+    await menu('Manage Customers');
+    await page.getByLabel('Search customers').fill(username);
+    await page.locator('.customer-row').click();
+    await page
+      .getByRole('heading', { name: 'Customer Details', exact: true })
+      .waitFor();
+    await menu('Manage Banners');
+    await page
+      .getByRole('heading', { name: 'Banner images', exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: `artifacts/live-admin-${viewport.width}.png`,
+      fullPage: true,
+    });
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await page.getByLabel('Admin password').waitFor();
-    await menu('Account Summary');
+    await page.reload();
+    await page.getByLabel('Admin password').waitFor();
+    await page.goto(origin + '/');
+    await page
+      .getByRole('heading', { name: 'Account Summary', exact: true })
+      .waitFor();
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
       .getByRole('button', { name: 'Reset my demo', exact: true })

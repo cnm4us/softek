@@ -4,8 +4,10 @@ Plan ID: **002**. Milestone: **M2**.
 Lifecycle status: [PROJECT_STATE.md](../PROJECT_STATE.md#plan-status-registry).
 
 Depends on [Plan 001](001-login-layout-and-banners.md) for authenticated users,
-creative rotation, and interaction context. M2-01 project/access/settings review
-can proceed independently; final capture acceptance follows Plan 001's deployment.
+creative rotation, and interaction context, and [Plan 004](004-admin-and-customer-menus.md)
+for the final Admin/Customer menu surfaces. M2-01 project/access/settings review
+can proceed independently; final capture acceptance follows Plan 004's deployment.
+Plan 004 is deployed; this plan is the next focus. Preserve existing settings/hosting evidence.
 M2-02/03 retain their existing completed hosting evidence.
 
 Owns actual project verification, human recordings/heatmaps, a small controlled
