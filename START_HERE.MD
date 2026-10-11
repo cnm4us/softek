@@ -6,9 +6,12 @@ helps explain adoption of optional banking services.
 ## Fresh-agent sequence
 
 1. Read [AGENTS.md](AGENTS.md) for working rules.
-2. Read [PROJECT_STATE.md](PROJECT_STATE.md) for verified status and the next task.
+2. Read [PROJECT_STATE.md](PROJECT_STATE.md) for the plan status registry, verified
+   status, current request scope, and the next task.
 3. Read [PRODUCT.md](PRODUCT.md) for the intended outcome and design constraints.
-4. Read the active milestone in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+4. Open the active individual plan linked from the state registry. Use
+   [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the roadmap/dependencies;
+   detailed tasks and acceptance criteria are in `plans/`.
 5. Read [ARCHITECTURE.md](ARCHITECTURE.md), [LOCAL_SETUP.md](LOCAL_SETUP.md), and
    [TESTING.MD](TESTING.MD) as needed for that task.
 6. Inspect `git status --short --branch`, existing code, and relevant migration
@@ -18,8 +21,8 @@ helps explain adoption of optional banking services.
 Suggested prompt when opening a fresh thread:
 
 > Read AGENTS.md and START_HERE.MD, inspect PROJECT_STATE.md and the active
-> implementation milestone, then continue the next task. Verify current files
-> before assuming the documented state is still accurate.
+> plan linked from its status registry, then continue the next authorized task.
+> Verify current files before assuming the documented state is still accurate.
 
 ## Document map
 
@@ -27,9 +30,10 @@ Suggested prompt when opening a fresh thread:
 | --- | --- |
 | [PRODUCT.md](PRODUCT.md) | Product requirements and first-demo definition |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design boundaries and decision record |
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Milestones and task status |
+| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Roadmap and individual plan index |
+| [plans/](plans/) | Numbered plans with scope, tasks, and acceptance criteria |
 | [BACKLOG.md](BACKLOG.md) | Deferred features and open questions |
-| [PROJECT_STATE.md](PROJECT_STATE.md) | Current handoff and verification evidence |
+| [PROJECT_STATE.md](PROJECT_STATE.md) | Plan status registry, current handoff, and verification evidence |
 | [LOCAL_SETUP.md](LOCAL_SETUP.md) | Setup, configuration, and host operation |
 | [TESTING.MD](TESTING.MD) | Meaningful verification and acceptance checks |
 | [TOOLS.md](TOOLS.md) | Available tools and usage conventions |

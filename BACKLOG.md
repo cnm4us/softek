@@ -1,8 +1,10 @@
 # Backlog
 
-The ordered, active work lives in
-[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). This file holds later scope and
-open questions. Promote an item into the plan when it becomes active; retain its ID.
+The roadmap lives in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md); detailed
+tasks live in its linked `plans/` files. [PROJECT_STATE.md](PROJECT_STATE.md#plan-status-registry)
+owns lifecycle statuses and the current focus. This file holds later scope and
+open questions. Promote an item into an individual plan when prioritized; retain
+its backlog ID.
 
 ## Deferred features
 
@@ -18,6 +20,7 @@ open questions. Promote an item into the plan when it becomes active; retain its
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
 | B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 523 kB (156 kB gzip); Vite emits a size advisory |
+| B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 
 `Next` means after the initial complete flow, not permission to expand M1.
@@ -26,12 +29,12 @@ open questions. Promote an item into the plan when it becomes active; retain its
 
 | ID | Question | Needed by | Current handling |
 | --- | --- | --- | --- |
-| Q-003 | Is Clarity project `yvs5hp3ivb` intended for this demo, and which collection settings apply? | M2-01 | Candidate project only; collection disabled |
+| Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | User confirmed intended project; Chris needs a Member invitation; collection disabled |
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | M3 service expansion | Savings goals is the first working choice; no Access Softek offering is assumed |
 
 M1 and banking deployment are complete. Q-003 is the next evaluation dependency:
-verify the intended Clarity project, consent/masking settings, and required CSP
+verify the confirmed project's consent/masking settings and required CSP
 domains before enabling collection. Host/database operation is documented in
 `LOCAL_SETUP.md`.
 

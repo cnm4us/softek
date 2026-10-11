@@ -22,6 +22,40 @@ Access Softek's unknown production platform or connect to real financial systems
 - Instrument the adoption journey in our database and, when enabled, Clarity.
 - Preserve enough documentation for a fresh agent to resume implementation.
 
+## Approved demo revision (2026-10-11, America/Los_Angeles)
+
+The user approved these decisions during discussion; application changes have
+not started yet:
+
+- Initial screen: logo/name above a simple real username/password login form.
+- Admin creates demo users and resets passwords; no self-registration.
+- Each demo user retains accounts, enrollment, and goals across logout/login
+  until an explicit reset. User identity persists separately from resettable runs.
+- Logged-in screens use the section title at the top; the home title is
+  **Account Summary**. Hamburger navigation is in the upper-right.
+- Immediately below that title, show a banner image with margin on all sides,
+  followed by the existing accounts, recent activity, and goals.
+- Banking menu sections use themed placeholder pages initially, while existing
+  savings goals continues to work.
+- Admin uploads/manages ordered enabled banners and selects internal demo-page
+  destinations only; external links are excluded.
+- Rotate enabled banners in order on login and full Account Summary refresh.
+  Returning through the menu preserves the current banner. Data refetches and
+  duplicate component initialization must not advance the sequence.
+- Clarity is a central acceptance requirement: Chris must be able to exercise
+  individual demo users and find their activity in actual Clarity recordings
+  and heatmaps. Controlled automation evaluation is separate from routine tests.
+
+Clarity design must use a stable pseudonymous demo-user ID, with run/visit/page
+identity separate. Record banner identity and visibility/click/action milestones.
+Rotation on one URL can mix creatives in an aggregate heatmap: validate filters
+and screenshots, and evaluate a public banner-only URL parameter for exact
+per-banner heatmaps. Do not put usernames or other private data into URLs/tags.
+Verify shared-browser account switching, opt-in/masking, publicly readable
+image/CSS assets, route transitions, and actual automation capture before relying
+on the evaluation. See current official [Identify API](https://learn.microsoft.com/en-us/clarity/setup-and-installation/identify-api)
+and [heatmap URL filters](https://learn.microsoft.com/en-us/clarity/heatmaps/heatmaps-overview).
+
 ## First milestone: one complete adoption experiment
 
 Implemented working choice: one fictional institution, two customer profiles
@@ -57,8 +91,9 @@ experiment controls follow this milestone; see [BACKLOG.md](BACKLOG.md).
   reliance on hover. Forms and enrollment must work with the on-screen keyboard.
 - Use a design target of at least 44 CSS pixels for primary touch controls; keep
   labels, visible focus, and readable contrast throughout the application.
-- Desktop can add columns, a side navigation, and sidebar promotions while keeping
-  the same components, terminology, and hierarchy.
+- Desktop can add columns and sidebar promotions while keeping the same
+  components, terminology, and hierarchy. The approved revision uses the
+  upper-right hamburger menu on desktop as well as mobile.
 - Errors preserve entered data and explain how to proceed. Success states explain
   the action completed and provide the next useful action.
 - Make the fictional-demo status visible without exposing developer terminology
@@ -111,9 +146,11 @@ Use pseudonymous, fictional IDs. Do not include names, account numbers, balances
 free-text goals, credentials, or other sensitive content in Clarity tags, events,
 identifiers, or URLs. Demonstrate masking for banking details.
 
-Clarity project `yvs5hp3ivb` is a candidate from the handoff, not a verified active
-configuration. Confirm project ownership/intended use, current consent and
-collection requirements, masking, and recording behavior before enabling it.
+The user confirmed Clarity project `yvs5hp3ivb` is the intended demo project and
+has created the account. Chris does not yet have project access. The existing
+loader needs only this project ID; the manual-install snippet is not required.
+Verify current consent/collection settings, masking, and recording behavior
+before enabling it. Chris needs a Clarity team-member invitation to review data.
 
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.

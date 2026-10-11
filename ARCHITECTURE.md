@@ -38,12 +38,19 @@ tests/
   migrations.test.ts   # MariaDB migration contract checks
   e2e/                 # Browser journeys
 deploy/                # Nginx configurations and public placeholder source
+plans/                 # Numbered implementation plans; root roadmap links them
 agents/
   plans/initial_handoff.md
 ```
 
 Use npm workspaces and one committed lockfile. Avoid extra infrastructure or a
 generic framework for a single demo. Add shared packages only for real reuse.
+
+Documentation boundaries: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) is the
+roadmap, individual `plans/` files own detailed tasks and acceptance, and
+[PROJECT_STATE.md](PROJECT_STATE.md#plan-status-registry) owns lifecycle statuses,
+verification evidence, and the current resume point. The original handoff remains
+historical background at its existing path.
 
 ## Frontend boundaries
 
