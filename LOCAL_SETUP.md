@@ -97,7 +97,8 @@ admin DB, migration, and test credentials.
 
 Open your private `.env` in VS Code to retrieve `DEMO_ADMIN_SECRET`, then sign in
 at `/controls`. A banking login is not required for admin access. In Users, create
-a unique username (case-insensitive ASCII, 3–40 characters), fictional display
+a unique username (case-insensitive ASCII, 3–40 characters; email addresses with
+@ and plus aliases are accepted within that limit), fictional display
 label, password (8–128 characters), profile, eligibility, variant, and actor.
 Use Human for ordinary demo logins; Automation requires the private harness
 header. First login creates banking state; later login resumes the same state.

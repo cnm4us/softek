@@ -182,13 +182,25 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
   await expect(
     page.getByRole('heading', { name: 'Demo users', exact: true }),
   ).toBeVisible();
-  const username = `test.ui-${Date.now()}`;
+  const username = `test.ui-${Date.now()}@example.com`;
   const form = page
     .locator('.admin-revision > section')
     .first()
     .locator('form')
     .first();
-  await form.getByLabel('Username', { exact: true }).fill(username);
+  const usernameInput = form.getByLabel('Username', { exact: true });
+  await usernameInput.fill('invalid username');
+  expect(
+    await usernameInput.evaluate(
+      (input: HTMLInputElement) => input.validity.patternMismatch,
+    ),
+  ).toBe(true);
+  await usernameInput.fill(username);
+  expect(
+    await usernameInput.evaluate((input: HTMLInputElement) =>
+      input.checkValidity(),
+    ),
+  ).toBe(true);
   await form.getByLabel('Display name', { exact: true }).fill('Demo UI User');
   await form.getByLabel('Initial password').fill('temporary-test-password');
   await form.getByLabel('Activity mode').selectOption('automation');

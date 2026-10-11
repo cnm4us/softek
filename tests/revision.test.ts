@@ -157,6 +157,57 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
         assert.equal((await legacy.request('/state')).status, 401);
       },
     );
+    await t.test(
+      'email usernames normalize on creation/login and invalid fields get useful errors',
+      async () => {
+        const email = `test.${randomUUID().slice(0, 8)}+pilot@example.com`;
+        const details = {
+          username: ` ${email.toUpperCase()} `,
+          password: 'demo-pass',
+          displayName: 'Fictional Email User',
+          profileId: 'alex',
+          variant: 'value',
+          eligible: true,
+          actor: 'human',
+        };
+        const created = await admin.request('/admin/users', details);
+        assert.equal(created.status, 201);
+        users.push(created.data.id);
+        assert.equal(created.data.username, email);
+        const customer = new Client();
+        const logged = await customer.request(
+          '/auth/login',
+          {
+            username: email.toUpperCase(),
+            password: details.password,
+            requestId: randomUUID(),
+          },
+          { automated: false },
+        );
+        assert.equal(logged.status, 200);
+        assert.equal((await customer.state()).user.id, created.data.id);
+        assert.equal(
+          (await admin.request('/admin/users', { ...details, username: email }))
+            .status,
+          409,
+        );
+        for (const [field, value, message] of [
+          ['username', 'invalid username', 'Username'],
+          ['username', 'a'.repeat(41), 'Username'],
+          ['password', 'short', 'Initial password'],
+          ['displayName', '  ', 'Display name'],
+        ]) {
+          const rejected = await admin.request('/admin/users', {
+            ...details,
+            [field!]: value,
+          });
+          assert.equal(rejected.status, 400);
+          assert.ok(rejected.data.error.startsWith(message));
+          assert.ok(!rejected.data.error.includes(details.password));
+          assert.ok(!rejected.data.error.includes(email));
+        }
+      },
+    );
     let original: any, bannerA: any;
     await t.test(
       'concurrent first logins create one owned current run',

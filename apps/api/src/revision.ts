@@ -35,7 +35,7 @@ const username = z
   .toLowerCase()
   .min(3)
   .max(40)
-  .regex(/^[a-z0-9._-]+$/);
+  .regex(/^[a-z0-9._@+-]+$/);
 const password = z.string().min(8).max(128);
 
 export async function authenticatedRun(
@@ -383,7 +383,7 @@ export function registerRevision(ctx: Context) {
   });
   app.post('/api/admin/users', async (req, res) => {
     await admin(req, true);
-    const b = z
+    const parsed = z
       .object({
         username,
         password,
@@ -394,7 +394,25 @@ export function registerRevision(ctx: Context) {
         actor: z.enum(['human', 'automation']).default('human'),
       })
       .strict()
-      .parse(req.body);
+      .safeParse(req.body);
+    if (!parsed.success) {
+      const messages: Record<string, string> = {
+        username:
+          'Username must be 3–40 characters and use letters, numbers, dots, underscores, hyphens, @ or +.',
+        password: 'Initial password must be 8–128 characters.',
+        displayName: 'Display name must be 1–100 characters.',
+        profileId: 'Choose a starting accounts template.',
+        variant: 'Choose a campaign variant.',
+        eligible: 'Choose whether this user is eligible for savings goals.',
+        actor: 'Choose an activity mode.',
+      };
+      throw new HttpError(
+        400,
+        messages[String(parsed.error.issues[0]?.path[0])] ??
+          'Check the entered details and try again.',
+      );
+    }
+    const b = parsed.data;
     const id = randomUUID(),
       stored = await passwordHash(b.password);
     try {

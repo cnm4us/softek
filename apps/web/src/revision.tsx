@@ -330,10 +330,22 @@ export function RevisionControls({
               required
               minLength={3}
               maxLength={40}
-              pattern="[A-Za-z0-9._-]+"
+              pattern={'[A-Za-z0-9._@+\\-]+'}
+              title="Use letters, numbers, dots, underscores, hyphens, @ or +."
+              aria-describedby="create-username-hint"
               autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
             />
           </label>
+          <p
+            id="create-username-hint"
+            className="small-note"
+            style={{ gridColumn: '1 / -1' }}
+          >
+            Usernames or email addresses, 3–40 characters. Use letters, numbers,
+            dots, underscores, hyphens, @ or +.
+          </p>
           <label>
             Display name
             <input name="displayName" required maxLength={100} />
@@ -347,8 +359,16 @@ export function RevisionControls({
               minLength={8}
               maxLength={128}
               autoComplete="new-password"
+              aria-describedby="create-password-hint"
             />
           </label>
+          <p
+            id="create-password-hint"
+            className="small-note"
+            style={{ gridColumn: '1 / -1' }}
+          >
+            Choose an initial password with 8–128 characters.
+          </p>
           <label>
             Starting accounts
             <select name="profileId">

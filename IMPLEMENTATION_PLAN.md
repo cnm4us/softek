@@ -10,7 +10,7 @@ verification evidence, and the resume point live in
 | ID | Plan | Scope and dependencies |
 | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Original M0/M1 checklists and acceptance history |
-| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | M1-R01–07; depends on 000 |
+| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | M1-R01–08; depends on 000 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; capture acceptance follows 001, settings/access review can start earlier |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 

@@ -20,7 +20,7 @@ try {
     });
     assert.equal(adminLogin.status(), 200);
     const admin = await adminLogin.json();
-    const username = `test.public-${randomUUID().slice(0, 16)}`,
+    const username = `test.public-${randomUUID().slice(0, 10)}@example.com`,
       password = randomUUID();
     const created = await context.request.post(origin + '/api/admin/users', {
       headers: { Origin: origin, 'X-CSRF-Token': admin.csrf },

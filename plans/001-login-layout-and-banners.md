@@ -3,7 +3,7 @@
 Plan ID: **001**. Milestone: **M1-R**. Depends on: [Plan 000](000-foundation-and-first-demo.md).
 Lifecycle status and current task: [PROJECT_STATE.md](../PROJECT_STATE.md#plan-status-registry).
 
-Owns M1-R01–07: users and sessions, persistent ownership, layout/navigation,
+Owns M1-R01–08: users and sessions, persistent ownership, layout/navigation,
 banner administration and rotation, interaction instrumentation, verification,
 and collection-off deployment. [Plan 002](002-clarity-validation.md) owns live
 Clarity acceptance. [Plan 003](003-automation-journeys.md) outlines later automation.
@@ -98,7 +98,8 @@ must distinguish schema validation from the existing migration-runner tests.
   elaborate composition rules.
 - [x] Apply username normalization consistently on create and login. Proposed
   usernames are case-insensitive ASCII letters, digits, dots, underscores, and
-  hyphens, 3–40 characters; display labels remain separate.
+  hyphens, @ and +, 3–40 characters; display labels remain separate.
+  Email-style usernames within the limit are supported.
 - [x] Retain HTTPS cookie protections, exact-origin checks, CSRF for mutations,
   parameterized queries, and bounded login retries. Return a generic invalid-login
   message and avoid account discovery through distinct error text.
@@ -373,7 +374,7 @@ belongs to M2 and is not claimed merely because application tests pass.
 
 Migrations 0002/0003 were committed before application, upgraded both retained
 schemas to version 3 without checksum drift, and preserved the ten production
-pre-upgrade runs. API/migration checks: 31 TAP entries; browser checks: 24 journeys
+pre-upgrade runs. API/migration checks: 32 TAP entries; browser checks: 24 journeys
 at 360/390/1440px; production HTTPS smoke: 360/1440px. Actual production uploads
 survive service restart and deployment; immutable historical image URLs work.
 Typecheck/build/format checks pass. See PROJECT_STATE.md for release and backups.
@@ -381,3 +382,22 @@ Typecheck/build/format checks pass. See PROJECT_STATE.md for release and backups
 The unchecked heatmap URL evaluation and all actual recording/masking/account
 switching lookup checks are explicitly owned by Plan 002. Plan 001 completion
 means the deployed application acceptance above, with collection off.
+
+### M1-R08 — Post-release user-creation validation
+
+An email-style username was rejected because the initial character allowlist
+excluded @; the generic Zod error did not identify that field. Password length
+was valid. This follow-up fixes the existing user-creation flow without a schema
+change or changing saved users.
+
+- [x] Accept @ and plus aliases consistently in creation and login; retain
+  case normalization, uniqueness and the existing 3–40-character limit.
+- [x] Return static field-specific creation errors without echoing credentials.
+- [x] Show username/password rules and fix browser pattern escaping.
+- [x] Verify API regression, browser creation/login at all three widths,
+  production deployment and live smoke; update state with actual evidence.
+
+M1-R08 evidence: 32 API/migration entries passed; targeted admin creation/upload/
+email-login browser checks passed at 360/390/1440px; build/typecheck/format passed.
+Deployed `2026-10-11T18-56-25-765Z`; public HTTPS email-user smoke passed at
+360/1440px. No new migration or Clarity collection change.

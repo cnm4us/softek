@@ -54,13 +54,14 @@ loopback server and MariaDB. It checks:
 - Reset preserving authentication while retiring the old banking run and retaining history.
 - Selected-user variant/eligibility reset and admin logout revocation.
 
-`tests/revision.test.ts` adds eight authenticated-user/banner scenarios: admin
-creation and salted hashes, concurrent first login producing one run, expiry and
+`tests/revision.test.ts` adds nine authenticated-user/banner scenarios: admin
+creation and salted hashes, email username normalization/login and field-specific
+validation errors, concurrent first login producing one run, expiry and
 relogin preserving state, serialized retry-safe rotation, observation ownership,
 actual raster decoding/limits/internal destinations/immutable replacement URLs,
 zero/one-enabled fallback, and reset/password/disable behavior.
 
-The Node runner reports **31 passing entries**: 28 nested scenarios plus three
+The Node runner reports **32 passing entries**: 29 nested scenarios plus three
 parents. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
@@ -128,3 +129,8 @@ verified project, and masking fidelity need human evaluation before presentation
 The current production CSP blocks third-party collection; M2 must deliberately
 update its allowlist after verification. Automated success proves software and
 instrumentation behavior, not customer adoption improvement.
+
+Post-release user-creation fix: all 32 API/migration entries passed; the admin
+creation/upload/login browser journey was rerun at 360/390/1440px to verify email
+usernames and native rejection of spaces. The prior full 24-journey result is
+retained above; targeted reruns do not imply a new full-suite run.

@@ -2,9 +2,9 @@
 
 Last updated: **2026-10-11 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)**.
-Latest completed work: **Plan 001 login, layout, users, banners, and collection-off deployment**.
-Current request: **Implement the approved revision; user also supplied Clarity settings**.
-Next task: **M2-01: prepare an explicit evaluation mode and verify consent/masking, then inspect actual pilot recordings with project access**.
+Latest completed work: **M1-R08 email username support and useful user-creation validation, deployed**.
+Current request: **Fix user creation rejecting an email-style username with a generic error**.
+Next task: **Resume M2-01 explicit evaluation mode and consent/masking checks, then inspect actual pilot recordings with project access**.
 
 ## Plan status registry
 
@@ -15,7 +15,7 @@ Active identifies the current focus and does not itself authorize new scope.
 | ID | Plan | Status | Progress / dependency |
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified and deployed; historical checklists retained |
-| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–07 application acceptance verified/deployed with collection off; live Clarity checks and optional heatmap URL evaluation explicitly belong to 002 |
+| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 application acceptance verified/deployed with collection off; Clarity acceptance stays in 002 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Owner-reported settings recorded; existing M2-02/03 hosting complete; evaluation mode, actual capture, playback and Chris access remain pending |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed small scenario contract exists; pilot runner stays in 002; scheduler/UI awaits prioritization |
 
@@ -23,7 +23,9 @@ Active identifies the current focus and does not itself authorize new scope.
 
 - Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
   Admin creates users independently at `/controls` using the existing private
-  `DEMO_ADMIN_SECRET`. No shared public customer password was seeded.
+  `DEMO_ADMIN_SECRET`. No shared public customer password was seeded. Usernames
+  accept email-style @ and + aliases within the existing 3–40-character limit;
+  creation errors identify the invalid field without echoing entered values.
 - Customer sessions use hashed opaque tokens with 24-hour expiry. Logout, expiry,
   and admin password replacement preserve the same banking run. Disable/password
   replacement revoke all user sessions. Explicit reset retires the run, retains
@@ -59,8 +61,8 @@ Active identifies the current focus and does not itself authorize new scope.
 - Runtime has scoped CRUD only; migrator has scoped DDL. Private `.env` remains
   ignored and 0600. `/etc/softek/runtime.env` is a runtime-only allowlist,
   root:softek 0640; no admin/migration/test DB credentials are deployed.
-- Latest authenticated release: **2026-10-11T17-04-38-549Z**. Previous compatible
-  authenticated release: **2026-10-11T16-56-29-791Z**. Active links are
+- Latest authenticated release: **2026-10-11T18-56-25-765Z**. Previous compatible
+  authenticated release: **2026-10-11T17-04-38-549Z**. Active links are
   `/opt/softek/current` and `/var/www/softek/current`. Production API is enabled
   and active as nonlogin `softek` on loopback **3100**; development/test uses 3101.
 - Hardened service cannot edit code; only persistent banner storage is writable.
@@ -97,19 +99,27 @@ Full scheduling/scenario UI is deferred; the current typed contract is not a run
 | --- | --- |
 | `npm run typecheck` | Frontend/API/scripts/tests passed |
 | `npm run build` | Production frontend/API passed |
-| `npm test` | **31 TAP entries** passed: 12 existing API, 8 migration, 8 revision scenarios, 3 parents |
-| `npm run test:e2e` | **24 Chromium journeys** passed in one final run at 360/390/1440px |
+| `npm test` | **32 TAP entries** passed: 12 existing API, 8 migration, 9 revision scenarios, 3 parents |
+| `npm run test:e2e` | Prior full run: **24 Chromium journeys** passed at 360/390/1440px; after M1-R08, targeted admin creation/upload/email-login checks passed at all three widths |
 | `npm run format:check` | Passed |
 | Migration status/repeat | Both ledgers version 3, no pending/drift; production repeat no-op |
 | Production data preservation | All ten original runs retained; no drop in original banking/history counts |
 | `npm run deploy` | Initial authenticated deployment and repeat deployment passed |
-| `npm run smoke:public` | Actual HTTPS mobile/desktop login, persistent goals/contribution, rotation, menu/action, reporting, relogin/reset, no Clarity/browser errors |
+| `npm run smoke:public` | After M1-R08, actual HTTPS mobile/desktop email-username creation/login, persistent goals/contribution, rotation, menu/action, reporting, relogin/reset, no Clarity/browser errors |
 | Production upload/storage | Protected multipart upload succeeded under hardened service; same public image hash after service restart and repeat deployment |
 | Short mobile login | 360×500 form scrollable, no horizontal overflow |
 | Public host/service | Health 200 + DB connected, service active; Nginx syntax passed; prior routing/cookie protections preserved |
 | Shared-host isolation | All prior unrelated Nginx config hashes and symlink targets unchanged |
 | Visual review | Mobile/desktop account screens inspected; production/login evidence in ignored artifacts |
 | Credentials | Private secret values absent from candidate source/doc files and public build |
+
+M1-R08: the reported email-style username failed the original @-excluding
+allowlist, while the password length met requirements. Added @/+ to both create
+and login validation, corrected the browser pattern's literal-hyphen escaping,
+added visible requirements, and mapped protected creation failures to static
+field-specific messages. No schema change was needed. API regression verifies
+normalization, duplicate uniqueness, login and safe errors. Browser regression
+verifies native space rejection and email creation/login at all three widths.
 
 Initial browser checks exposed test-helper naming/locator issues; corrected.
 One intermediate visibility check was interrupted by editing a watched API file;
@@ -135,7 +145,8 @@ Real devices and Clarity playback are not established by these tests.
 
 ## Git and operational handoff
 
-Foundation `1f759d9`; M1 `546459c`; planning/additive migrations `e239925`.
+Foundation `1f759d9`; M1 `546459c`; planning/additive migrations `e239925`;
+main revision `ab9f2e9`.
 The application revision, tests, deployment sources and current documentation are
 committed locally on `main`; inspect `git log -1` for the latest hash. **No push**
 was made. Origin is `https://github.com/cnm4us/softek.git`.

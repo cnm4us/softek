@@ -238,7 +238,12 @@ retain the implementation task IDs and deployment evidence.
 
 Passwords use asynchronous Node scrypt (N=32768, r=8, p=1, 64 MiB limit), random
 16-byte salt and a versioned 32-byte hash. Usernames normalize to lower-case ASCII
-3–40 characters; passwords allow 8–128 characters. Plaintext is never stored.
+3–40 characters (letters, digits, dots, underscores, hyphens, @ and +);
+email addresses within that limit work as usernames. Passwords allow 8–128
+characters. Plaintext is never stored.
+Protected user creation returns static field-specific validation errors without
+echoing submitted values. Its browser pattern escapes the literal hyphen for
+modern HTML validation; see [MDN pattern](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern).
 These are proportionate demo choices, with no signup or self-service recovery.
 Reference: [Node scrypt](https://nodejs.org/docs/latest-v22.x/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback).
 
