@@ -332,7 +332,10 @@ The pure public catalog in `apps/api/src/features.ts` is shared by web, API,
 and the typed automation contract. It owns twelve stable IDs, routes, menu labels,
 source copy and CTAs. Keeping it inside the API source tree preserves the existing
 API build/release boundary without another package. `feature-page.tsx` renders
-one shared Harbor landing component at `/features/:featureId`; unknown IDs show
+one shared Harbor landing component at `/features/:featureId`. Its first card
+content is a semantic h2 using green uppercase eyebrow typography at 20–26px;
+the user requested removal of the preceding star and repeated Explore line.
+Unknown IDs show
 a return link and emit no invented feature observations. Login preserves requested
 feature destinations. Customer Menu's Explore Features disclosure reuses the
 existing dialog focus containment, scrolling and active-link behavior.

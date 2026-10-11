@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
-import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { getFeature, type Feature } from '../../api/src/features';
 import { api, type State } from './api';
 import { emitFeatureObservation } from './analytics';
@@ -85,11 +85,7 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
   return (
     <div className="feature-landing">
       <Card className="feature-hero">
-        <span className="icon-circle">
-          <Sparkles size={24} />
-        </span>
-        <p className="eyebrow">EXPLORE {feature.name.toUpperCase()}</p>
-        <h2>{feature.headline}</h2>
+        <h2 className="eyebrow">{feature.headline}</h2>
         <div className="feature-description">
           {feature.description.map((p) => (
             <p key={p}>{p}</p>

@@ -1273,12 +1273,12 @@ summary {
   background: linear-gradient(135deg, #f2f6ec, #fff 60%);
   padding: clamp(24px, 5vw, 56px);
 }
-.feature-hero .eyebrow {
-  margin-top: 24px;
-}
 .feature-hero h2 {
-  font-size: clamp(29px, 4vw, 44px);
-  line-height: 1.2;
+  margin: 0 0 20px;
+  color: var(--color-primary);
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.4;
+  text-transform: uppercase;
   max-width: 650px;
 }
 .feature-description {

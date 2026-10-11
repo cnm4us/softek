@@ -1,6 +1,6 @@
 # Plan 005 — Feature campaign landing pages
 
-Plan ID: **005**. Task IDs: **FEAT-01–08**.
+Plan ID: **005**. Task IDs: **FEAT-01–09**.
 Depends on [Plan 001](001-login-layout-and-banners.md) and
 [Plan 004](004-admin-and-customer-menus.md).
 Lifecycle and current request: [PROJECT_STATE.md](../PROJECT_STATE.md#plan-status-registry).
@@ -296,3 +296,21 @@ Clarity collection remains off; local stub context checks and quiet browser
 requests do not establish actual SDK capture/heatmaps. Plan 002 is the next phase.
 The source report remains untouched; no promotional artwork set was generated or
 automatically enabled. Detailed current verification is in PROJECT_STATE.
+
+## FEAT-09 — Compact landing headlines (user follow-up)
+
+- [x] Remove the decorative star and redundant “Explore [feature]” line from the
+  shared component used by all twelve pages.
+- [x] Put the supplied headline first inside the card, using the green uppercase
+  eyebrow typography at a larger responsive size (20–26px). Keep the page title
+  and semantic h2, source wording, description, benefits and CTA.
+- [x] Verify all twelve feature journeys at mobile/desktop sizes, visually review
+  representative layouts, build and deploy, and update the fresh-agent handoff.
+
+This is a presentation refinement; no schema or engagement behavior change.
+
+FEAT-09 verification: existing all-twelve-feature journey passed at
+360/390/1440px (three tests), typecheck/build/format passed, and representative
+mobile/desktop screenshots were reviewed. Deployed **2026-10-11T21-46-00-510Z**;
+public HTTPS smoke passed at 360/1440px with collection off. Original data and
+persistent artwork are retained. No migration or API change was needed.

@@ -2,8 +2,8 @@
 
 Last updated: **2026-10-11 (America/Los_Angeles)**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (next phase).
-Latest completed implementation: **Plan 005 — feature campaign landing pages, verified and deployed**.
-Current request: **Approved Plan 005 implementation/deployment is complete; collection remains off**.
+Latest completed implementation: **Plan 005 including FEAT-09 compact landing headlines, verified and deployed**.
+Current request: **FEAT-09 compact landing headlines is complete and deployed; collection remains off**.
 Next task: **M2-01: prepare deliberate evaluation configuration/CSP and review collection boundaries before an authorized capture pilot**.
 
 ## Plan status registry
@@ -19,7 +19,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Next phase after 005; owner-reported settings/hosting retained, capture/access unverified; collection off |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
-| 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–08 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
+| 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
 
 ## Current reality
 
@@ -36,7 +36,9 @@ Active identifies focus and does not itself authorize additional scope.
   goals and contributions remain functional; other banking sections use demo actions.
 - Customer Menu → **Explore Features** contains all twelve supplied campaigns at
   authenticated `/features/:featureId` routes. One shared Harbor landing component
-  renders supplied copy, benefits, disclosures and one primary CTA. CTA acknowledgement
+  starts each card with a larger green uppercase headline, without the repeated
+  Explore line or decorative star, then renders copy, benefits, disclosures and
+  one primary CTA. CTA acknowledgement
   shows an inline demo confirmation, without changing banking/enrollment. No banners
   or financial input forms appear on feature pages. All customers may explore them.
 - All twelve internal destinations are selectable in Manage Banners. No new artwork
@@ -66,11 +68,12 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0004-20261011T212954Z.sql`.
   Earlier pre-0002 backup remains. All ten original production run IDs and retained
   banking/history counts survived; historical anonymous ownership remains NULL.
-- Current release: **2026-10-11T21-30-01-050Z**. Previous authenticated release:
-  **2026-10-11T19-49-23-608Z**. Both current links point to the new release.
+- Current release: **2026-10-11T21-46-00-510Z**. Previous authenticated release:
+  **2026-10-11T21-30-01-050Z**. Both current links point to the new release.
   Production API is enabled/active as nonlogin `softek` on loopback **3100**.
   No development/test listener remains. API health is 200 with DB connected.
-- Prior authenticated API was explicitly tested against schema 4 containing both
+- Earlier authenticated API **2026-10-11T19-49-23-608Z** was explicitly tested
+  against schema 4 containing both
   feature ENUM values: owned state, original interactions, report, users and retained
   activity work. That rollback loses feature routes/reporting but preserves schema
   and history; never downgrade the ENUM. Actual rollback was not performed.
@@ -79,9 +82,9 @@ Active identifies focus and does not itself authorize additional scope.
   All unrelated Nginx configuration hashes and enabled symlink targets match the
   original manifest. The service cannot edit code; only banner storage is writable.
 
-## Plan 005 result and verification
+## Plan 005 initial result and verification
 
-All FEAT-01–08 are complete. The untouched original report remains untracked in
+All FEAT-01–09 are complete. The untouched original report remains untracked in
 `temp/`; its identical durable reference is in `plans/references/`. This is supplied
 fictional/demo marketing copy, not independent Access Digital product verification.
 Architecture, product, setup, testing and roadmap reflect the implemented phase.
@@ -105,6 +108,22 @@ No unresolved application failure remains. The browser selector correction chang
 only the test; visual review separated the banner count notes from report totals.
 Real devices and real Clarity playback are not established by these checks.
 Public smoke's owned automation users/history are intentionally retained.
+
+## FEAT-09 compact headline follow-up
+
+User-requested shared presentation refinement: remove the star and Explore line;
+move the semantic headline to the top of each card with green uppercase eyebrow
+styling at 20–26px. Supplied wording, page title, CTA and tracking are retained.
+No API/schema change or migration was required.
+
+Focused existing all-twelve-feature journey passed at 360/390/1440px (three tests),
+including CTA retry/deduplication, unchanged banking state and no overflow/Clarity.
+Typecheck, production build and format passed; bundle ~577 kB / 170 kB gzip.
+Representative mobile/desktop screenshots were visually reviewed. Release
+**2026-10-11T21-46-00-510Z** deployed, and public HTTPS smoke passed at 360/1440px.
+Service/DB health, original data, immutable upload and unrelated Nginx hashes/links
+remain verified; credential scan passed. The earlier full API/browser baseline
+above was not rerun for this presentation-only change. No failing check remains.
 
 ## Clarity configuration and remaining acceptance
 
@@ -135,7 +154,8 @@ The optional public `?banner=` heatmap parameter remains deferred pending evalua
 
 ## Git and operational handoff
 
-Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**. Plan 005 code,
+Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
+implementation **bd6a774**. Plan 005 code including FEAT-09,
 checks, plan/reference and durable documentation are committed locally on `main`;
 inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked

@@ -19,7 +19,7 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 578 kB (170 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 577 kB (170 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 

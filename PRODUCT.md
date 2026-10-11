@@ -80,7 +80,10 @@ change was approved as part of this menu revision.
 
 The user supplied twelve feature campaigns and approved Customer Menu →
 **Explore Features** as a submenu. Each item opens a themed landing page with
-basic descriptions and **one primary CTA**. The CTA shows only a demo confirmation.
+basic descriptions and **one primary CTA**. Each card starts with the supplied
+headline in larger green uppercase type; the page title identifies the feature,
+so there is no repeated “Explore” line or decorative star. The CTA shows only a
+demo confirmation.
 Promotional banners remain on **Account Summary only** and can link to the same
 landing pages through the existing admin banner editor.
 
