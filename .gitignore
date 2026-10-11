@@ -1,0 +1,30 @@
+# Dependencies and generated application output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Secrets and local configuration; committed examples contain placeholders only
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Generated browser evidence, logs, and local database exports
+playwright-report/
+test-results/
+artifacts/
+*.log
+*.dump
+*.sql.gz
+backups/
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

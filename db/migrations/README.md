@@ -1,0 +1,97 @@
+# MariaDB schema migration contract
+
+Status: runner implemented and verified against MariaDB in M0. No application SQL
+migrations exist yet; add the first schema in M1. Do not fabricate a "baseline"
+migration containing no application schema.
+
+## Implemented commands
+
+```bash
+npm run db:status
+npm run db:migrate
+npm run db:status -- --test
+npm run db:migrate -- --test
+```
+
+The runner uses `scripts/lib/migrations.ts`, the scoped `MIGRATION_DB_*` account,
+and an explicit allowlist: `demo` normally, `demo_test` with `--test`. It does not
+accept an arbitrary CLI database or migration-directory override. Status is read
+only. Applying an empty migration set is a no-op and creates no ledger.
+
+The ledger is `_schema_migrations`. A schema-specific `GET_LOCK` prevents
+concurrent applications. Changed/missing applied files, duplicate versions,
+historical insertions, and unresolved running/failed records stop application.
+Migration files execute as reviewed MariaDB SQL; do not use client-only
+`DELIMITER` directives or leave a transaction open at the end of a file.
+
+`npm test` exercises clean/upgrade/no-op/drift/locking/partial-failure behavior
+against the dedicated test schema; see [TESTING.MD](../../TESTING.MD).
+
+## Files and ownership
+
+- Use ordered filenames: `0001_demo_foundation.sql`, `0002_<description>.sql`, etc.
+- Commit each schema change with its code and relevant validation.
+- Applied files are immutable. Corrections use the next migration.
+- SQL targets MariaDB only; MySQL portability is not required.
+- Fixtures belong in `db/seeds/`; participant reset belongs in application logic.
+- Only the migration runner manages the schema ledger. Do not bypass it with
+  manual DDL, ORM schema push, or automatic application-startup migrations.
+
+## Runner requirements
+
+1. Validate the configured schema against the explicit Softek environment
+   allowlist. Display target host/schema without credentials. Use a scoped
+   migration account and prevent accidental operations against other databases.
+2. Provide status without applying changes: current versions, pending files,
+   failed/running records, missing applied files, and checksum drift.
+3. Acquire a schema-specific migration lock so concurrent runners cannot apply
+   the same migration. Hold/release it through the entire application sequence.
+4. Track version, filename, SHA-256 checksum, start/completion time, and result in
+   a migration ledger. Fail on modified or missing applied files, duplicate IDs,
+   reordered historical insertions, or unresolved failed/running migrations.
+5. Apply pending migrations in order and stop at the first failure. A repeat run
+   with no pending work must be a no-op.
+6. Do not assume a whole DDL migration can be rolled back. Record failures clearly
+   and refuse blind automatic retries after a partially applied migration.
+7. Provide explicit, documented recovery steps to inspect partial state, repair
+   or restore it, and reconcile the ledger only after verifying the intended
+   schema. Never silently mark a failed migration as successful.
+8. Validate behavior on a dedicated MariaDB test schema before the runner or a
+   new migration is used against retained demo data.
+
+Many MariaDB DDL operations commit implicitly; see
+[MariaDB's documentation](https://mariadb.com/docs/server/reference/sql-statements/transactions/sql-statements-that-cause-an-implicit-commit).
+Keep migrations small and reviewable so recovery is concrete.
+
+## Applying a schema change
+
+1. Inspect target environment and migration status.
+2. Review the SQL and whether retained data needs a backup or transformation.
+3. Run the clean-schema and applicable upgrade checks on the dedicated test schema.
+4. Apply only to the intended Softek schema and verify status afterward.
+5. Run focused API/browser smoke checks and update `PROJECT_STATE.md`.
+
+Prefer forward corrective migrations. A previous application version is safe to
+restore only when compatible with the resulting schema. Destructive migrations
+need a specific backup/recovery plan and authorization within the current task.
+
+## First schema acceptance
+
+The first real migration should define the minimal M1 model, relationships,
+participant scoping, constraints, and useful reporting/query indexes. Review it
+against `ARCHITECTURE.md` before execution. Record the actual applied version in
+`PROJECT_STATE.md`; until then the applied version is **none**.
+
+## Partial-failure recovery
+
+The runner stores only an error code in the failed ledger entry, leaves the
+partial schema visible, and blocks subsequent application. An interrupted process
+can leave a `running` record, which blocks retries in the same way.
+
+Before migrating retained data, take a schema/data backup including the ledger.
+After a partial failure, inspect the schema and recorded migration, restore that
+pre-migration backup to the same identified Softek schema, and rerun status before
+attempting corrected work. Recover from a verified backup rather than editing
+checksums or blindly marking a failed record applied. No automatic rollback or
+ledger-forcing command is provided. If no verified backup exists, stop application
+and develop a scoped repair/recovery plan from the actual partial state.
