@@ -1,113 +1,112 @@
 # Project state
 
-Last updated: 2026-10-10, America/Los_Angeles.
-Active milestone: **M1 — one complete adoption experiment**.
-Latest completed work: **M0 foundation and public Nginx/HTTPS placeholder**.
-Next task: **M1-01 — finalize the minimal model and add the first real migration**.
+Last updated: **2026-10-11 UTC**.
+Active milestone: **M2 — Clarity evaluation and presentation readiness**.
+Latest completed work: **M1 banking/adoption flow and persistent HTTPS deployment**.
+Next task: **M2-01 — verify the intended Clarity project and collection settings**.
 
 ## Current reality
 
-- npm workspaces, TypeScript React/Vite frontend, Express API, shared mobile-first
-  theme, root lockfile, migration tooling, and foundation tests exist.
-- Banking tables, seeds, customer sessions, enrollment/use, and adoption reports
-  are not implemented. No application SQL migrations exist or have been applied.
-- Work takes place on the existing Ubuntu EC2 instance at `/home/ubuntu/softek`.
-- MariaDB 10.6.22 is running. MariaDB is the only database target.
-- Node 22.21.1, npm 10.9.4, Git 2.34.1, and MariaDB CLI are available.
-- Public URL: `https://demo.bawebtech.com`, serving the static test page through
-  `/etc/nginx/sites-available/012_demo.bawebtech.com` and its enabled symlink.
-- HTTP redirects to HTTPS. Certbot webroot issuance and renewal dry run passed;
-  the existing renewal timer is active with a per-certificate Nginx reload hook.
-- Public assets are in `/var/www/softek/public`; ACME webroot is
-  `/var/www/softek/letsencrypt`. The project directory/credentials are not served.
-- Git was initialized on `main`, with origin
-  `https://github.com/cnm4us/softek.git`. No commit or push was made in this session.
-- Clarity has not been configured or enabled. `yvs5hp3ivb` is a candidate project.
-- The user-configured `demo` database and local TCP runtime account are created.
-  Runtime grants are CRUD on `demo.*` only; the supplied application login works.
-  The schema uses `utf8mb4` / `utf8mb4_unicode_ci` and has zero tables.
-- `demo_test` and `softek_test_app` are provisioned; the test runtime has CRUD only
-  on that schema. Test fixtures were removed, leaving it empty.
-- `softek_migrator` has CRUD plus CREATE/ALTER/DROP/INDEX/REFERENCES on `demo` and
-  `demo_test` only, no global privileges or grant option. Both schema logins work.
-- Supplied admin credentials now authenticate over TCP and the local socket after
-  the user corrected `.env`. Initial provisioning used `sudo -n mariadb`
-  administration; no admin account/password changes were made by the agent.
-- `.env` uses separate `ADMIN_DB_*`, runtime `DB_*`, migration, and test settings.
-  Generated secrets stay there, owned by `ubuntu`, mode `0600`, ignored by Git.
-- API/frontend development listeners use loopback ports 3100/5173. They are
-  stopped after checks; no persistent API service or public `/api` proxy exists.
-- Existing Nginx site files/links were unchanged. Only the dedicated demo site was
-  added. The banking frontend is not deployed; the public page is a placeholder.
-
-## User direction to preserve
-
-The original handoff's Windows/local-MySQL assumptions are superseded. The user
-wants MariaDB-only implementation, migrations, a mobile-first uniform theme, good
-desktop layouts, and robust documentation for fresh-agent transitions.
-
-The working architecture retains the proposed React/TypeScript + Express stack,
-uses MariaDB connector with versioned SQL rather than the tentative Prisma
-recommendation, and starts with savings goals. These are documented working
-choices, not user-mandated library/service selections.
-
-## Completed work
-
-All M0 tasks are checked in `IMPLEMENTATION_PLAN.md`, including the user-requested
-hosting bootstrap. M2's host inspection is complete; M2 application-service
-deployment remains partial. Durable docs reflect the installed scaffold and exact
-commands. The original handoff is preserved unchanged as historical background.
+- Live banking app: **https://demo.bawebtech.com**. The placeholder is preserved
+  for rollback. React/Vite frontend and Express API share the HTTPS origin.
+- Harbor Community Bank has two fictional templates: Alex Morgan (eligible) and
+  Jamie Chen (standard). Entry creates independent accounts and history for each
+  participant run; no real accounts or money are connected.
+- Dashboard balances/activity, banner and sidebar/mobile-inline promotions,
+  details, two-step enrollment, goal creation, and contributions are implemented.
+- Enrollment, balances, goal progress, receipts, and confirmed adoption events
+  persist in MariaDB. Requests are idempotent and contributions transactional.
+- Reset retires the run, invalidates its current cookie, and creates fresh state
+  while retaining the old report history. Assignments remain stable until reset;
+  ordinary reset preserves the chosen variant/eligibility.
+- `/controls` requires `DEMO_ADMIN_SECRET` from the private `.env`. It configures
+  a fresh run and reports UTC cohorts, eligible denominators, ordered funnel,
+  total reach, direct service entry, and separate human/automation activity.
+- Structured browser observations deduplicate exposures and distinguish logical
+  sidebar from inline presentation. Enrollment and first/repeat use come from
+  successful server transactions. Repeat use needs a later server-owned visit.
+- `0001_demo_foundation.sql` was committed before application and is applied to
+  **demo and demo_test**. Both ledgers report version 1, no pending work or drift.
+  Initial empty production backup: `/var/backups/softek/before-0001-demo.sql`.
+- Deterministic seeds update only templates. Repeated seeding preserves runs.
+- Runtime DB account has CRUD on `demo`; test runtime CRUD on `demo_test`;
+  migrator has schema-scoped DDL. Admin/test/migration credentials are excluded
+  from the deployed runtime environment.
+- Production `softek-api` is enabled/active, runs as dedicated nonlogin `softek`,
+  and listens on **127.0.0.1:3100**. Code is root-owned and service protections
+  include `ProtectSystem=strict`, `ProtectHome`, and `NoNewPrivileges`.
+- Latest deployed release: **2026-10-11T06-07-44-353Z**, reached through
+  `/opt/softek/current` and `/var/www/softek/current`. Prior banking release:
+  `2026-10-11T06-00-00-243Z`. Paths/runbook are in `LOCAL_SETUP.md`.
+- Development/test API now uses **3101**, Vite **5173**. Temporary servers stopped;
+  production remains running. Tests can run alongside the public service.
+- Existing Nginx site files/links remain unchanged. Only the dedicated
+  `/etc/nginx/sites-available/012_demo.bawebtech.com` changed for API/SPA routing.
+  Certbot certificate/challenge/renewal hook remain in place.
+- `.env` is ignored, `ubuntu:ubuntu`, 0600. Deployed runtime allowlist is
+  `/etc/softek/runtime.env`, `root:softek`, 0640, inside a 0750 directory. Secrets
+  are never printed or committed. The supplied corrected admin DB login works.
+- Clarity adapter, fixed tags/events, explicit DOM masking, and gated opt-in
+  loader exist. **Collection remains disabled and unverified**. The current CSP
+  permits only same-origin scripts/connections. Candidate project: `yvs5hp3ivb`.
+- Controlled public smoke runs are labeled automation and intentionally retain
+  archived history. Ordinary test fixtures were removed from `demo_test`.
 
 ## Verification evidence
 
-| Check | Result |
+| Check actually run | Result |
 | --- | --- |
-| `node --version`, `npm --version`, `git --version` | 22.21.1 / 10.9.4 / 2.34.1 |
-| Nginx/MariaDB/Certbot timer | Active |
-| Public DNS | A record matches instance public IP; no AAAA record |
-| HTTP / HTTPS | Initial HTTP 200; final HTTP 301 to HTTPS; HTTPS 200 with certificate validation |
-| Nginx test / ACME path | Passed; challenge probe publicly served |
-| Certbot renewal dry run | Successful for `demo.bawebtech.com` |
-| Existing Nginx configurations | Prior file hashes/enabled-link targets unchanged |
-| `npm run typecheck` | Passed for frontend/API/scripts/tests |
-| `npm run build` | Frontend and API passed |
-| `npm test` | Eight migration scenarios passed (nine TAP entries including parent) |
-| `npm run test:e2e` | Mobile/desktop passed; route/refresh/width/API/no-Clarity checks |
-| Public Chromium walkthrough | Mobile/desktop HTTPS placeholder passed; no overflow |
-| Compiled API smoke | `/api/health` reports database connected; process stopped afterward |
-| `npm run db:provision` repeat | Existing scoped accounts authenticate; no changes |
-| `npm run db:status`, `... -- --test` | Both schemas reachable; no ledger/applied/pending migrations |
-| `npm run db:migrate` | No-op with no production SQL; no ledger created |
-| Grant inspection | Runtime CRUD only; migrator DDL only on explicit schemas; no grant options |
-| Visual inspection | Mobile/desktop foundation screenshots inspected; artifacts ignored |
-| Final documentation/environment checks | 33 local links; formatting/ignore rules/private permissions passed; no duplicate environment keys |
-| Final process cleanup | No listeners on temporary application ports 3100/3101/5173/4173 |
+| `npm run typecheck` | Frontend/API/scripts/tests passed |
+| `npm run build` | Frontend/API production build passed |
+| `npm test` | 22 TAP entries passed: 8 migration + 12 API scenarios and 2 parents |
+| `npm run test:e2e` | 15 journeys passed at 360, 390, 1440px; repeated with production running on its separate port |
+| `npm run format:check` | Passed |
+| Migration status / repeated migrate | Both schema ledgers at version 1, no pending/drift; production repeat no-op |
+| Repeated seed | No duplicate templates or participant overwrite |
+| `npm run deploy` | Initial install and repeated deployment passed |
+| `npm run smoke:public` | Actual HTTPS journeys at 360/1440px: persistent goal, contribution, report, logout, reset, no browser/Clarity errors |
+| Public security/routing | API health 200 + DB connected; HTTP 301; `.env` 403; unknown API 404; Secure/HttpOnly/Lax cookies |
+| Service identity / environment | Dedicated softek user, protections active, enabled on boot, private runtime file |
+| Nginx syntax / preexisting sites | Passed; prior config hashes and symlink targets unchanged |
+| Certbot renewal | Passed during initial HTTPS setup; configuration preserved |
+| Visual inspection | Mobile/desktop dashboard and desktop report inspected; screenshots ignored |
 
-## Outstanding dependencies
+Initial browser controls checks failed because a test required an exact wrapped
+select-label match. The locator was corrected and all final journeys pass.
+Vite emits a bundle-size advisory (~523 kB minified / 156 kB gzip); tracked as
+B-011. No known failing application check remains. Live Clarity/real-device
+behavior is not established by these tests.
 
-- Clarity project/settings, masking, and collection requirements remain unverified.
-- Banking-model/session/reset/event semantics require M1 implementation.
-- Persistent API service and frontend/API public deployment remain M2 work.
+## User direction to preserve
 
-No current blocker prevents M1. Collection remains disabled; a tested scaffold
-does not establish working banking behavior or live Clarity evaluation.
+Develop on the existing EC2 instance, target MariaDB only, use committed migrations,
+and keep a uniform mobile-first theme with good desktop layouts. The original
+Windows/MySQL handoff is historical. Preserve unrelated host resources. Do not
+expand banking scope before the Clarity evaluation without new prioritization.
 
 ## Exact resume point
 
-1. Read `AGENTS.md`, `PRODUCT.md`, and M1 in `IMPLEMENTATION_PLAN.md`.
-2. Check Git status and whether the user has changed the working choices.
-3. Finalize the minimal M1 entity model and add `0001_demo_foundation.sql`.
-4. Verify it with `db:migrate -- --test`, then apply to `demo` after reviewing the
-   exact status/target. Add deterministic fixture seeds separately.
-5. Build independent participant sessions, the complete enrollment/first-use flow,
-   structured events, and reporting. Keep Clarity off until settings are verified.
-6. Update this state, setup/testing commands, and plan status with actual evidence.
+1. Read `AGENTS.md`, `PRODUCT.md`, and M2 in `IMPLEMENTATION_PLAN.md`.
+2. Inspect Git, migration status, public health, and user changes before editing.
+3. Establish whether candidate Clarity project `yvs5hp3ivb` belongs to this demo,
+   verify hostname/project settings, consent mode, and masking. Official APIs were
+   consulted; the actual project configuration and recordings were not accessed.
+4. Verify the opt-in adapter and pseudonymous event/visit context against the
+   intended project. Review all masked DOM, including controls and goal content.
+5. Deliberately configure the required CSP domains and collection gates only
+   after verification within the authorized evaluation scope. Routine tests stay
+   off. Deployment currently forces collection off; M2 must review that behavior.
+6. Run labeled human and synthetic walkthroughs, inspect actual recordings and
+   heatmaps, and document observed limitations without conversion claims.
 
-## Working tree and handoff
+## Git and operational handoff
 
-All created files are uncommitted; no Git commit/push occurred. The Nginx placeholder
-is public. There is no background application process or pending SQL migration.
-Inspect Git status for later user/agent changes rather than assuming this stays true.
+Foundation/schema commit: `1f759d9`. The M1 implementation and current docs are
+committed locally on `main`; inspect `git log` for the current hash. No push was
+made. The working tree is clean at handoff. Origin remains the user's supplied
+`https://github.com/cnm4us/softek.git`.
 
-Check commands/prerequisites in `LOCAL_SETUP.md` and `TESTING.MD`. Screenshots and
-the prechange Nginx hash manifest are in ignored `artifacts/`.
+No pending migration, background build, or development listener remains. The
+production API is intentionally running. Use `LOCAL_SETUP.md` for startup,
+protected control access, deployment, rollback, and certificate renewal;
+`TESTING.MD` owns coverage and safe cleanup boundaries.

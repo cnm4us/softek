@@ -24,9 +24,9 @@ Access Softek's unknown production platform or connect to real financial systems
 
 ## First milestone: one complete adoption experiment
 
-Working choice: one fictional institution, one customer profile, and a savings
-goals service. Savings goals supports a clear enrollment and first-use action
-without introducing external providers. This choice can change before code exists.
+Implemented working choice: one fictional institution, two customer profiles
+(one eligible, one standard), and a savings goals service. Savings goals supports a clear enrollment and first-use action
+without introducing external providers. Broader services remain later scope.
 
 The participant enters a demo, sees checking/savings balances and recent activity,
 encounters a service promotion, opens its details, enrolls, and creates a savings

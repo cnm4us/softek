@@ -1,8 +1,8 @@
 # MariaDB schema migration contract
 
-Status: runner implemented and verified against MariaDB in M0. No application SQL
-migrations exist yet; add the first schema in M1. Do not fabricate a "baseline"
-migration containing no application schema.
+Status: `0001_demo_foundation.sql` is committed and applied to `demo` and
+`demo_test`. Status/repeat checks show no pending work or drift. Applied files are
+immutable; the next schema change uses `0002_<description>.sql`.
 
 ## Implemented commands
 
@@ -25,7 +25,8 @@ Migration files execute as reviewed MariaDB SQL; do not use client-only
 `DELIMITER` directives or leave a transaction open at the end of a file.
 
 `npm test` exercises clean/upgrade/no-op/drift/locking/partial-failure behavior
-against the dedicated test schema; see [TESTING.MD](../../TESTING.MD).
+against its own `_contract_migrations` test ledger / probe tables on `demo_test`,
+leaving the application ledger and tables intact; see [TESTING.MD](../../TESTING.MD).
 
 ## Files and ownership
 
@@ -79,8 +80,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. Record the actual applied version in
-`PROJECT_STATE.md`; until then the applied version is **none**.
+against `ARCHITECTURE.md` before execution. The actual applied version is **1**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 

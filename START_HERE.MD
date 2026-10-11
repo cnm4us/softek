@@ -45,8 +45,8 @@ The GitHub remote is `https://github.com/cnm4us/softek.git`.
 The site must be mobile first, use a uniform theme throughout, and adapt well to
 desktop. Database changes must use versioned migrations.
 
-The public placeholder runs at `https://demo.bawebtech.com` through Nginx with
-Certbot HTTPS. The frontend/API scaffold, shared theme, scoped database accounts,
-and tested migration tooling exist. Banking tables, enrollment/use flows, and
-Clarity collection have not been implemented. Consult `PROJECT_STATE.md` for
-verified status and the exact next task.
+The banking demo is live at `https://demo.bawebtech.com` through Nginx/Certbot.
+M1 includes isolated participant runs, persistent savings goals, reset, and
+protected adoption reporting. Clarity collection remains disabled pending M2.
+Production API runs as `softek` on loopback 3100; development/test uses 3101.
+Consult `PROJECT_STATE.md` for verified status and the exact next task.

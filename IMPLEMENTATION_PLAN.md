@@ -1,8 +1,7 @@
 # Implementation plan
 
-Active milestone: **M1 — one complete adoption experiment**. M0 foundation and
-the public Nginx/HTTPS placeholder are verified. The first application migration
-and banking behavior are next.
+Active milestone: **M2 — Clarity evaluation and presentation readiness**.
+M0 and M1 are verified; the banking application is deployed through Nginx/HTTPS.
 
 Checkboxes mean acceptance evidence exists, not merely that code was written.
 Work in order unless a concrete dependency or user direction justifies changing
@@ -30,23 +29,23 @@ works at mobile/desktop sizes. No changes to unrelated Nginx sites or databases.
 
 ## M1 — One complete adoption experiment
 
-- [ ] M1-01 Finalize the minimal entity model and add `0001_demo_foundation.sql`.
-- [ ] M1-02 Seed one institution, one profile, account fixtures, savings goals,
+- [x] M1-01 Finalize the minimal entity model and add `0001_demo_foundation.sql`.
+- [x] M1-02 Seed one institution, two fictional profiles, account fixtures, savings goals,
   and one campaign. Repeat seeding without duplication or participant overwrite.
-- [ ] M1-03 Implement demo entry, isolated participant runs, visits, stable
+- [x] M1-03 Implement demo entry, isolated participant runs, visits, stable
   assignments, session security, and run reset.
-- [ ] M1-04 Build account overview with balances, recent activity, banner, and
+- [x] M1-04 Build account overview with balances, recent activity, banner, and
   sidebar/inline promotion using the shared theme.
-- [ ] M1-05 Build service details and short multistep enrollment.
-- [ ] M1-06 Persist enrollment and savings-goal creation with transactional,
+- [x] M1-05 Build service details and short multistep enrollment.
+- [x] M1-06 Persist enrollment and savings-goal creation with transactional,
   idempotent API behavior. Add a qualifying action for a later visit.
-- [ ] M1-07 Implement visibility observation, structured adoption milestones,
+- [x] M1-07 Implement visibility observation, structured adoption milestones,
   event deduplication, and backend-confirmed success events.
-- [ ] M1-08 Build the basic campaign/session controls and funnel report with
+- [x] M1-08 Build the basic campaign/session controls and funnel report with
   explicit cohort denominators and separate human/automated views.
-- [ ] M1-09 Add the environment-controlled Clarity adapter, event/tag allowlists,
+- [x] M1-09 Add the environment-controlled Clarity adapter, event/tag allowlists,
   and masking. Keep collection disabled until M2 verification.
-- [ ] M1-10 Verify mobile/desktop journeys, persistence, isolation, reset,
+- [x] M1-10 Verify mobile/desktop journeys, persistence, isolation, reset,
   invisible-promotion behavior, idempotency, and report reconciliation.
 
 Exit criteria: all first-milestone acceptance requirements in
@@ -59,10 +58,10 @@ The database report works even when Clarity is disabled.
   consent requirements, and masking settings against current official guidance.
 - [x] M2-02 Inspect the relevant existing Nginx configuration and agree the
   exposure/deployment scope before modifying host routing.
-- [ ] M2-03 Add the project-specific service/startup configuration, HTTPS routing,
+- [x] M2-03 Add the project-specific service/startup configuration, HTTPS routing,
   and a reproducible migration/build/deploy runbook for the identified target.
-  Partial: static placeholder hosting, HTTPS, and renewal are complete. Persistent
-  API service configuration and deployment of the banking application remain.
+  Complete: dedicated hardened API service, static release deployment, HTTPS
+  proxy/SPA routing, deployment/rollback runbook, and public browser smoke checks.
 - [ ] M2-04 Run human walkthroughs and verify recordings, navigation, masking,
   custom events, tags, and heatmaps.
 - [ ] M2-05 Run separately labeled synthetic demonstration journeys; record

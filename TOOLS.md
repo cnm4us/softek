@@ -11,15 +11,15 @@ version-specific behavior.
 | Git | 2.34.1 | Local history and supplied GitHub origin |
 | Node.js | 22.21.1 via NVM | API/build/tooling runtime |
 | npm | 10.9.4 | Workspaces and root lockfile |
-| MariaDB CLI | Available, 10.6.22 distribution | Scoped inspection and future migration verification |
+| MariaDB CLI | Available, 10.6.22 distribution | Scoped inspection and migration verification |
 | MySQL-named CLI | Available | Not a separate database target; use MariaDB terminology/tools |
-| systemctl | Available | Read service status; eventual project-specific process operation |
-| Nginx | 1.18.0, active | Dedicated HTTP/HTTPS placeholder for `demo.bawebtech.com` |
+| systemctl | Available | Read service status; dedicated Softek service operation |
+| Nginx | 1.18.0, active | Dedicated HTTPS banking demo for `demo.bawebtech.com` |
 | Certbot | 1.21.0; timer active | Webroot certificate, per-certificate reload hook, renewal verified |
 | `rg` | Available | First choice for file/text searches |
 | Python 3 | 3.10.12 | Optional local documentation checks; not an app dependency |
 | pnpm / GitHub CLI (`gh`) | Not found on initial PATH | Not required; use npm and Git |
-| Playwright | Installed; Chromium downloaded | Mobile/desktop foundation checks |
+| Playwright | Installed; Chromium downloaded | Mobile/desktop banking acceptance |
 
 ## Git workflow
 
@@ -28,8 +28,8 @@ Local repository: `/home/ubuntu/softek`; origin:
 
 Inspect the working tree before edits and preserve user changes. Make focused
 commits when requested or appropriate to the authorized implementation workflow.
-Do not push merely because a remote is configured. No commit or push was made in
-the documentation setup session.
+Do not push merely because a remote is configured. Local commits record foundation/schema and M1 implementation; no push is
+authorized merely by configuring the remote. Consult PROJECT_STATE.md.
 
 Avoid force pushes, resets, or blanket cleans of unknown work. Do not store
 credentials in the remote URL. A public/readable remote does not establish push
@@ -67,6 +67,7 @@ Keep routine development and test traffic separate from presentation data.
 - [MariaDB implicit-commit statements](https://mariadb.com/docs/server/reference/sql-statements/transactions/sql-statements-that-cause-an-implicit-commit)
 - [Clarity setup](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup)
 - [Clarity client API](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-api)
+- [Clarity ConsentV2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2)
 - [Clarity custom tags](https://learn.microsoft.com/en-us/clarity/filters/custom-tags)
 - [Certbot webroot and renewal](https://eff-certbot.readthedocs.io/en/stable/using.html)
 - [Nginx server configuration](https://nginx.org/en/docs/http/ngx_http_core_module.html)

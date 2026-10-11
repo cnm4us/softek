@@ -1,0 +1,8 @@
+node_modules
+**/dist
+artifacts
+test-results
+.env*
+agents/plans/initial_handoff.md
+db/migrations/*.sql
+package-lock.json

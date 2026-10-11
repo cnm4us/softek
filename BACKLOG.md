@@ -17,6 +17,7 @@ open questions. Promote an item into the plan when it becomes active; retain its
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 523 kB (156 kB gzip); Vite emits a size advisory |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 
 `Next` means after the initial complete flow, not permission to expand M1.
@@ -29,11 +30,10 @@ open questions. Promote an item into the plan when it becomes active; retain its
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | M3 service expansion | Savings goals is the first working choice; no Access Softek offering is assumed |
 
-No current question blocks documentation. Scaffolding can proceed before public
-hosting and Clarity questions are resolved. Database provisioning and application
-login were verified. Admin password login now works over TCP and socket after the
-user corrected `.env`; the earlier provisioning used existing `sudo` access. See
-`LOCAL_SETUP.md` for current access details.
+M1 and banking deployment are complete. Q-003 is the next evaluation dependency:
+verify the intended Clarity project, consent/masking settings, and required CSP
+domains before enabling collection. Host/database operation is documented in
+`LOCAL_SETUP.md`.
 
 ## Resolved requirements
 
@@ -44,5 +44,5 @@ user corrected `.env`; the earlier provisioning used existing `sudo` access. See
 - Q-001: `demo_test`, scoped `softek_test_app`, and `softek_migrator` are provisioned.
 - Q-002: user confirmed `demo.bawebtech.com`; dedicated site
   `/etc/nginx/sites-available/012_demo.bawebtech.com` is enabled with HTTPS.
-- Q-006: user authorized public test hosting on that hostname. The placeholder is
-  live; app development listeners remain on loopback pending banking deployment.
+- Q-006: user authorized public test hosting on that hostname. The banking demo is
+  live; production API runs on loopback behind the dedicated HTTPS proxy.

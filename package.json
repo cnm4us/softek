@@ -19,12 +19,17 @@
     "db:status": "tsx scripts/db.ts status",
     "db:migrate": "tsx scripts/db.ts migrate",
     "db:provision": "tsx scripts/provision-db.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "deploy": "tsx scripts/deploy.ts",
+    "smoke:public": "tsx scripts/smoke-public.ts",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" playwright.config.ts",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" playwright.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",
     "@types/node": "^26.6.5",
     "concurrently": "^10.0.6",
+    "prettier": "3.9.10",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
