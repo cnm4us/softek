@@ -1,182 +1,144 @@
 # Project state
 
 Last updated: **2026-10-11 (America/Los_Angeles)**.
-Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (next phase; collection remains off).
-Latest completed work: **Plan 004 — separate Admin and Customer menus, verified and deployed**.
-Current request: **Implement the approved menu revision — complete**.
-Next task: **M2-01: prepare explicit evaluation deployment/CSP configuration and review consent/masking; real capture acceptance remains outstanding**.
+Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (next phase).
+Latest completed implementation: **Plan 005 — feature campaign landing pages, verified and deployed**.
+Current request: **Approved Plan 005 implementation/deployment is complete; collection remains off**.
+Next task: **M2-01: prepare deliberate evaluation configuration/CSP and review collection boundaries before an authorized capture pilot**.
 
 ## Plan status registry
 
 This is the canonical lifecycle registry. The [roadmap](IMPLEMENTATION_PLAN.md)
 owns sequence/dependencies; individual plans own detailed tasks and acceptance.
-Active identifies the current focus and does not itself authorize new scope.
+Active identifies focus and does not itself authorize additional scope.
 
 | ID | Plan | Status | Progress / dependency |
 | --- | --- | --- | --- |
-| 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified and deployed; historical checklists retained |
-| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 application acceptance verified/deployed with collection off; Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Next phase after completed 004; settings/hosting evidence retained; evaluation configuration and actual capture/access remain outstanding |
-| 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed small scenario contract exists; pilot runner stays in 002; scheduler/UI awaits prioritization |
-| 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified and deployed; focused admin pages, independent sessions, 30 browser journeys and HTTPS smoke passed |
+| 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
+| 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Next phase after 005; owner-reported settings/hosting retained, capture/access unverified; collection off |
+| 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
+| 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
+| 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–08 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
 
 ## Current reality
 
 - Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
-  Admin enters independently at `/controls`, then uses Manage Customers at
-  `/controls/customers`, with the existing private
-  `DEMO_ADMIN_SECRET`. No shared public customer password was seeded. Usernames
-  accept email-style @ and + aliases within the existing 3–40-character limit;
-  creation errors identify the invalid field without echoing entered values.
-- Customer sessions use hashed opaque tokens with 24-hour expiry. Logout, expiry,
-  and admin password replacement preserve the same banking run. Disable/password
-  replacement revoke all user sessions. Explicit reset retires the run, retains
-  report history, and keeps the stable user UUID and rotation cursor.
-- Account Summary has the shared section-title header, upper-right keyboard menu,
-  padded linked image, checking/savings/credit, activity, and goals. Transfers,
-  Bill Pay, Cards, Statements and Support have themed simulated actions; existing
-  savings details/enrollment/goals/contributions remain functional.
-- **Admin Menu** has Manage Customers, Manage Banners, Adoption Report, and
-  independent admin sign-out. **Customer Menu** has banking destinations and
-  customer sign-out, with About/reset as secondary utilities. Both use the shared
-  Harbor shell, upper-right hamburger, keyboard focus containment, and active links.
-- Protected `/controls/*` pages separate customer list/search, creation, selected
-  details/actions, banners, and reporting. Tools work without banking login or
-  banking bootstrap. Report filters persist across admin menu navigation. Admin
-  expiry clears private tool state; signing out of either area preserves the other
-  session. The login footer links to admin; admin footer links to customer entry.
-- Selected actions retain password replacement, enable/disable, reset/reconfigure,
-  Clarity ID copy, and bounded activity. Banners retain upload/settings/replacement
-  and immutable images. Reports keep existing distinct-run definitions. All admin
-  descendants are masked and suppress customer analytics/consent/bootstrap.
-- Banners use internal destination keys. Three starter creatives cycle in order
-  on login and full Summary refresh; menu returns/data fetches preserve selection.
-  Retry-safe transactions prevent double advance; tabs retain their selection.
-  Zero-enabled and failed-image states leave banking access usable.
-- Uploads accept bounded actual JPEG/PNG/WebP content and publish generated WebP
-  URLs. Replacements retain old URLs/history. Production images live in
-  `/var/lib/softek/banner-assets`, outside releases. A disabled 'Deployment
-  persistence check' creative is retained as storage evidence.
-- Business writes use READ COMMITTED and user/run locks; report snapshots use
-  REPEATABLE READ. Receipt idempotency and transactional money/history/events
-  remain intact. Placeholder observations cannot become confirmed adoption.
-- Stable user UUID is the gated Clarity Identify value; run, visit, route and
-  creative context remain separate. The optional `?banner=` heatmap URL has not
-  been adopted and awaits real filter/screenshot evaluation in Plan 002.
-- Migrations **0001–0003** are applied to **demo and demo_test**: version 3, no
-  pending files or checksum drift. 0002/0003 were committed in `e239925` before
-  test application. Applied migrations are immutable; next change is 0004.
-- Pre-upgrade production backup (schema/data/ledger, 0600):
-  `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`.
-  All ten original production run IDs and retained banking/history rows survived.
-  Historical anonymous ownership remains NULL; legacy public entry returns 410.
-- Runtime has scoped CRUD only; migrator has scoped DDL. Private `.env` remains
-  ignored and 0600. `/etc/softek/runtime.env` is a runtime-only allowlist,
-  root:softek 0640; no admin/migration/test DB credentials are deployed.
-- Latest authenticated release: **2026-10-11T19-49-23-608Z**. Previous compatible
-  authenticated release: **2026-10-11T18-56-25-765Z**. Active links are
-  `/opt/softek/current` and `/var/www/softek/current`. Production API is enabled
-  and active as nonlogin `softek` on loopback **3100**; development/test uses 3101.
-- Hardened service cannot edit code; only persistent banner storage is writable.
-  Dedicated Nginx config adds public media and a 6 MiB exact upload endpoint;
-  other request limits, HTTPS/ACME and certificate configuration remain intact.
-  All preexisting unrelated site hashes/symlink targets match the saved manifest.
-- Pre-auth anonymous releases are not compatible public authentication rollback
-  targets. Use an authenticated release or the scoped maintenance placeholder;
-  preserve schema/history/images. Actual rollback/schema downgrade was not run.
+  Admin signs in independently at `/controls` using the private `DEMO_ADMIN_SECRET`.
+  Email-style usernames within the 3–40-character limit are supported.
+- Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
+  replacement/disable revoke that user's sessions. Reset retires the run and retains
+  history, stable user UUID and rotation cursor. Admin and customer sign-outs are
+  independent. Existing Alex/Jamie template choices remain unchanged.
+- Account Summary retains accounts/activity/goals and its padded rotating banner.
+  Login and full Summary refresh advance once; menu returns/data reads/feature CTAs
+  do not. Independent tabs retain their exact selection. Savings Goals enrollment,
+  goals and contributions remain functional; other banking sections use demo actions.
+- Customer Menu → **Explore Features** contains all twelve supplied campaigns at
+  authenticated `/features/:featureId` routes. One shared Harbor landing component
+  renders supplied copy, benefits, disclosures and one primary CTA. CTA acknowledgement
+  shows an inline demo confirmation, without changing banking/enrollment. No banners
+  or financial input forms appear on feature pages. All customers may explore them.
+- All twelve internal destinations are selectable in Manage Banners. No new artwork
+  or enabled promotional set was created. Uploaded JPEG/PNG/WebP is re-encoded to
+  immutable WebP; production assets remain outside releases in
+  `/var/lib/softek/banner-assets`. Replacements retain prior URLs/history.
+- Feature observations are `feature_viewed` / `feature_cta_clicked`, separate from
+  Savings Goals adoption. The API validates owned run/visit, feature/action/time,
+  CSRF and optional immutable banner entry; retries deduplicate per page/feature.
+  Banner history state belongs to the exact landing entry; menu/direct entries do
+  not inherit another tab's or the user's last banner attribution.
+- Admin Menu retains Manage Customers, Manage Banners and Adoption Report at
+  `/controls/*`. Feature Activity within the report shows raw views/clicks, distinct
+  customers/runs and banner-attributed counts under actor/variant/UTC filters.
+  Savings Goals funnel queries/denominators are unchanged. Selected-customer activity
+  names feature observations. Admin descendants remain masked and analytics-excluded.
+- MariaDB is authoritative. Business writes use user/run locks and READ COMMITTED;
+  savings reports use consistent snapshots; feature aggregates use one SQL statement.
+  Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
+  and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
+  migration or test credentials.
+- Migrations **0001–0004** are applied to **demo and demo_test**, version 4 with no
+  pending files/checksum drift; repeat application is a no-op. 0004 was committed in
+  **d0ec4c6** before application and only appends two interaction ENUM names.
+  Next schema change uses **0005**; applied migrations are immutable.
+- Scoped schema/data/ledger backup before 0004 (root-only, 0600):
+  `/var/backups/softek/demo-before-0004-20261011T212954Z.sql`.
+  Earlier pre-0002 backup remains. All ten original production run IDs and retained
+  banking/history counts survived; historical anonymous ownership remains NULL.
+- Current release: **2026-10-11T21-30-01-050Z**. Previous authenticated release:
+  **2026-10-11T19-49-23-608Z**. Both current links point to the new release.
+  Production API is enabled/active as nonlogin `softek` on loopback **3100**.
+  No development/test listener remains. API health is 200 with DB connected.
+- Prior authenticated API was explicitly tested against schema 4 containing both
+  feature ENUM values: owned state, original interactions, report, users and retained
+  activity work. That rollback loses feature routes/reporting but preserves schema
+  and history; never downgrade the ENUM. Actual rollback was not performed.
+  Pre-auth anonymous releases remain incompatible public rollback targets.
+- Dedicated Nginx/HTTPS/upload configuration and persistent assets are intact.
+  All unrelated Nginx configuration hashes and enabled symlink targets match the
+  original manifest. The service cannot edit code; only banner storage is writable.
 
-## Plan 004 result
+## Plan 005 result and verification
 
-MENU-01–07 are complete. The selected route structure from Plan 004 is deployed:
-`/controls`, `/controls/customers`, `/controls/customers/new`,
-`/controls/customers/:userId`, `/controls/banners`, `/controls/report`.
-No API/schema change was required. The old `/controls` bookmark remains valid.
-The shared shell and independent session roots replace the previous combined
-controls page/customer menu. Existing Alex/Jamie choices remain unchanged; the
-earlier template simplification recommendation was not approved.
-
-The full browser suite verifies selected customer email creation/search/password/
-access/reset/activity, banner upload/settings/replacement, report filters,
-independent cookies/sign-outs, expired child-route access, direct/reload/back/forward,
-missing pages/customer, menu keyboard focus and no overflow at 360/390/1440px.
-Collection-off admin navigation emits no customer state/events/Clarity requests.
-Actual captured-document boundaries and masking fidelity still need Plan 002 playback.
-
-The public HTTPS smoke passed at 360/1440px after deployment, preserving savings
-state across login, checking rotation/menu/actions, separate admin pages/sign-out,
-and reset. Original retained data and persistent banner storage remain intact.
-All unrelated Nginx hashes/links match the original manifest. UI rollback to the
-previous authenticated release restores combined controls; new child bookmarks
-should return to `/controls` after that rollback. No schema downgrade is needed.
-
-## Clarity configuration and remaining acceptance
-
-Intended project: **`yvs5hp3ivb`**, owner confirmed. On 2026-10-11 UTC the owner
-reported **Balanced masking, cookies on, bot detection on, cookie consent required**.
-These are owner-reported settings, not direct dashboard inspection. Chris had not
-been invited at the last access update; no later access confirmation exists.
-
-**Collection remains disabled and real recordings/heatmaps remain unverified.**
-Deployment forces backend/build gates off; CSP permits same-origin scripts and
-connections only. Adapter/consent UI and explicit DOM masks are implemented but
-must be verified against actual SDK behavior and playback. Existing loader and
-project ID suffice; no Microsoft password or manual-install snippet is needed.
-
-Plan 002 must implement deliberate evaluation deployment, narrow CSP allowances,
-consent/masking checks, actual stable-ID lookup and shared-browser account
-separation, historical artwork rendering, and creative-specific heatmap checks.
-Bot detection is on: do not treat routine Playwright success as proof of synthetic
-capture. Keep dedicated actors and document observed filtering in the pilot.
-Full scheduling/scenario UI is deferred; the current typed contract is not a runner.
-
-## Verification evidence
+All FEAT-01–08 are complete. The untouched original report remains untracked in
+`temp/`; its identical durable reference is in `plans/references/`. This is supplied
+fictional/demo marketing copy, not independent Access Digital product verification.
+Architecture, product, setup, testing and roadmap reflect the implemented phase.
 
 | Check actually run | Result |
 | --- | --- |
-| `npm run typecheck` | Frontend/API/scripts/tests passed |
-| `npm run build` | Production frontend/API passed |
-| `npm test` | **32 TAP entries** passed: 12 existing API, 8 migration, 9 revision scenarios, 3 parents |
-| `npm run test:e2e` | **30 Chromium journeys** passed at 360/390/1440px, including both menus, selected actions, immutable replacement, history navigation, expired admin access and independent sign-outs; final runner exited 0 |
-| `npm run format:check` | Passed |
-| Migration status/repeat | Both ledgers version 3, no pending/drift; no migration needed or applied for 004 |
-| Production data preservation | All ten original runs retained; no drop in original banking/history counts |
-| `npm run deploy` | Release **2026-10-11T19-49-23-608Z** deployed successfully |
-| `npm run smoke:public` | Actual HTTPS 360/1440px email creation/login, saved goals/contribution, rotation/menu/action, separate admin report/customers/banners, admin logout/reload preserving customer access, relogin/reset; no Clarity/browser errors |
-| Production upload/storage | Earlier protected upload retained; same public image hash after Plan 004 deployment/restart; replacement/old URL verified in browser and API suites |
-| Short mobile login | 360×500 form scrollable, no horizontal overflow |
-| Public host/service | Health 200 + DB connected, service active; Nginx syntax passed; prior routing/cookie protections preserved |
-| Shared-host isolation | All prior unrelated Nginx config hashes and symlink targets unchanged |
-| Visual review | Mobile/desktop account, report, admin list/home/menu and live banner screens inspected; screenshots in ignored artifacts |
-| Credentials | Private secret values absent from all 75 candidate source/document/build files |
+| `npm test` | **40 TAP entries passed**: 34 nested scenarios, four parents, two standalone migration/context checks |
+| Browser suite | **39 Chromium journeys covered** at 360/390/1440px: 36 passed initially; three banner journeys passed on focused rerun after correcting a destination-picker test selector |
+| Feature browser evidence | All twelve pages/CTAs; lost-response retry and rapid activation; banking/adoption unchanged; banner/direct/menu/tab/reload attribution; auth/unknown routes; short viewport/keyboard; separate reporting |
+| Typecheck/build/format | Passed; frontend ~578 kB / 170 kB gzip size advisory remains B-011 |
+| Migration status/repeat | Both ledgers version 4, no pending/drift, repeated migration no-op; old ENUM rows/ordinals verified on owned probe |
+| Prior API compatibility | Previous authenticated release works on dedicated schema 4 with stored feature values; owned fixtures cleaned |
+| `npm run deploy` | Release **2026-10-11T21-30-01-050Z** deployed successfully |
+| `npm run smoke:public` | HTTPS 360/1440px banking/login/rotation, feature submenu/CTA/child reload, exactly two owned feature views/one CTA, saved accounts/goals/run, separate report, independent sign-out and reset; no browser errors/Clarity requests |
+| Retained production data/assets | All ten original runs retained, original table counts not reduced; earlier uploaded image has identical public hash |
+| Host/privacy | Nginx syntax passed, service active/loopback, health 200, runtime allowlist/permissions and three collection flags off; unrelated site hashes/links unchanged |
+| Visual review | Representative mobile/desktop submenu, landing/confirmation and report reviewed; source and live screenshots in ignored artifacts |
+| Credentials | Secret scan passed across 84 candidate source/document/build files |
 
-No known failing application check remains. The initial noninteractive browser
-runner reported all 30 journeys passed but exited during server shutdown; the
-final terminal run passed all 30 with exit 0. Screenshot timing was corrected to
-wait for Admin Home before capture. Vite's ~559 kB / 164 kB gzip bundle advisory
-is tracked as B-011. Real devices and Clarity playback are not established by tests.
+No unresolved application failure remains. The browser selector correction changed
+only the test; visual review separated the banner count notes from report totals.
+Real devices and real Clarity playback are not established by these checks.
+Public smoke's owned automation users/history are intentionally retained.
+
+## Clarity configuration and remaining acceptance
+
+Intended project: **`yvs5hp3ivb`**, owner confirmed. Owner reported on 2026-10-11 UTC:
+**Balanced masking, cookies on, bot detection on, cookie consent required**.
+These are owner-reported settings, not dashboard inspection. Chris's project access
+remains unverified; do not send invitations without an instruction.
+
+**Collection remains disabled; recordings and heatmaps remain unverified.** Normal
+deployment forces all collection gates off and same-origin CSP. The adapter now
+prepares accurate bounded feature/service/campaign/banner context and clears stale
+tags; its local stub passes. Actual opt-in/withdrawal, masking, account switching,
+creative rendering/filtering and synthetic capture still need Plan 002 playback.
+The optional public `?banner=` heatmap parameter remains deferred pending evaluation.
 
 ## Exact resume point
 
-1. Read AGENTS/START_HERE, this state, PRODUCT, and Plan 002; inspect Git and
-   deployed release before relying on documentation.
-2. Plan 004 implementation is complete. Next is M2-01: review the final DOM masks,
-   prepare a deliberate evaluation mode that defaults off, and verify the narrow
-   Clarity CSP using official guidance. Preserve normal collection-off deployment
-   and test behavior. Do not claim actual SDK masking/capture from routine tests.
-3. Actual Clarity acceptance needs project access: owner/Chris can inspect the
-   dashboard or provide observed evidence. Chris's Member invitation remains
-   unverified; do not send invitations without instruction. Then verify the small
-   human/automation pilot, stable-ID lookup, switching, consent, replay and heatmaps.
+1. Read AGENTS/START_HERE, this state, PRODUCT and Plan 002. Inspect Git/current
+   release before assuming documented environment facts still hold.
+2. Plan 005 is complete. For the next authorized phase, begin M2-01: review official
+   SDK/CSP/consent guidance, final DOM masks and existing deploy defaults; prepare an
+   explicit evaluation mode that leaves normal deployments/tests collection-off.
+   Actual collection enablement/pilot is separate from the completed feature request.
+3. Verify Chris access and actual recordings/heatmaps with the owner; no Microsoft
+   password or manual-install snippet is needed. Use dedicated labeled pilot users.
+4. Implement only the small Plan 002 pilot first. Bot detection is on; browser
+   success is not proof Clarity records automation. Broad scheduling remains Plan 003.
 
 ## Git and operational handoff
 
-Foundation `1f759d9`; M1 `546459c`; planning/additive migrations `e239925`;
-main revision `ab9f2e9`; email-username fix `d05d0ee`.
-Plan 004 menu implementation, its plan, updated browser/public checks and durable
-documentation are committed locally on `main`; inspect `git log -1` for the exact
-commit. **No push** was made. Origin is `https://github.com/cnm4us/softek.git`.
-
-No pending migration or development listener remains. Production intentionally
-continues running. Ignored artifacts contain screenshots/check manifests; no
-credentials are committed. LOCAL_SETUP.md owns admin/upload, backup, rollback and
-renewal operations; TESTING.MD owns verification and fixture cleanup boundaries.
+Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**. Plan 005 code,
+checks, plan/reference and durable documentation are committed locally on `main`;
+inspect `git log -1` for the implementation hash. **No push** was made. Origin is
+`https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
+and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
+No credentials are committed; production intentionally continues running.
+LOCAL_SETUP owns backup/rollback/renewal, TESTING owns commands and cleanup boundaries.

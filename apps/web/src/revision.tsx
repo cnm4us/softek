@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { api, type State } from './api';
 import { confirmed, collectionAvailable } from './analytics';
 import { isAdminRoute } from './routes';
+import { featureAtPath } from '../../api/src/features';
 
 export type Banner = {
   id: string;
@@ -28,7 +29,11 @@ const documentId = crypto.randomUUID();
 let pageId = crypto.randomUUID(),
   pagePath = location.pathname;
 export function routeKey(path = location.pathname) {
-  return sections.find((s) => s.href === path)?.key ?? path.slice(1);
+  return (
+    featureAtPath(path)?.id ??
+    sections.find((s) => s.href === path)?.key ??
+    path.slice(1)
+  );
 }
 export function interaction(
   state: State,
@@ -146,6 +151,19 @@ export function ImageBanner({
       className="image-banner"
       data-testid="promotion-banner"
       to={banner.href}
+      state={
+        featureAtPath(banner.href)
+          ? {
+              featureEntry: {
+                userId: state.user.id,
+                runId: state.runId,
+                featureId: banner.destination,
+                selectionId: banner.id,
+                bannerId: banner.bannerId,
+              },
+            }
+          : null
+      }
       aria-label={banner.altText}
       onClick={() => {
         void interaction(state, 'banner_clicked', {

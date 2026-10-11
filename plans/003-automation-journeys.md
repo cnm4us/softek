@@ -7,6 +7,8 @@ This is a deferred scope outline, not an executable implementation plan.
 Expand and prioritize it when the user requests the broader automation work.
 It depends on [Plan 001](001-login-layout-and-banners.md) and the observed capture
 results from [Plan 002](002-clarity-validation.md).
+[Plan 005](005-feature-campaign-landing-pages.md) extends the typed feature/submenu
+controls before capture evaluation; this does not implement a scheduler or runner.
 
 ## Scope boundary
 

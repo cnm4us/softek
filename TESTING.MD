@@ -1,6 +1,6 @@
 # Testing
 
-M1, the login/banner revision, and Plan 004 menus are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plans 004/005 menus/features are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -61,8 +61,16 @@ relogin preserving state, serialized retry-safe rotation, observation ownership,
 actual raster decoding/limits/internal destinations/immutable replacement URLs,
 zero/one-enabled fallback, and reset/password/disable behavior.
 
-The Node runner reports **32 passing entries**: 29 nested scenarios plus three
-parents. Test files run serially. Cleanup deletes only fixture-owned users/runs
+`tests/features.test.ts` adds five API scenarios for all twelve feature IDs,
+strict auth/action/time/ownership, concurrent/retried observations, exact immutable
+banner attribution, separate human/automation report counts/cutoffs and retained
+reset history. It verifies unchanged banking/enrollment and Savings Goals events.
+A local Clarity stub checks bounded context and stale-tag clearing without loading
+the SDK. `tests/feature-migration.test.ts` applies the exact committed ENUM SQL to
+an owned probe, checking old rows/ordinals, new values and repeat no-op.
+
+The Node runner reports **40 passing entries**: 34 nested scenarios, four parents,
+and two standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
 are also removed; browser cleanup removes only its own hashed admin cookie token. It never drops a schema.
@@ -71,7 +79,7 @@ expect their own isolated execution window.
 
 ## Browser acceptance
 
-Ten journeys run at **360×800, 390×844, and 1440×900**: **30 Chromium checks**.
+Thirteen journeys run at **360×800, 390×844, and 1440×900**: **39 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -89,6 +97,9 @@ Ten journeys run at **360×800, 390×844, and 1440×900**: **30 Chromium checks*
 | Abandonment | Enrollment start without invented completion or first use |
 | Direct service entry | First use without a promotion click |
 | Form failures / keyboard | Error keeps entered text/amount; keyboard link, checkbox, and submission actions |
+| Twelve feature pages | Source copy, one CTA, confirmation, no forms/banner/overflow, rapid clicks and lost-response retry with identical request UUID; banking/adoption unchanged |
+| Feature banner and reporting | Owned uploaded feature banner, exact landing attribution across independent tabs/reload/menu, separate raw/distinct activity totals and admin destination options |
+| Feature routes and submenu | Authenticated direct entry, unavailable Savings Goals profile, unknown ID/back/forward, active child, short viewport, Enter/Space/Tab/Escape |
 | Responsive / privacy | No page overflow; no Clarity requests during complete journey; explicit masking attributes |
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and
@@ -110,7 +121,10 @@ npm run smoke:public
 The public smoke uses HTTPS at 360/1440px, checks Secure/HttpOnly/SameSite cookies,
 creates users, signs in, completes enrollment/goal/contribution, proves saved
 state across relogin, cycles banners on Summary reload, preserves menu return,
-uses a placeholder action, opens the separate admin report/customer/banner pages,
+uses a placeholder action, visits a feature through Explore Features, confirms its
+CTA, reloads the child route, returns to Summary without advancing the banner,
+checks unchanged accounts/goals/run and separate Feature Activity, then opens the
+separate admin customer/banner pages,
 checks admin sign-out/reload while preserving the customer login, and resets. It asserts no browser errors or Clarity
 requests. Its labeled automated history is intentionally retained in `demo`.
 

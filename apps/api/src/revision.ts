@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { rateLimit } from 'express-rate-limit';
 import multer from 'multer';
 import { z } from 'zod';
+import { features, getFeature } from './features.js';
 import { HttpError } from './errors.js';
 import { passwordHash, passwordMatches } from './passwords.js';
 import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
@@ -21,6 +22,7 @@ export const destinations = [
   { key: 'savings-goals', label: 'Savings Goals', href: '/savings-goals' },
   { key: 'statements', label: 'Statements', href: '/statements' },
   { key: 'support', label: 'Support', href: '/support' },
+  ...features.map((f) => ({ key: f.id, label: f.label, href: f.href })),
 ] as const;
 const routeKeys = [
   ...destinations.map((d) => d.key),
@@ -697,6 +699,8 @@ export function registerRevision(ctx: Context) {
           'menu_open',
           'menu_selected',
           'placeholder_action',
+          'feature_viewed',
+          'feature_cta_clicked',
         ]),
         routeKey: z.enum(routeKeys),
         targetKey: z.enum(routeKeys).optional(),
@@ -710,9 +714,14 @@ export function registerRevision(ctx: Context) {
     const result = await transaction(async (c) => {
       const r = await active(c, req),
         v = await visit(c, r, req);
+      const featureEvent = b.name.startsWith('feature_');
+      if (featureEvent && (!getFeature(b.routeKey) || b.targetKey))
+        throw new HttpError(400, 'Invalid feature action.');
+      if (b.selectionId && !featureEvent && !b.name.startsWith('banner_'))
+        throw new HttpError(400, 'Invalid presentation context.');
       let presentation: Row | undefined;
-      if (b.name.startsWith('banner_')) {
-        if (b.routeKey !== 'summary' || !b.selectionId)
+      if (b.name.startsWith('banner_') || (featureEvent && b.selectionId)) {
+        if (!featureEvent && (b.routeKey !== 'summary' || !b.selectionId))
           throw new HttpError(
             400,
             'A banner observation requires its Account Summary presentation.',
@@ -728,18 +737,39 @@ export function registerRevision(ctx: Context) {
           );
       }
       if (
+        featureEvent &&
+        presentation &&
+        presentation.destination !== b.routeKey
+      )
+        throw new HttpError(403, 'That banner does not lead to this feature.');
+      if (
         b.name === 'placeholder_action' &&
         !['transfers', 'bill-pay', 'cards', 'statements', 'support'].includes(
           b.routeKey,
         )
       )
         throw new HttpError(400, 'Invalid demo action.');
-      const dedupe =
-        b.name === 'banner_visible'
+      const dedupe = featureEvent
+        ? `feature:${b.name}:${b.pageId}:${b.routeKey}`
+        : b.name === 'banner_visible'
           ? `visible:${b.pageId}:${b.selectionId}`
           : b.name === 'page_view'
             ? `page:${b.pageId}`
             : `event:${b.requestId}`;
+      if (featureEvent) {
+        const [previous] = await c.query(
+          'SELECT selection_id FROM interaction_events WHERE run_id=? AND dedupe_key=?',
+          [r.id, dedupe],
+        );
+        if (
+          previous &&
+          (previous.selection_id ?? null) !== (presentation?.id ?? null)
+        )
+          throw new HttpError(
+            409,
+            'Retry this action with its original context.',
+          );
+      }
       const inserted = await c.query(
         'INSERT IGNORE INTO interaction_events VALUES (?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
         [
@@ -757,6 +787,7 @@ export function registerRevision(ctx: Context) {
       );
       const milestones: string[] = [];
       if (
+        b.name.startsWith('banner_') &&
         inserted.affectedRows &&
         presentation?.campaign_id === r.campaign_id &&
         r.eligible
@@ -777,9 +808,81 @@ export function registerRevision(ctx: Context) {
         );
         if (emitted) milestones.push(emitted);
       }
-      return { accepted: Boolean(inserted.affectedRows), events: milestones };
+      return {
+        accepted: Boolean(inserted.affectedRows),
+        acknowledged: true,
+        events: milestones,
+      };
     });
     res.json(result);
+  });
+  app.get('/api/admin/feature-activity', async (req, res) => {
+    await admin(req);
+    const f = z
+      .object({
+        actor: z.enum(['human', 'automation', 'all']).default('human'),
+        variant: z.enum(['baseline', 'value', 'all']).default('all'),
+        start: z.iso.datetime().optional(),
+        end: z.iso.datetime().optional(),
+        cutoff: z.iso.datetime().optional(),
+      })
+      .strict()
+      .parse(req.query);
+    const now = new Date().toISOString(),
+      start = f.start ?? '2000-01-01T00:00:00.000Z',
+      end = f.end ?? now,
+      cutoff = f.cutoff ?? now;
+    if (new Date(start) > new Date(end))
+      throw new HttpError(400, 'The start date must come before the end date.');
+    const rows: Row[] = await pool.query(
+      `SELECT e.route_key AS featureId,
+      SUM(e.name='feature_viewed') AS views,
+      COUNT(DISTINCT CASE WHEN e.name='feature_viewed' THEN r.user_id END) AS viewers,
+      COUNT(DISTINCT CASE WHEN e.name='feature_viewed' THEN r.id END) AS viewedRuns,
+      SUM(e.name='feature_cta_clicked') AS clicks,
+      COUNT(DISTINCT CASE WHEN e.name='feature_cta_clicked' THEN r.user_id END) AS clickers,
+      COUNT(DISTINCT CASE WHEN e.name='feature_cta_clicked' THEN r.id END) AS clickedRuns,
+      SUM(e.name='feature_viewed' AND e.selection_id IS NOT NULL) AS bannerViews,
+      SUM(e.name='feature_cta_clicked' AND e.selection_id IS NOT NULL) AS bannerClicks
+      FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id
+      WHERE e.name IN ('feature_viewed','feature_cta_clicked')
+      AND r.created_at>=? AND r.created_at<=? AND r.created_at<=?
+      AND e.created_at<=? AND e.observed_at<=?
+      AND (?='all' OR r.actor=?) AND (?='all' OR r.variant=?) GROUP BY e.route_key`,
+      [
+        new Date(start),
+        new Date(end),
+        new Date(cutoff),
+        new Date(cutoff),
+        new Date(cutoff),
+        f.actor,
+        f.actor,
+        f.variant,
+        f.variant,
+      ],
+    );
+    res.json({
+      filters: { ...f, start, end, cutoff, timezone: 'UTC' },
+      features: features.map((feature) => {
+        const row = rows.find((row) => row.featureId === feature.id);
+        return {
+          id: feature.id,
+          label: feature.label,
+          ...Object.fromEntries(
+            [
+              'views',
+              'viewers',
+              'viewedRuns',
+              'clicks',
+              'clickers',
+              'clickedRuns',
+              'bannerViews',
+              'bannerClicks',
+            ].map((key) => [key, Number(row?.[key] ?? 0)]),
+          ),
+        };
+      }),
+    });
   });
   app.get('/api/admin/interactions', async (req, res) => {
     await admin(req);

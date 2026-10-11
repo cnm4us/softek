@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import '../apps/api/src/config.js';
+import { features } from '../apps/api/src/features.js';
 const browser = await chromium.launch();
 const errors: string[] = [];
 try {
@@ -127,6 +128,67 @@ try {
     assert.equal(saved.runId, initial.runId);
     assert.equal(saved.user.id, initial.user.id);
     assert.equal(saved.goals[0].currentMinor, 1000);
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Explore Features', exact: true })
+      .click();
+    await page
+      .getByRole('link', { name: features[0].label, exact: true })
+      .click();
+    await page
+      .getByRole('heading', { name: features[0].headline, exact: true })
+      .waitFor();
+    assert.equal(await page.getByTestId('promotion-banner').count(), 0);
+    await page
+      .getByRole('button', { name: features[0].cta, exact: true })
+      .click();
+    await page
+      .getByText(
+        `Thanks for exploring ${features[0].name}. This demo does not activate a service or submit an application.`,
+      )
+      .waitFor();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: `artifacts/live-feature-${viewport.width}.png`,
+      fullPage: true,
+    });
+    await page.reload();
+    await page
+      .getByRole('heading', { name: features[0].headline, exact: true })
+      .waitFor();
+    await menu('Account Summary');
+    await banner.waitFor();
+    assert.equal(await banner.getAttribute('href'), '/cards');
+    const afterFeature = await state();
+    assert.equal(afterFeature.runId, saved.runId);
+    assert.deepEqual(afterFeature.accounts, saved.accounts);
+    assert.deepEqual(afterFeature.goals, saved.goals);
+    await expect
+      .poll(async () => {
+        const response = await context.request.get(
+          origin + '/api/admin/interactions?userId=' + saved.user.id,
+        );
+        assert.equal(response.status(), 200);
+        const rows = await response.json();
+        return rows.filter(
+          (r: { name: string; routeKey: string; runId: string }) =>
+            r.name === 'feature_viewed' &&
+            r.routeKey === features[0].id &&
+            r.runId === saved.runId,
+        ).length;
+      })
+      .toBe(2);
+    const observed = await context.request.get(
+      origin + '/api/admin/interactions?userId=' + saved.user.id,
+    );
+    const activity = await observed.json();
+    assert.equal(
+      activity.filter(
+        (r: { name: string; runId: string }) =>
+          r.name === 'feature_cta_clicked' && r.runId === saved.runId,
+      ).length,
+      1,
+    );
     await page.goto(origin + '/controls/report');
     await page
       .getByRole('heading', { name: 'Adoption Report', exact: true })
@@ -136,6 +198,9 @@ try {
       .getByLabel('Activity')
       .selectOption('automation');
     await page.getByText('Eligible denominator', { exact: true }).waitFor();
+    await page
+      .getByRole('heading', { name: 'Feature Activity', exact: true })
+      .waitFor();
     await menu('Manage Customers');
     await page.getByLabel('Search customers').fill(username);
     await page.locator('.customer-row').click();
@@ -171,7 +236,7 @@ try {
     assert.equal(reset.user.id, initial.user.id);
     assert.equal(reset.goals.length, 0);
     console.log(
-      `Public HTTPS journey passed at ${viewport.width}px: login, persistent user state, rotation, menu/action, report, reset, no Clarity.`,
+      `Public HTTPS journey passed at ${viewport.width}px: login, persistent user state, rotation, submenu/feature/CTA, separate reporting, reset, no Clarity.`,
     );
     await context.close();
   }

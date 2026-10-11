@@ -6,8 +6,9 @@ Lifecycle status: [PROJECT_STATE.md](../PROJECT_STATE.md#plan-status-registry).
 Depends on [Plan 001](001-login-layout-and-banners.md) for authenticated users,
 creative rotation, and interaction context, and [Plan 004](004-admin-and-customer-menus.md)
 for the final Admin/Customer menu surfaces. M2-01 project/access/settings review
-can proceed independently; final capture acceptance follows Plan 004's deployment.
-Plan 004 is deployed; this plan is the next focus. Preserve existing settings/hosting evidence.
+can proceed independently. Plans 004/005 implement the final menus, twelve feature
+landing pages and separate feature engagement observations. Capture acceptance
+uses those verified surfaces; preserve existing settings/hosting evidence.
 M2-02/03 retain their existing completed hosting evidence.
 
 Owns actual project verification, human recordings/heatmaps, a small controlled
@@ -55,7 +56,9 @@ and [team access](https://learn.microsoft.com/en-us/clarity/setup-and-installati
   Exercise a later login and explicit reset under the original user's stable ID.
 - [ ] Confirm collection requests and then actual recordings in the project.
   Find each user using the ID copied from admin, verify account switching,
-  route/menu replay, image/CSS rendering, and masking of private content.
+  route/menu/submenu replay, feature view/CTA context, image/CSS rendering, and
+  masking of private content. Feature CTA engagement must remain distinct from
+  Savings Goals enrollment/first/repeat use.
 - [ ] Compare banner-specific heatmaps and screenshots using creative tags and,
   if adopted, exact public URL parameters. Record whether historical creatives,
   expanded menus, and mobile/desktop layouts render correctly.

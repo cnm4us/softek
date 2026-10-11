@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import { ChevronRight, Landmark, Menu, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, Landmark, Menu, X } from 'lucide-react';
 
 export function AppShell({
   title,
   area,
   authenticated,
   sections,
+  featureSections = [],
   children,
   actions,
   footer,
@@ -18,6 +19,7 @@ export function AppShell({
   area: 'Admin' | 'Customer';
   authenticated: boolean;
   sections: { key: string; label: string; href: string }[];
+  featureSections?: { key: string; label: string; href: string }[];
   children: ReactNode;
   actions?: ReactNode;
   footer?: ReactNode;
@@ -27,6 +29,9 @@ export function AppShell({
 }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(
+    location.pathname.startsWith('/features/'),
+  );
   const button = useRef<HTMLButtonElement>(null),
     panel = useRef<HTMLElement>(null);
   const returnFocus = useRef(false);
@@ -36,6 +41,7 @@ export function AppShell({
   };
   useEffect(() => {
     close(false);
+    setFeaturesOpen(location.pathname.startsWith('/features/'));
     document.getElementById('main')?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -192,6 +198,47 @@ export function AppShell({
                 </Link>
               );
             })}
+            {featureSections.length > 0 && (
+              <>
+                <button
+                  className={`feature-menu-toggle ${location.pathname.startsWith('/features/') ? 'active' : ''}`}
+                  aria-expanded={featuresOpen}
+                  aria-controls="feature-submenu"
+                  onClick={() => setFeaturesOpen(!featuresOpen)}
+                >
+                  Explore Features{' '}
+                  <ChevronDown
+                    size={18}
+                    className={featuresOpen ? 'rotated' : ''}
+                  />
+                </button>
+                {featuresOpen && (
+                  <div id="feature-submenu" className="feature-submenu">
+                    {featureSections.map((section) => (
+                      <Link
+                        key={section.key}
+                        to={section.href}
+                        className={
+                          location.pathname === section.href ? 'active' : ''
+                        }
+                        aria-current={
+                          location.pathname === section.href
+                            ? 'page'
+                            : undefined
+                        }
+                        onClick={() => {
+                          onSelect?.(section.key);
+                          close(false);
+                        }}
+                      >
+                        {section.label}
+                        <ChevronRight size={16} />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
             <div className="menu-secondary" onClick={() => close()}>
               {actions}
             </div>

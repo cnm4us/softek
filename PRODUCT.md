@@ -76,6 +76,27 @@ Routes and secondary demo-utility placement in Plan 004 are working choices.
 No account-template simplification, new banking service, or Clarity collection
 change was approved as part of this menu revision.
 
+## Implemented feature campaign phase — Plan 005
+
+The user supplied twelve feature campaigns and approved Customer Menu →
+**Explore Features** as a submenu. Each item opens a themed landing page with
+basic descriptions and **one primary CTA**. The CTA shows only a demo confirmation.
+Promotional banners remain on **Account Summary only** and can link to the same
+landing pages through the existing admin banner editor.
+
+Feature views and CTA clicks are engagement observations separate from the
+existing Savings Goals adoption funnel. They imply no enrollment, eligibility,
+application, credit inquiry, investment order, or financial transaction. Existing
+banking state and banner rotation rules remain unchanged.
+
+[Plan 005](plans/005-feature-campaign-landing-pages.md) owns the twelve menu names,
+routes, supplied copy, tracking/migration design, and acceptance tasks.
+Harbor branding remains the working default. The report's secondary CTAs and
+simulated enrollment/application destinations are superseded by confirmation-only
+behavior. All twelve pages and banner destinations are implemented. Feature Activity
+within Adoption Report distinguishes raw views/clicks from distinct users/runs and
+uses the existing actor/variant/UTC filters. Clarity stays off.
+
 ## First milestone: one complete adoption experiment
 
 Implemented working choice: one fictional institution, two customer profiles

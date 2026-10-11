@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { features } from '../../apps/api/src/features.js';
 
 // Scenario definitions contain public controls/timing, never login credentials.
 // Plan 002's pilot will execute this contract; scheduling/UI belongs to Plan 003.
@@ -31,6 +32,12 @@ export const journeyScenario = z
             .object({
               kind: z.literal('action'),
               choice: z.enum(['click', 'skip']),
+            })
+            .strict(),
+          z
+            .object({
+              kind: z.literal('feature'),
+              featureId: z.enum(features.map((f) => f.id)),
             })
             .strict(),
           z

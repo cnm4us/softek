@@ -1,6 +1,6 @@
 # Architecture
 
-Status: M1 and Plan 001 implemented and deployed. MariaDB remains authoritative for banking
+Status: M1 and Plans 001/004/005 implemented. MariaDB remains authoritative for banking
 state and adoption reporting; live Clarity evaluation is pending in M2.
 
 ## System shape
@@ -324,3 +324,55 @@ or Clarity initialization. Analytics helpers also reject every admin descendant.
 Crossing into admin from an already captured SPA document denies consent and opens
 a new document before rendering private tools. These boundaries are verified with
 collection off; actual SDK playback/masking remains Plan 002 acceptance.
+
+
+## Feature campaign design — Plan 005
+
+The pure public catalog in `apps/api/src/features.ts` is shared by web, API,
+and the typed automation contract. It owns twelve stable IDs, routes, menu labels,
+source copy and CTAs. Keeping it inside the API source tree preserves the existing
+API build/release boundary without another package. `feature-page.tsx` renders
+one shared Harbor landing component at `/features/:featureId`; unknown IDs show
+a return link and emit no invented feature observations. Login preserves requested
+feature destinations. Customer Menu's Explore Features disclosure reuses the
+existing dialog focus containment, scrolling and active-link behavior.
+
+Landing CTAs only record engagement and show an accessible local confirmation.
+They collect no inputs and change no accounts, applications or enrollment.
+Confirmation resets on a new page entry/reload; banners remain on Account Summary.
+The admin destination allowlist includes all twelve pages. Uploaded artwork and
+its enable/order configuration remain under existing admin controls.
+
+Migration `0004_feature_interactions.sql` appends `feature_viewed` and
+`feature_cta_clicked` to the interaction ENUM, preserving existing ordinals.
+The protected API derives user/run/visit/actor and validates the feature route,
+CSRF, time and optional presentation. Events deduplicate by run/name/page/feature;
+retries receive acknowledgement even when already committed. Changing a retry's
+banner attribution is rejected. CTA pending/error/retry uses one request UUID and
+an in-flight guard; confirmation follows API acknowledgement.
+
+A banner link carries bounded entry context in React Router history state,
+including owned user/run/feature and exact immutable selection. Reload/back retains
+that entry; menu/direct entries do not inherit it. Client and server validate it
+against the current run and original destination. Neither another tab's selection
+nor a mutable current banner determines attribution. No private IDs enter URLs.
+
+`/api/admin/feature-activity` aggregates feature observations in one SQL statement,
+using the report's actor/variant/run-start UTC cohort and observation cutoff.
+It returns raw views/clicks, distinct users/runs, and optional banner-attributed
+counts for all twelve features, including zero rows. Feature Activity appears
+within Adoption Report; Savings Goals queries and milestones are unchanged.
+Generic page views are not added to feature view totals. Reset retains historical
+observations while discarding prior-run entry context. Selected-customer activity
+names these engagement observations separately.
+
+The gated Clarity adapter derives bounded route/feature/service/campaign/banner
+context via `feature-context.ts`, clearing old values on navigation. Feature
+SDK events follow API acknowledgement; late acknowledgements from an unmounted
+page do not emit events under another page's context. The Savings Goals adapter
+continues to use its own confirmed-business-event path. Local stub tests verify
+context clearing with collection off. Real SDK playback remains Plan 002 work.
+
+The scenario contract accepts a stable feature ID plus existing action click/skip;
+no runner or scheduler is added. The frozen user-provided report is linked from
+Plan 005; it remains demo marketing copy, not independently verified product data.

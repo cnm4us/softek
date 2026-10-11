@@ -1218,3 +1218,108 @@ summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.feature-menu-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px;
+  min-height: 48px;
+  border-radius: 12px;
+  font-size: 15px;
+  text-align: left;
+  background: transparent;
+}
+.feature-menu-toggle.active {
+  color: var(--color-primary);
+  font-weight: 650;
+}
+.feature-menu-toggle svg {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.feature-menu-toggle .rotated {
+  transform: rotate(180deg);
+}
+.feature-submenu {
+  margin: 4px 0 12px 12px;
+  border-left: 2px solid var(--color-border);
+  padding-left: 8px;
+}
+.feature-submenu a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  min-height: 48px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+.feature-submenu a svg {
+  flex-shrink: 0;
+}
+.feature-submenu a.active {
+  background: #e6eee2;
+  color: var(--color-primary);
+  font-weight: 650;
+}
+.feature-landing {
+  max-width: 900px;
+  margin: auto;
+}
+.feature-hero {
+  background: linear-gradient(135deg, #f2f6ec, #fff 60%);
+  padding: clamp(24px, 5vw, 56px);
+}
+.feature-hero .eyebrow {
+  margin-top: 24px;
+}
+.feature-hero h2 {
+  font-size: clamp(29px, 4vw, 44px);
+  line-height: 1.2;
+  max-width: 650px;
+}
+.feature-description {
+  max-width: 680px;
+}
+.feature-benefits {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+  margin: 28px 0;
+}
+.feature-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  line-height: 1.6;
+}
+.feature-benefits svg {
+  margin-top: 4px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+.feature-confirmation {
+  margin: 24px 0;
+}
+.feature-disclosure,
+.feature-demo-notice {
+  margin-top: 24px;
+}
+.feature-demo-notice {
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+}
+.feature-return {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+[data-testid='feature-activity'] td .small-note {
+  display: block;
+  margin-top: 4px;
+}

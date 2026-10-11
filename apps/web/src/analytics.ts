@@ -1,5 +1,6 @@
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
+import { analyticsContext, applyContext } from './feature-context';
 export const eventNames = [
   'eligible',
   'promotion_visible',
@@ -27,7 +28,7 @@ export function collectionAvailable(state: State) {
   return (
     !isAdminRoute(location.pathname) &&
     state.analytics.enabled &&
-    import.meta.env.VITE_CLARITY_ENABLED === 'true' &&
+    import.meta.env?.VITE_CLARITY_ENABLED === 'true' &&
     Boolean(state.analytics.projectId?.match(/^[a-z0-9]{6,30}$/))
   );
 }
@@ -54,34 +55,23 @@ export function initialize(state: State) {
     script.src = `https://www.clarity.ms/tag/${state.analytics.projectId}`;
     document.head.append(script);
   }
-  const safeTags = {
-    institution: 'harbor',
-    service: 'savings-goals',
-    campaign: 'savings-launch',
-    variant: state.variant,
-    actor: state.analytics.actor,
-  };
-  const page =
-    location.pathname === '/'
-      ? 'summary'
-      : [
-            'transfers',
-            'bill-pay',
-            'cards',
-            'savings-goals',
-            'goals',
-            'enroll',
-            'statements',
-            'support',
-            'about',
-          ].includes(location.pathname.slice(1))
-        ? location.pathname.slice(1)
-        : 'unknown';
-  window.clarity('identify', state.user.id, state.visitId, page);
-  window.clarity('set', 'route', page);
-  window.clarity('set', 'run', state.runId);
-  for (const [key, value] of Object.entries(safeTags))
-    window.clarity('set', key, value);
+  let savedBanner = null;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('softek_banner') ?? 'null');
+    if (saved?.userId === state.user.id) savedBanner = saved.banner;
+  } catch {
+    /* No saved artwork context. */
+  }
+  applyContext(
+    window.clarity!,
+    state,
+    analyticsContext(
+      state,
+      location.pathname,
+      window.history.state?.usr?.featureEntry,
+      savedBanner,
+    ),
+  );
 }
 export function confirmed(state: State, names: string[]) {
   if (
@@ -130,4 +120,17 @@ export async function observe(
   );
   confirmed(state, result.events);
   return result;
+}
+
+export function emitFeatureObservation(
+  state: State,
+  name: 'feature_viewed' | 'feature_cta_clicked',
+) {
+  if (
+    !collectionAvailable(state) ||
+    sessionStorage.getItem('softek_analytics_consent') !== 'granted'
+  )
+    return;
+  initialize(state);
+  window.clarity?.('event', name);
 }

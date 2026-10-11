@@ -25,7 +25,7 @@ npm run db:seed
 npm run db:seed -- --test
 ```
 
-Commit and review each migration before applying it. Migrations 0001–0003 are
+Commit and review each migration before applying it. Migrations 0001–0004 are
 already applied on this instance; repeated migration is a verified no-op. Seeds upsert fictional templates and add absent starter banner fixtures,
 preserving participant balances/goals/history and existing admin banner settings. Reset is a customer-run operation, never a database drop.
 
@@ -217,7 +217,7 @@ integration/browser tests use `demo_test` and remove only their own fixture user
 
 Keep the prior API/frontend release paths from `readlink` before a deployment.
 For an application rollback, choose an authenticated release compatible with
-schema version 3 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
+schema version 4 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
 Use `ln -s <reviewed-path> <current>.next` and `mv -T <current>.next <current>` for
 atomic link replacement. Never select an unreviewed release by an assumed name.
 A schema downgrade is separate and requires a reviewed recovery plan.
@@ -246,3 +246,28 @@ Renewal dry run passed during HTTPS setup. The existing Certbot timer is active;
 this certificate's persisted hook tests/reloads Nginx after renewal. Preserve
 ACME routing. Nginx reload is asynchronous; allow new workers to start before
 checking changed routing. Do not repeat ACME issuance to test application changes.
+
+## Feature campaigns and activity — Plan 005
+
+Customer Menu → Explore Features opens twelve authenticated landing pages. Their
+primary CTAs show demo confirmations only; all customers may explore regardless
+of separate Savings Goals eligibility. Confirmation is local to a page entry.
+There are no feature enrollment/payment/investment actions or new inputs.
+
+In Manage Banners, select any feature's internal destination. Upload artwork with
+the existing controls and choose order/enabled explicitly; this release does not
+create or enable twelve promotional images. Feature banners have no Savings Goals
+campaign association. Banner display/rotation remains on Account Summary only.
+
+Adoption Report → Feature Activity shows per-feature raw landing views/CTA clicks,
+distinct customers/runs and banner-attributed observations. Its actor, variant,
+run-start UTC dates and cutoff use the same filters as the separate Savings Goals
+report. Customer activity also names feature observations; these are engagement,
+not enrollment or adoption. Normal navigation/reload can produce new page entries.
+
+Schema 0004 only appends two interaction ENUM names; old values/order remain.
+Back up schema/data/ledger before applying it, then run migration status and a
+repeat no-op. Never modify applied files or downgrade the ENUM to roll back UI.
+The previous authenticated application must be checked against version 4 before
+choosing it as a rollback target; it will not expose feature routes. See the exact
+verified release and backup in PROJECT_STATE.

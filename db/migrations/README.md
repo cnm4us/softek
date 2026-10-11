@@ -1,11 +1,13 @@
 # MariaDB schema migration contract
 
-Status: migrations `0001_demo_foundation.sql`, `0002_demo_users.sql`, and
-`0003_demo_banners.sql` are committed and applied to `demo` and `demo_test`.
-Both ledgers were verified at version 3 before Plan 005. New committed migration
-`0004_feature_interactions.sql` is pending application. It appends two engagement
-ENUM values without changing existing ordinals or banking/adoption tables. Applied files are
-immutable; the next schema change after 0004 uses `0005_<description>.sql`.
+Status: migrations `0001_demo_foundation.sql` through
+`0004_feature_interactions.sql` are committed and applied to `demo` and `demo_test`.
+Both ledgers are version 4, no pending/checksum drift; repeat application is a no-op.
+0004 was committed in **d0ec4c6** before application. It appends two engagement ENUM
+values without changing existing ordinals or banking/adoption tables. Scoped
+production schema/data/ledger backup (0600):
+`/var/backups/softek/demo-before-0004-20261011T212954Z.sql`.
+Applied files are immutable; next schema change uses `0005_<description>.sql`.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
 backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`
@@ -91,7 +93,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **3**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. The actual applied version is **4**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 

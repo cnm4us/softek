@@ -52,6 +52,8 @@ import { Card, Alert, Heading } from './ui';
 import { AppShell } from './shell';
 import { AdminApp } from './admin';
 import { isAdminRoute } from './routes';
+import { features, featureAtPath } from '../../api/src/features';
+import { FeaturePage } from './feature-page';
 import './theme.css';
 
 type Context = {
@@ -739,11 +741,6 @@ function AnalyticsChoice() {
   useEffect(() => {
     if (state) {
       initialize(state);
-      if (
-        collectionAvailable(state) &&
-        sessionStorage.getItem('softek_analytics_consent') === 'granted'
-      )
-        window.clarity?.('set', 'banner', banner?.bannerId ?? 'none');
     }
   }, [state?.runId, state?.visitId, location.pathname, banner?.id]);
   if (!state || !collectionAvailable(state)) return null;
@@ -836,7 +833,9 @@ function CustomerApp() {
     );
     rememberBanner(result.userId, result.banner);
     await refresh();
-    navigate('/');
+    navigate(
+      location.pathname.startsWith('/features/') ? location.pathname : '/',
+    );
   };
   async function logout() {
     if (!state) return;
@@ -878,7 +877,12 @@ function CustomerApp() {
     }
   }
   useEffect(() => {
-    if (state && location.pathname !== '/login')
+    if (
+      state &&
+      location.pathname !== '/login' &&
+      (!location.pathname.startsWith('/features/') ||
+        featureAtPath(location.pathname))
+    )
       void interaction(state, 'page_view').catch(() => {});
   }, [location.pathname, state?.runId]);
   useEffect(() => {
@@ -892,6 +896,7 @@ function CustomerApp() {
     return () => window.removeEventListener('demo-action', handler);
   }, [state]);
   const title =
+    featureAtPath(location.pathname)?.label ??
     sections.find((s) => s.href === location.pathname)?.label ??
     (
       {
@@ -908,6 +913,11 @@ function CustomerApp() {
         title={state ? title : null}
         authenticated={Boolean(state)}
         sections={sections}
+        featureSections={features.map((f) => ({
+          key: f.id,
+          label: f.label,
+          href: f.href,
+        }))}
         greeting={state?.profile.firstName}
         onMenuOpen={() => {
           if (state) void interaction(state, 'menu_open').catch(() => {});
@@ -963,6 +973,10 @@ function CustomerApp() {
                 <Route path="/savings-goals" element={<Details />} />
                 <Route path="/enroll" element={<Enrollment />} />
                 <Route path="/goals" element={<Goals />} />
+                <Route
+                  path="/features/:featureId"
+                  element={<FeaturePage state={state} />}
+                />
                 {sections
                   .filter((s) => !['summary', 'goals'].includes(s.key))
                   .map((section) => (

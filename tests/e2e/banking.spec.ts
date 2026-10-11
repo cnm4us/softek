@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { features } from '../../apps/api/src/features.js';
 import { assetDirectory } from '../../apps/api/src/banner-assets.js';
 const headers = { 'X-Demo-Automation': process.env.AUTOMATION_SECRET! };
 test.use({ extraHTTPHeaders: headers });
@@ -781,4 +782,300 @@ test('customer-only protection and independent sign-out with both sessions', asy
   ).toBeVisible();
   expect((await context.request.get('/api/state')).status()).toBe(401);
   await noOverflow(page);
+});
+
+test('all twelve feature pages, one CTA, retry confirmation, and preserved banking', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('request', (r) => {
+    if (/clarity\.ms/.test(r.url())) errors.push(r.url());
+  });
+  await entry(page);
+  const original = await state(page);
+  const before = await pool.query(
+    'SELECT name FROM adoption_events WHERE run_id=? ORDER BY name',
+    [original.runId],
+  );
+  let failed = false;
+  const requests: string[] = [];
+  await page.route('**/api/interactions', async (route) => {
+    const body = route.request().postDataJSON();
+    if (body.name === 'feature_cta_clicked' && body.routeKey === 'easycoin') {
+      requests.push(body.requestId);
+      if (!failed) {
+        failed = true;
+        await route.fetch();
+        await route.abort('failed');
+        return;
+      }
+    }
+    await route.continue();
+  });
+  for (const f of features) {
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+    const group = page.getByRole('button', {
+      name: 'Explore Features',
+      exact: true,
+    });
+    if ((await group.getAttribute('aria-expanded')) === 'false')
+      await group.click();
+    if (f.id === 'easycoin')
+      await page.screenshot({
+        path: `artifacts/feature-menu-${test.info().project.name}.png`,
+      });
+    await page.getByRole('link', { name: f.label, exact: true }).click();
+    await expect(
+      page.getByRole('heading', { name: f.headline, exact: true }),
+    ).toBeVisible();
+    await expect(page.getByTestId('promotion-banner')).toHaveCount(0);
+    await expect(page.locator('form')).toHaveCount(0);
+    const cta = page.getByRole('button', { name: f.cta, exact: true });
+    await expect(cta).toHaveCount(1);
+    if (f.id === 'easycoin') {
+      await cta.click();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(page.getByRole('status')).toHaveCount(0);
+      await cta.click();
+      expect(requests).toHaveLength(2);
+      expect(requests[0]).toBe(requests[1]);
+    } else
+      await cta.evaluate((button: HTMLButtonElement) => {
+        button.click();
+        button.click();
+      });
+    await expect(page.getByRole('status')).toContainText(
+      'does not activate a service',
+    );
+    await expect(cta).toBeDisabled();
+    await noOverflow(page);
+    if (f.id === 'easycoin')
+      await page.screenshot({
+        path: `artifacts/feature-confirmation-${test.info().project.name}.png`,
+        fullPage: true,
+      });
+    await expect
+      .poll(async () =>
+        Number(
+          (
+            await pool.query(
+              "SELECT COUNT(*) AS n FROM interaction_events WHERE run_id=? AND route_key=? AND name='feature_cta_clicked'",
+              [original.runId, f.id],
+            )
+          )[0].n,
+        ),
+      )
+      .toBe(1);
+  }
+  const current = await state(page);
+  expect(current.accounts).toEqual(original.accounts);
+  expect(current.goals).toEqual(original.goals);
+  expect(current.enrolled).toBe(original.enrolled);
+  expect(current.runId).toBe(original.runId);
+  expect(
+    await pool.query(
+      'SELECT name FROM adoption_events WHERE run_id=? ORDER BY name',
+      [original.runId],
+    ),
+  ).toEqual(before);
+  await menu(page, 'Account Summary');
+  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/savings-goals',
+  );
+  expect(errors).toEqual([]);
+});
+
+test('feature banner attribution, reload, direct/menu entry, tabs and report', async ({
+  page,
+  context,
+}) => {
+  await entry(page);
+  const original = await state(page);
+  const logged = await context.request.post('/api/admin/login', {
+    headers: { Origin: 'http://127.0.0.1:5173' },
+    data: { password: process.env.DEMO_ADMIN_SECRET! },
+  });
+  expect(logged.status()).toBe(200);
+  const admin = await logged.json();
+  const buffer = await sharp({
+    create: { width: 1200, height: 400, channels: 3, background: '#205747' },
+  })
+    .png()
+    .toBuffer();
+  const uploaded = await context.request.post('/api/admin/banners/upload', {
+    headers: { Origin: 'http://127.0.0.1:5173', 'X-CSRF-Token': admin.csrf },
+    multipart: {
+      image: { name: 'feature.png', mimeType: 'image/png', buffer },
+      title: 'Owned feature banner',
+      altText: 'Explore crypto demo',
+      destination: 'easycoin',
+      sortOrder: '3',
+    },
+  });
+  expect(uploaded.status()).toBe(201);
+  const uploadedData = await uploaded.json();
+  const [row] = await pool.query(
+    'SELECT id,asset_key FROM demo_banners WHERE id=?',
+    [uploadedData.id],
+  );
+  uploads.push(row);
+  await pool.query(
+    "UPDATE banner_rotation SET last_banner_id='harbor-cards' WHERE user_id=?",
+    [original.user.id],
+  );
+  await page.reload();
+  const banner = page.getByTestId('promotion-banner');
+  await expect(banner).toHaveAttribute('href', '/features/easycoin');
+  await banner.click();
+  await expect(
+    page.getByRole('heading', { name: features[0].headline, exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: features[0].cta, exact: true })
+    .click();
+  await expect(page.getByRole('status')).toBeVisible();
+  const other = await context.newPage();
+  await other.goto('/features/easycoin');
+  await other
+    .getByRole('button', { name: features[0].cta, exact: true })
+    .click();
+  await expect(other.getByRole('status')).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: features[0].cta, exact: true }),
+  ).toBeEnabled();
+  await menu(page, 'Account Summary');
+  await expect(banner).toHaveAttribute('href', '/features/easycoin');
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Explore Features', exact: true })
+    .click();
+  await page
+    .getByRole('link', { name: features[0].label, exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: features[0].cta, exact: true })
+    .click();
+  await expect(page.getByRole('status')).toBeVisible();
+  await expect
+    .poll(async () =>
+      Number(
+        (
+          await pool.query(
+            "SELECT COUNT(*) AS n FROM interaction_events WHERE run_id=? AND name='feature_viewed'",
+            [original.runId],
+          )
+        )[0].n,
+      ),
+    )
+    .toBe(4);
+  const clicks = await pool.query(
+    "SELECT selection_id FROM interaction_events WHERE run_id=? AND name='feature_cta_clicked' ORDER BY created_at",
+    [original.runId],
+  );
+  expect(clicks).toHaveLength(3);
+  expect(clicks[0].selection_id).toBeTruthy();
+  expect(clicks[1].selection_id).toBeNull();
+  expect(clicks[2].selection_id).toBeNull();
+  const [presentations] = await pool.query(
+    'SELECT COUNT(*) AS n FROM banner_presentations WHERE run_id=?',
+    [original.runId],
+  );
+  expect(Number(presentations.n)).toBe(2);
+  await other.close();
+  await page.goto('/controls/report');
+  await page
+    .locator('.report-filters')
+    .getByLabel('Activity')
+    .selectOption('automation');
+  await expect(
+    page.getByRole('heading', { name: 'Feature Activity', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId('feature-activity').locator('[data-feature="easycoin"]'),
+  ).toContainText('from banners');
+  await noOverflow(page);
+  await page.screenshot({
+    path: `artifacts/feature-report-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.goto('/controls/banners');
+  await expect(
+    page.getByRole('combobox', { name: 'Destination', exact: true }),
+  ).toContainText('EasyCoin Crypto');
+});
+
+test('feature deep-link login, unavailable savings profile, unknown page and submenu keyboard', async ({
+  page,
+}) => {
+  const user = await fixtureUser(pool, 'jamie');
+  userIds.push(user.id);
+  await page.goto('/features/youth-banking');
+  await expect(page.getByLabel('Username', { exact: true })).toBeVisible();
+  await page.getByLabel('Username', { exact: true }).fill(user.username);
+  await page.getByLabel('Password', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: features[10].headline, exact: true }),
+  ).toBeVisible();
+  expect((await state(page)).eligible).toBe(false);
+  await page
+    .getByRole('button', { name: features[10].cta, exact: true })
+    .click();
+  await expect(page.getByRole('status')).toBeVisible();
+  const width = page.viewportSize()!.width;
+  await page.setViewportSize({ width, height: 500 });
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  const group = page.getByRole('button', {
+    name: 'Explore Features',
+    exact: true,
+  });
+  await expect(group).toHaveAttribute('aria-expanded', 'true');
+  await expect(
+    page.getByRole('link', { name: 'Youth Banking', exact: true }),
+  ).toHaveAttribute('aria-current', 'page');
+  await group.focus();
+  await group.press('Space');
+  await expect(group).toHaveAttribute('aria-expanded', 'false');
+  await group.press('Enter');
+  await expect(group).toHaveAttribute('aria-expanded', 'true');
+  await page
+    .getByRole('link', { name: 'Business Invoicing', exact: true })
+    .scrollIntoViewIfNeeded();
+  await expect(
+    page.getByRole('link', { name: 'Business Invoicing', exact: true }),
+  ).toBeInViewport();
+  await page.getByRole('button', { name: 'Close menu', exact: true }).focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(
+    page.getByRole('button', { name: 'Sign out', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(
+    page.getByRole('button', { name: 'Close menu', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Open menu', exact: true }),
+  ).toBeFocused();
+  await noOverflow(page);
+  await menu(page, 'Account Summary');
+  await page.goto('/features/not-a-feature');
+  await expect(
+    page.getByRole('heading', { name: 'Feature not found' }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  await page.goForward();
+  await expect(
+    page.getByRole('heading', { name: 'Feature not found' }),
+  ).toBeVisible();
+  const invalid = await pool.query(
+    "SELECT id FROM interaction_events WHERE run_id=? AND route_key='not-a-feature'",
+    [(await state(page)).runId],
+  );
+  expect(invalid).toHaveLength(0);
 });

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { Copy, Plus, Upload, ArrowRight } from 'lucide-react';
 import { useAdmin } from './admin-session';
 import { Card, Alert } from './ui';
+import { getFeature } from '../../api/src/features';
 type User = {
   id: string;
   username: string;
@@ -495,8 +496,14 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
           <ul>
             {activity.map((a, i) => (
               <li key={i} className="small-note">
-                {new Date(a.createdAt).toLocaleString()} · {a.name} ·{' '}
-                {a.routeKey} · {a.bannerId ?? a.actor}
+                {new Date(a.createdAt).toLocaleString()} ·{' '}
+                {a.name === 'feature_viewed'
+                  ? 'Feature viewed'
+                  : a.name === 'feature_cta_clicked'
+                    ? 'Feature CTA clicked'
+                    : a.name}{' '}
+                · {getFeature(a.routeKey)?.label ?? a.routeKey} ·{' '}
+                {a.bannerId ?? a.actor}
               </li>
             ))}
           </ul>

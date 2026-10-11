@@ -255,6 +255,20 @@ const labels: Record<string, string> = {
   repeat_use: 'Repeat use',
 };
 
+type FeatureActivity = {
+  features: {
+    id: string;
+    label: string;
+    views: number;
+    viewers: number;
+    viewedRuns: number;
+    clicks: number;
+    clickers: number;
+    clickedRuns: number;
+    bannerViews: number;
+    bannerClicks: number;
+  }[];
+};
 function AdoptionReport() {
   const { request, filters, setFilters } = useAdmin();
   const { actor, variant: variantFilter, start, end, cutoff } = filters;
@@ -267,17 +281,26 @@ function AdoptionReport() {
   const [report, setReport] = useState<Report | null>(null),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false);
+  const [activity, setActivity] = useState<FeatureActivity | null>(null);
   const requestSequence = useRef(0);
   const load = useCallback(async () => {
     const sequence = ++requestSequence.current;
     const q = new URLSearchParams({ actor, variant: variantFilter });
     setLoading(true);
     setError('');
+    setReport(null);
+    setActivity(null);
     try {
       for (const [key, value] of Object.entries({ start, end, cutoff }))
         if (value) q.set(key, new Date(value + 'Z').toISOString());
-      const result = await request<Report>('/admin/report?' + q);
-      if (sequence === requestSequence.current) setReport(result);
+      const [result, featureResult] = await Promise.all([
+        request<Report>('/admin/report?' + q),
+        request<FeatureActivity>('/admin/feature-activity?' + q),
+      ]);
+      if (sequence === requestSequence.current) {
+        setReport(result);
+        setActivity(featureResult);
+      }
     } catch (e) {
       if (sequence === requestSequence.current) setError((e as Error).message);
     } finally {
@@ -439,6 +462,59 @@ function AdoptionReport() {
           </>
         )}
       </Card>
+      {activity && (
+        <Card title="Feature Activity">
+          <p>
+            Landing views and CTA clicks are demo engagement observations. They
+            do not represent enrollment or service adoption. Counts include
+            retained banking runs and use the filters above.
+          </p>
+          <div className="table-scroll">
+            <table data-testid="feature-activity">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Landing views</th>
+                  <th>Viewers</th>
+                  <th>Viewed runs</th>
+                  <th>CTA clicks</th>
+                  <th>Customers clicked</th>
+                  <th>Clicked runs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activity.features.map((f) => (
+                  <tr key={f.id} data-feature={f.id}>
+                    <th>{f.label}</th>
+                    <td>
+                      {f.views}
+                      <span className="small-note">
+                        {f.bannerViews} from banners
+                      </span>
+                    </td>
+                    <td>{f.viewers}</td>
+                    <td>{f.viewedRuns}</td>
+                    <td>
+                      {f.clicks}
+                      <span className="small-note">
+                        {f.bannerClicks} from banners
+                      </span>
+                    </td>
+                    <td>{f.clickers}</td>
+                    <td>{f.clickedRuns}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="small-note">
+            Landing views and CTA clicks count recorded events. Viewers and
+            customers clicked count distinct demo customers; run columns count
+            distinct banking runs. Ordinary page views are not added to landing
+            views.
+          </p>
+        </Card>
+      )}
     </>
   );
 }
