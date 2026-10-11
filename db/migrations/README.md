@@ -2,8 +2,10 @@
 
 Status: migrations `0001_demo_foundation.sql`, `0002_demo_users.sql`, and
 `0003_demo_banners.sql` are committed and applied to `demo` and `demo_test`.
-Both ledgers are version 3 with no pending work or drift. Applied files are
-immutable; the next schema change uses `0004_<description>.sql`.
+Both ledgers were verified at version 3 before Plan 005. New committed migration
+`0004_feature_interactions.sql` is pending application. It appends two engagement
+ENUM values without changing existing ordinals or banking/adoption tables. Applied files are
+immutable; the next schema change after 0004 uses `0005_<description>.sql`.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
 backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`
