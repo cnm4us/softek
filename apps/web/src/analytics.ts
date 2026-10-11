@@ -59,7 +59,25 @@ export function initialize(state: State) {
     variant: state.variant,
     actor: state.analytics.actor,
   };
-  window.clarity('identify', state.runId, state.visitId);
+  const page =
+    location.pathname === '/'
+      ? 'summary'
+      : [
+            'transfers',
+            'bill-pay',
+            'cards',
+            'savings-goals',
+            'goals',
+            'enroll',
+            'statements',
+            'support',
+            'about',
+          ].includes(location.pathname.slice(1))
+        ? location.pathname.slice(1)
+        : 'unknown';
+  window.clarity('identify', state.user.id, state.visitId, page);
+  window.clarity('set', 'route', page);
+  window.clarity('set', 'run', state.runId);
   for (const [key, value] of Object.entries(safeTags))
     window.clarity('set', key, value);
 }

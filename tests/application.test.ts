@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { randomUUID, createHash } from 'node:crypto';
 import { createApp } from '../apps/api/src/app.js';
 import { seed } from '../scripts/seed.js';
+import { fixtureUser, cleanUsers } from './fixtures.js';
 
 test('persistent adoption journey and API boundaries on demo_test', async (t) => {
   process.env.PUBLIC_ORIGIN = 'http://127.0.0.1:5173';
@@ -13,6 +14,7 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
   const runIds: string[] = [],
     adminTokens: string[] = [];
+  const userIds: string[] = [];
   class Client {
     cookies = new Map<string, string>();
     browser = randomUUID();
@@ -43,7 +45,7 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
         if (name === 'softek_admin') adminTokens.push(value!);
       }
       const data = await response.json();
-      if (path === '/entry' && response.ok) {
+      if (path === '/auth/login' && response.ok) {
         this.csrf = data.csrf;
         runIds.push(data.runId);
       }
@@ -52,6 +54,19 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
         runIds.push(data.runId);
       }
       return { status: response.status, data };
+    }
+    userId = '';
+    credentials = { username: '', password: '' };
+    async enter(profileId = 'alex') {
+      const u = await fixtureUser(pool, profileId);
+      this.userId = u.id;
+      this.credentials = u;
+      userIds.push(u.id);
+      return this.request('/auth/login', {
+        username: u.username,
+        password: u.password,
+        requestId: randomUUID(),
+      });
     }
     async state() {
       const r = await this.request('/state');
@@ -81,22 +96,29 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
         assert.equal(
           (
             await alex.request(
-              '/entry',
-              { profileId: 'alex' },
+              '/auth/login',
+              {
+                username: 'absent',
+                password: 'password123',
+                requestId: randomUUID(),
+              },
               { origin: 'https://unrelated.example' },
             )
           ).status,
           403,
         );
         assert.equal(
-          (await alex.request('/entry', { profileId: 'alex', actor: 'human' }))
-            .status,
+          (
+            await alex.request('/auth/login', {
+              username: 'absent',
+              password: 'password123',
+              requestId: randomUUID(),
+              actor: 'human',
+            })
+          ).status,
           400,
         );
-        assert.equal(
-          (await alex.request('/entry', { profileId: 'alex' })).status,
-          201,
-        );
+        assert.equal((await alex.enter()).status, 200);
         initial = await alex.state();
         assert.equal(
           (
@@ -108,14 +130,8 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
           ).status,
           403,
         );
-        assert.equal(
-          (await other.request('/entry', { profileId: 'alex' })).status,
-          201,
-        );
-        assert.equal(
-          (await jamie.request('/entry', { profileId: 'jamie' })).status,
-          201,
-        );
+        assert.equal((await other.enter()).status, 200);
+        assert.equal((await jamie.enter('jamie')).status, 200);
         assert.notEqual((await other.state()).runId, initial.runId);
       },
     );
@@ -397,9 +413,9 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
       },
     );
     await t.test(
-      'reset retires old run, invalidates its cookie, and retains report history',
+      'reset preserves user sessions, retires old banking state, and retains report history',
       async () => {
-        const oldToken = alex.cookies.get('softek_run')!;
+        const oldToken = alex.cookies.get('softek_user')!;
         const reset = await alex.request('/reset', {});
         assert.equal(reset.status, 200);
         assert.notEqual(reset.data.runId, initial.runId);
@@ -412,8 +428,11 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
         );
         assert.equal(state.variant, initial.variant);
         const stale = new Client();
-        stale.cookies.set('softek_run', oldToken);
-        assert.equal((await stale.request('/state')).status, 401);
+        stale.cookies.set('softek_user', oldToken);
+        assert.equal((await stale.state()).runId, state.runId);
+        const legacy = new Client();
+        legacy.cookies.set('softek_run', oldToken);
+        assert.equal((await legacy.request('/state')).status, 401);
         const retained = await pool.query(
           'SELECT status FROM participant_runs WHERE id=?',
           [initial.runId],
@@ -434,13 +453,13 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
       'admin variant/eligibility changes create a fresh run and logout revokes access',
       async () => {
         const result = await alex.request(
-          '/admin/restart',
+          `/admin/users/${alex.userId}/reset`,
           { profileId: 'jamie', variant: 'value', eligible: true },
           { csrf: alex.adminCsrf },
         );
         assert.equal(result.status, 200);
         runIds.push(result.data.runId);
-        alex.csrf = result.data.csrf;
+
         const state = await alex.state();
         assert.equal(state.profileId, 'jamie');
         assert.equal(state.variant, 'value');
@@ -458,11 +477,7 @@ test('persistent adoption journey and API boundaries on demo_test', async (t) =>
     await new Promise<void>((resolve, reject) =>
       server.close((e) => (e ? reject(e) : resolve())),
     );
-    for (const id of runIds)
-      await pool.query(
-        "DELETE FROM participant_runs WHERE id=? AND actor='automation'",
-        [id],
-      );
+    await cleanUsers(pool, userIds);
     for (const raw of adminTokens)
       await pool.query('DELETE FROM admin_sessions WHERE token_hash=?', [
         createHash('sha256').update(raw).digest('hex'),

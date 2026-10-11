@@ -14,8 +14,10 @@ scenario-builder UI remain [Plan 003](003-automation-journeys.md) scope.
 
 ### M2-01 — Verify project settings and access
 
-- [ ] For confirmed project `yvs5hp3ivb`, record the intended hostname,
-  collection/cookie/consent settings, masking mode, and bot-detection state.
+- [x] Record owner-reported settings for project `yvs5hp3ivb` on
+  `demo.bawebtech.com`: Balanced masking, cookies on, bot detection on, and cookie
+  consent required (2026-10-11 UTC). Collection remains off in the application.
+  Real capture/consent/masking behavior still requires M2-04 verification.
 - [ ] Owner invites Chris through Settings → Team as a Member and verifies he
   can access recordings/heatmaps. This is separate from his banking demo login.
   No Microsoft password or manual-install snippet is needed.

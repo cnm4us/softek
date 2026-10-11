@@ -13,6 +13,7 @@ export type Goal = {
   currentMinor: number;
 };
 export type State = {
+  user: { id: string; username: string; displayName: string };
   runId: string;
   visitId: string;
   csrf: string;
@@ -58,11 +59,15 @@ export async function api<T>(
     method: body === undefined ? 'GET' : 'POST',
     credentials: 'same-origin',
     headers: {
-      'Content-Type': 'application/json',
+      ...(body instanceof FormData
+        ? {}
+        : { 'Content-Type': 'application/json' }),
       'X-Browser-Session': browser!,
       ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
     },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined
+      ? {}
+      : { body: body instanceof FormData ? body : JSON.stringify(body) }),
   });
   const data = await response.json();
   if (!response.ok)

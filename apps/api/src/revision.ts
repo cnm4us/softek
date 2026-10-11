@@ -1,0 +1,776 @@
+import type { Express, Request, Response } from 'express';
+import type { Pool, PoolConnection } from 'mariadb';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { unlink } from 'node:fs/promises';
+import { join } from 'node:path';
+import { rateLimit } from 'express-rate-limit';
+import multer from 'multer';
+import { z } from 'zod';
+import { HttpError } from './errors.js';
+import { passwordHash, passwordMatches } from './passwords.js';
+import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
+
+type Row = Record<string, any>;
+const hash = (s: string) => createHash('sha256').update(s).digest('hex');
+const uuid = z.string().uuid();
+export const destinations = [
+  { key: 'summary', label: 'Account Summary', href: '/' },
+  { key: 'transfers', label: 'Transfers', href: '/transfers' },
+  { key: 'bill-pay', label: 'Bill Pay', href: '/bill-pay' },
+  { key: 'cards', label: 'Cards', href: '/cards' },
+  { key: 'savings-goals', label: 'Savings Goals', href: '/savings-goals' },
+  { key: 'statements', label: 'Statements', href: '/statements' },
+  { key: 'support', label: 'Support', href: '/support' },
+] as const;
+const routeKeys = [
+  ...destinations.map((d) => d.key),
+  'goals',
+  'enroll',
+  'about',
+] as const;
+const destination = z.enum(destinations.map((d) => d.key));
+const username = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3)
+  .max(40)
+  .regex(/^[a-z0-9._-]+$/);
+const password = z.string().min(8).max(128);
+
+export async function authenticatedRun(
+  c: PoolConnection,
+  req: Request,
+): Promise<Row> {
+  const [session] = await c.query(
+    'SELECT user_id FROM user_sessions WHERE token_hash=? AND expires_at>UTC_TIMESTAMP(6)',
+    [hash(String(req.cookies.softek_user ?? ''))],
+  );
+  if (!session) throw new HttpError(401, 'Sign in to your demo account.');
+  const [user] = await c.query(
+    'SELECT * FROM demo_users WHERE id=? AND enabled=TRUE FOR UPDATE',
+    [session.user_id],
+  );
+  // Recheck revocation after acquiring the user lock; password reset/disable use it too.
+  const [valid] = await c.query(
+    'SELECT token_hash FROM user_sessions WHERE token_hash=? AND user_id=? AND expires_at>UTC_TIMESTAMP(6)',
+    [hash(String(req.cookies.softek_user ?? '')), session.user_id],
+  );
+  if (!user || !valid)
+    throw new HttpError(401, 'Sign in to your demo account.');
+  const [run] = await c.query(
+    "SELECT r.* FROM participant_runs r JOIN user_current_runs u ON u.run_id=r.id AND u.user_id=r.user_id WHERE u.user_id=? AND r.status='active' FOR UPDATE",
+    [user.id],
+  );
+  if (!run) throw new HttpError(401, 'Sign in to your demo account.');
+  return { ...run, username: user.username, display_name: user.display_name };
+}
+
+type Context = {
+  app: Express;
+  pool: Pool;
+  test: boolean;
+  transaction: <T>(fn: (c: PoolConnection) => Promise<T>) => Promise<T>;
+  active: (c: PoolConnection, req: Request) => Promise<Row>;
+  visit: (
+    c: PoolConnection,
+    run: Row,
+    req: Request,
+    force?: boolean,
+  ) => Promise<string>;
+  createRun: (
+    c: PoolConnection,
+    req: Request,
+    res: Response,
+    profile: string,
+    actor: string,
+    variant?: string,
+    eligible?: boolean,
+  ) => Promise<Row>;
+  event: (...args: any[]) => Promise<string | null>;
+  admin: (
+    req: Request,
+    mutate?: boolean,
+    multipart?: boolean,
+  ) => Promise<{ csrf: string }>;
+  csrf: (raw: string) => string;
+  token: (req: Request) => string;
+  checkOrigin: (req: Request, multipart?: boolean) => void;
+  checkCsrf: (req: Request, raw: string, multipart?: boolean) => void;
+  cookieOptions: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'lax';
+    path: string;
+    maxAge: number;
+  };
+};
+
+export function registerRevision(ctx: Context) {
+  const {
+    app,
+    pool,
+    test,
+    transaction,
+    active,
+    visit,
+    createRun,
+    event,
+    admin,
+    csrf,
+    token,
+    checkOrigin,
+    checkCsrf,
+    cookieOptions,
+  } = ctx;
+  const publicPresentation = (p: Row | undefined) =>
+    !p
+      ? null
+      : {
+          id: p.id,
+          bannerId: p.banner_id ?? null,
+          imageUrl: p.asset_key ? `/media/banners/${p.asset_key}` : null,
+          title: p.title ?? '',
+          altText: p.alt_text ?? '',
+          destination: p.destination ?? null,
+          href: destinations.find((d) => d.key === p.destination)?.href ?? '/',
+          campaignId: p.campaign_id ?? null,
+        };
+  async function selection(
+    c: PoolConnection,
+    r: Row,
+    v: string,
+    requestKey: string,
+    reason: string,
+    advance = true,
+  ) {
+    const [previous] = await c.query(
+      'SELECT * FROM banner_presentations WHERE user_id=? AND run_id=? AND request_key=?',
+      [r.user_id, r.id, requestKey],
+    );
+    if (previous) return publicPresentation(previous);
+    const banners: Row[] = await c.query(
+      'SELECT * FROM demo_banners WHERE enabled=TRUE ORDER BY sort_order,id',
+    );
+    const [rotation] = await c.query(
+      'SELECT last_banner_id FROM banner_rotation WHERE user_id=?',
+      [r.user_id],
+    );
+    const index = banners.findIndex((b) => b.id === rotation?.last_banner_id);
+    const next = banners.length
+      ? banners[advance ? (index + 1) % banners.length : Math.max(0, index)]!
+      : null;
+    const id = randomUUID();
+    await c.query(
+      'INSERT INTO banner_presentations (id,user_id,run_id,visit_id,request_key,banner_id,asset_key,title,alt_text,destination,campaign_id,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
+      [
+        id,
+        r.user_id,
+        r.id,
+        v,
+        requestKey,
+        next?.id ?? null,
+        next?.asset_key ?? null,
+        next?.title ?? null,
+        next?.alt_text ?? null,
+        next?.destination ?? null,
+        next?.campaign_id ?? null,
+        reason,
+      ],
+    );
+    await c.query(
+      'INSERT INTO banner_rotation VALUES (?,?) ON DUPLICATE KEY UPDATE last_banner_id=VALUES(last_banner_id)',
+      [r.user_id, next?.id ?? rotation?.last_banner_id ?? null],
+    );
+    return publicPresentation({
+      id,
+      banner_id: next?.id,
+      asset_key: next?.asset_key,
+      title: next?.title,
+      alt_text: next?.alt_text,
+      destination: next?.destination,
+      campaign_id: next?.campaign_id,
+    });
+  }
+  async function bindRun(
+    c: PoolConnection,
+    user: Row,
+    req: Request,
+    res: Response,
+  ): Promise<Row> {
+    const result = await createRun(
+      c,
+      req,
+      res,
+      user.profile_id,
+      user.actor,
+      user.variant,
+      Boolean(user.eligible),
+    );
+    await c.query('UPDATE participant_runs SET user_id=? WHERE id=?', [
+      user.id,
+      result.runId,
+    ]);
+    await c.query(
+      'INSERT INTO user_current_runs VALUES (?,?) ON DUPLICATE KEY UPDATE run_id=VALUES(run_id)',
+      [user.id, result.runId],
+    );
+    return { ...result, userId: user.id };
+  }
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60_000,
+    limit: 10,
+    skipSuccessfulRequests: true,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Please wait before trying to sign in again.' },
+  });
+  app.get('/media/banners/:key', async (req, res) => {
+    const key = z
+      .string()
+      .regex(/^[a-z0-9-]+\.webp$/)
+      .max(64)
+      .parse(req.params.key);
+    const [asset] = await pool.query(
+      'SELECT asset_key FROM banner_assets WHERE asset_key=?',
+      [key],
+    );
+    if (!asset) throw new HttpError(404, 'Image not found.');
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    res.sendFile(join(assetDirectory(test), key));
+  });
+  app.post('/api/auth/login', loginLimiter, async (req, res) => {
+    checkOrigin(req);
+    const b = z
+      .object({ username, password, requestId: uuid })
+      .strict()
+      .parse(req.body);
+    const [candidate] = await pool.query(
+      'SELECT * FROM demo_users WHERE username=?',
+      [b.username],
+    );
+    const matches = await passwordMatches(
+      b.password,
+      candidate?.password_hash ?? '',
+    );
+    if (!candidate || !matches)
+      throw new HttpError(401, 'Username or password is incorrect.');
+    const automated =
+      Boolean(process.env.AUTOMATION_SECRET) &&
+      hash(req.get('x-demo-automation') ?? '') ===
+        hash(process.env.AUTOMATION_SECRET!);
+    const raw = randomBytes(32).toString('hex');
+    const result = await transaction(async (c) => {
+      const [user] = await c.query(
+        'SELECT * FROM demo_users WHERE id=? FOR UPDATE',
+        [candidate.id],
+      );
+      if (!user.enabled || user.password_hash !== candidate.password_hash)
+        throw new HttpError(401, 'Username or password is incorrect.');
+      if ((user.actor === 'automation') !== automated)
+        throw new HttpError(
+          403,
+          'Use an account assigned to this demonstration mode.',
+        );
+      let [run] = await c.query(
+        "SELECT r.* FROM user_current_runs u JOIN participant_runs r ON r.id=u.run_id AND r.user_id=u.user_id WHERE u.user_id=? AND r.status='active' FOR UPDATE",
+        [user.id],
+      );
+      let visitId: string;
+      if (!run) {
+        const fresh = await bindRun(c, user, req, res);
+        [run] = await c.query('SELECT * FROM participant_runs WHERE id=?', [
+          fresh.runId,
+        ]);
+        visitId = fresh.visitId;
+      } else visitId = await visit(c, run, req, true);
+      await c.query(
+        'DELETE FROM user_sessions WHERE user_id=? AND expires_at<=UTC_TIMESTAMP(6)',
+        [user.id],
+      );
+      await c.query(
+        'INSERT INTO user_sessions VALUES (?,?,UTC_TIMESTAMP(6),DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 24 HOUR))',
+        [hash(raw), user.id],
+      );
+      return {
+        runId: run.id,
+        userId: user.id,
+        visitId,
+        banner: await selection(
+          c,
+          run,
+          visitId,
+          `login:${b.requestId}`,
+          'login',
+        ),
+      };
+    });
+    res
+      .clearCookie('softek_run', cookieOptions)
+      .cookie('softek_user', raw, { ...cookieOptions, maxAge: 24 * 3600_000 })
+      .json({ ...result, csrf: csrf(raw) });
+  });
+  app.post('/api/auth/logout', async (req, res) => {
+    checkCsrf(req, token(req));
+    z.object({}).strict().parse(req.body);
+    await transaction(async (c) => {
+      await active(c, req);
+      await c.query('DELETE FROM user_sessions WHERE token_hash=?', [
+        hash(token(req)),
+      ]);
+    });
+    res.clearCookie('softek_user', cookieOptions).json({ ok: true });
+  });
+  app.post('/api/entry', (_req, res) =>
+    res
+      .status(410)
+      .json({ error: 'Sign in with an administrator-created demo account.' }),
+  );
+  app.post('/api/admin/restart', async (req, _res) => {
+    await admin(req, true);
+    throw new HttpError(
+      410,
+      'Select a user in Demo users to reset their account.',
+    );
+  });
+  app.post('/api/reset', async (req, res) => {
+    checkCsrf(req, token(req));
+    z.object({}).strict().parse(req.body);
+    const result = await transaction(async (c) => {
+      const r = await active(c, req);
+      const [user] = await c.query('SELECT * FROM demo_users WHERE id=?', [
+        r.user_id,
+      ]);
+      await c.query(
+        "UPDATE participant_runs SET status='retired',retired_at=UTC_TIMESTAMP(6) WHERE id=?",
+        [r.id],
+      );
+      const fresh = await bindRun(
+        c,
+        {
+          ...user,
+          variant: r.variant,
+          eligible: r.eligible,
+          actor: r.actor,
+          profile_id: r.profile_id,
+        },
+        req,
+        res,
+      );
+      await selection(
+        c,
+        { id: fresh.runId, user_id: user.id },
+        fresh.visitId,
+        `reset:${fresh.runId}`,
+        'fallback',
+        false,
+      );
+      return fresh;
+    });
+    res.json({
+      runId: result.runId,
+      userId: result.userId,
+      csrf: csrf(token(req)),
+    });
+  });
+  app.get('/api/admin/users', async (req, res) => {
+    await admin(req);
+    res.json(
+      await pool.query(
+        'SELECT u.id,u.username,u.display_name AS displayName,u.enabled,u.profile_id AS profileId,u.variant,u.eligible,u.actor,m.run_id AS runId FROM demo_users u LEFT JOIN user_current_runs m ON m.user_id=u.id ORDER BY u.created_at,u.id',
+      ),
+    );
+  });
+  app.post('/api/admin/users', async (req, res) => {
+    await admin(req, true);
+    const b = z
+      .object({
+        username,
+        password,
+        displayName: z.string().trim().min(1).max(100),
+        profileId: z.enum(['alex', 'jamie']),
+        variant: z.enum(['baseline', 'value']).default('value'),
+        eligible: z.boolean(),
+        actor: z.enum(['human', 'automation']).default('human'),
+      })
+      .strict()
+      .parse(req.body);
+    const id = randomUUID(),
+      stored = await passwordHash(b.password);
+    try {
+      await pool.query(
+        'INSERT INTO demo_users VALUES (?,?,?,?,TRUE,?,?,?,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))',
+        [
+          id,
+          b.username,
+          b.displayName,
+          stored,
+          b.profileId,
+          b.variant,
+          b.eligible,
+          b.actor,
+        ],
+      );
+    } catch (e) {
+      if ((e as { code?: string }).code === 'ER_DUP_ENTRY')
+        throw new HttpError(409, 'That username is already in use.');
+      throw e;
+    }
+    res.status(201).json({ id, username: b.username });
+  });
+  async function manageUser(
+    req: Request,
+    action: (c: PoolConnection, user: Row) => Promise<void>,
+  ) {
+    await admin(req, true);
+    const id = uuid.parse(req.params.id);
+    await transaction(async (c) => {
+      const [u] = await c.query(
+        'SELECT * FROM demo_users WHERE id=? FOR UPDATE',
+        [id],
+      );
+      if (!u) throw new HttpError(404, 'Demo user not found.');
+      await action(c, u);
+    });
+  }
+  app.post('/api/admin/users/:id/password', async (req, res) => {
+    await admin(req, true);
+    const b = z.object({ password }).strict().parse(req.body);
+    const stored = await passwordHash(b.password);
+    await manageUser(req, async (c, u) => {
+      await c.query(
+        'UPDATE demo_users SET password_hash=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+        [stored, u.id],
+      );
+      await c.query('DELETE FROM user_sessions WHERE user_id=?', [u.id]);
+    });
+    res.json({ ok: true });
+  });
+  app.post('/api/admin/users/:id/status', async (req, res) => {
+    const b = z.object({ enabled: z.boolean() }).strict().parse(req.body);
+    await manageUser(req, async (c, u) => {
+      await c.query(
+        'UPDATE demo_users SET enabled=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+        [b.enabled, u.id],
+      );
+      if (!b.enabled)
+        await c.query('DELETE FROM user_sessions WHERE user_id=?', [u.id]);
+    });
+    res.json({ ok: true });
+  });
+  app.post('/api/admin/users/:id/reset', async (req, res) => {
+    const b = z
+      .object({
+        profileId: z.enum(['alex', 'jamie']),
+        variant: z.enum(['baseline', 'value']),
+        eligible: z.boolean(),
+      })
+      .strict()
+      .parse(req.body);
+    let runId = '';
+    await manageUser(req, async (c, u) => {
+      await c.query(
+        "UPDATE participant_runs r JOIN user_current_runs m ON m.run_id=r.id SET r.status='retired',r.retired_at=UTC_TIMESTAMP(6) WHERE m.user_id=?",
+        [u.id],
+      );
+      await c.query(
+        'UPDATE demo_users SET profile_id=?,variant=?,eligible=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+        [b.profileId, b.variant, b.eligible, u.id],
+      );
+      // Configuring state must not grant the admin a customer session.
+      const fresh = await bindRun(
+        c,
+        {
+          ...u,
+          profile_id: b.profileId,
+          variant: b.variant,
+          eligible: b.eligible,
+        },
+        req,
+        res,
+      );
+      runId = fresh.runId;
+      await selection(
+        c,
+        { id: runId, user_id: u.id },
+        fresh.visitId,
+        `reset:${runId}`,
+        'fallback',
+        false,
+      );
+    });
+    res.json({ ok: true, runId });
+  });
+  app.post('/api/banners/select', async (req, res) => {
+    checkCsrf(req, token(req));
+    const b = z
+      .object({ requestId: uuid, reason: z.literal('refresh') })
+      .strict()
+      .parse(req.body);
+    res.json(
+      await transaction(async (c) => {
+        const r = await active(c, req),
+          v = await visit(c, r, req);
+        return selection(c, r, v, `refresh:${b.requestId}`, 'refresh');
+      }),
+    );
+  });
+  app.get('/api/banners/current', async (req, res) => {
+    const requested =
+      req.query.id === undefined ? null : uuid.parse(req.query.id);
+    const data = await transaction(async (c) => {
+      const r = await active(c, req);
+      const [p] = await c.query(
+        'SELECT * FROM banner_presentations WHERE user_id=? AND run_id=? AND (? IS NULL OR id=?) ORDER BY created_at DESC,id DESC LIMIT 1',
+        [r.user_id, r.id, requested, requested],
+      );
+      if (requested && !p)
+        throw new HttpError(404, 'Banner presentation not found.');
+      if (!p) return null;
+      const [enabled] = await c.query(
+        'SELECT id FROM demo_banners WHERE id=? AND enabled=TRUE AND asset_key=?',
+        [p.banner_id, p.asset_key],
+      );
+      if (p.banner_id && !enabled) {
+        const v = await visit(c, r, req);
+        return selection(c, r, v, `fallback:${p.id}`, 'fallback');
+      }
+      return publicPresentation(p);
+    });
+    res.json(data);
+  });
+  app.get('/api/admin/banners', async (req, res) => {
+    await admin(req);
+    res.json({
+      destinations,
+      banners: await pool.query(
+        "SELECT b.id,b.title,b.alt_text AS altText,b.destination,b.enabled,b.sort_order AS sortOrder,b.campaign_id AS campaignId,CONCAT('/media/banners/',b.asset_key) AS imageUrl,a.width,a.height FROM demo_banners b JOIN banner_assets a ON a.asset_key=b.asset_key ORDER BY b.sort_order,b.id",
+      ),
+    });
+  });
+  const bannerBody = z
+    .object({
+      title: z.string().trim().min(1).max(100),
+      altText: z.string().trim().min(1).max(180),
+      destination,
+      enabled: z.boolean(),
+      sortOrder: z.number().int().min(0).max(10000),
+      campaignId: z.enum(['savings-launch']).nullable().default(null),
+    })
+    .strict();
+  app.post('/api/admin/banners/:id/settings', async (req, res) => {
+    await admin(req, true);
+    const id = z
+        .string()
+        .max(40)
+        .regex(/^[a-z0-9-]+$/)
+        .parse(req.params.id),
+      b = bannerBody.parse(req.body);
+    if (b.campaignId && b.destination !== 'savings-goals')
+      throw new HttpError(
+        400,
+        'Savings campaign banners must link to Savings Goals.',
+      );
+    const result = await pool.query(
+      'UPDATE demo_banners SET title=?,alt_text=?,destination=?,enabled=?,sort_order=?,campaign_id=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+      [
+        b.title,
+        b.altText,
+        b.destination,
+        b.enabled,
+        b.sortOrder,
+        b.campaignId,
+        id,
+      ],
+    );
+    if (!result.affectedRows) throw new HttpError(404, 'Banner not found.');
+    res.json({ ok: true });
+  });
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 7, fieldSize: 1000 },
+  });
+  app.post(
+    '/api/admin/banners/upload',
+    async (req, _res, next) => {
+      await admin(req, true, true);
+      next();
+    },
+    upload.single('image'),
+    async (req, res) => {
+      if (!req.file)
+        throw new HttpError(400, 'Choose a JPEG, PNG, or WebP image.');
+      const b = z
+        .object({
+          title: z.string().trim().min(1).max(100),
+          altText: z.string().trim().min(1).max(180),
+          destination,
+          sortOrder: z.coerce.number().int().min(0).max(10000),
+          replaceId: z
+            .string()
+            .max(40)
+            .regex(/^[a-z0-9-]+$/)
+            .optional(),
+        })
+        .strict()
+        .parse(req.body);
+      let decoded;
+      try {
+        decoded = await decodeBanner(req.file.buffer);
+      } catch {
+        throw new HttpError(
+          400,
+          'Use a valid JPEG, PNG, or WebP image up to 4096 pixels per side.',
+        );
+      }
+      const id = randomUUID(),
+        key = await publishAsset(decoded.data, test);
+      try {
+        await transaction(async (c) => {
+          let campaignId: string | null = null;
+          if (b.replaceId) {
+            const [old] = await c.query(
+              'SELECT id,campaign_id,destination FROM demo_banners WHERE id=? FOR UPDATE',
+              [b.replaceId],
+            );
+            if (!old) throw new HttpError(404, 'Banner not found.');
+            campaignId =
+              old.destination === b.destination ? old.campaign_id : null;
+            await c.query(
+              'UPDATE demo_banners SET enabled=FALSE,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+              [b.replaceId],
+            );
+          }
+          await c.query(
+            "INSERT INTO banner_assets VALUES (?,'webp',?,?,?,UTC_TIMESTAMP(6))",
+            [key, decoded.info.width, decoded.info.height, decoded.data.length],
+          );
+          await c.query(
+            'INSERT INTO demo_banners VALUES (?,?,?,?,?,TRUE,?,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))',
+            [
+              id,
+              key,
+              b.title,
+              b.altText,
+              b.destination,
+              b.sortOrder,
+              campaignId,
+            ],
+          );
+        });
+      } catch (e) {
+        await unlink(join(assetDirectory(test), key)).catch(() => {});
+        throw e;
+      }
+      res.status(201).json({ id, imageUrl: `/media/banners/${key}` });
+    },
+  );
+  app.post('/api/interactions', async (req, res) => {
+    checkCsrf(req, token(req));
+    const b = z
+      .object({
+        requestId: uuid,
+        pageId: uuid,
+        selectionId: uuid.optional(),
+        name: z.enum([
+          'banner_visible',
+          'banner_clicked',
+          'page_view',
+          'menu_open',
+          'menu_selected',
+          'placeholder_action',
+        ]),
+        routeKey: z.enum(routeKeys),
+        targetKey: z.enum(routeKeys).optional(),
+        observedAt: z.iso.datetime(),
+      })
+      .strict()
+      .parse(req.body);
+    const observed = new Date(b.observedAt);
+    if (Math.abs(Date.now() - observed.getTime()) > 5 * 60_000)
+      throw new HttpError(400, 'Refresh before sending this observation.');
+    const result = await transaction(async (c) => {
+      const r = await active(c, req),
+        v = await visit(c, r, req);
+      let presentation: Row | undefined;
+      if (b.name.startsWith('banner_')) {
+        if (b.routeKey !== 'summary' || !b.selectionId)
+          throw new HttpError(
+            400,
+            'A banner observation requires its Account Summary presentation.',
+          );
+        [presentation] = await c.query(
+          'SELECT * FROM banner_presentations WHERE id=? AND user_id=? AND run_id=? AND banner_id IS NOT NULL',
+          [b.selectionId, r.user_id, r.id],
+        );
+        if (!presentation)
+          throw new HttpError(
+            403,
+            'That banner is not assigned to this account.',
+          );
+      }
+      if (
+        b.name === 'placeholder_action' &&
+        !['transfers', 'bill-pay', 'cards', 'statements', 'support'].includes(
+          b.routeKey,
+        )
+      )
+        throw new HttpError(400, 'Invalid demo action.');
+      const dedupe =
+        b.name === 'banner_visible'
+          ? `visible:${b.pageId}:${b.selectionId}`
+          : b.name === 'page_view'
+            ? `page:${b.pageId}`
+            : `event:${b.requestId}`;
+      const inserted = await c.query(
+        'INSERT IGNORE INTO interaction_events VALUES (?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
+        [
+          randomUUID(),
+          r.id,
+          v,
+          b.pageId,
+          presentation?.id ?? null,
+          b.name,
+          b.routeKey,
+          b.targetKey ?? null,
+          dedupe,
+          observed,
+        ],
+      );
+      const milestones: string[] = [];
+      if (
+        inserted.affectedRows &&
+        presentation?.campaign_id === r.campaign_id &&
+        r.eligible
+      ) {
+        const name =
+          b.name === 'banner_visible'
+            ? 'promotion_visible'
+            : 'promotion_clicked';
+        const emitted = await event(
+          c,
+          r,
+          v,
+          name,
+          `${name}:banner`,
+          'banner',
+          'banner',
+          observed,
+        );
+        if (emitted) milestones.push(emitted);
+      }
+      return { accepted: Boolean(inserted.affectedRows), events: milestones };
+    });
+    res.json(result);
+  });
+  app.get('/api/admin/interactions', async (req, res) => {
+    await admin(req);
+    const userId = uuid.parse(req.query.userId);
+    res.json(
+      await pool.query(
+        'SELECT e.name,e.route_key AS routeKey,e.target_key AS targetKey,e.created_at AS createdAt,r.id AS runId,r.actor,p.banner_id AS bannerId FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id LEFT JOIN banner_presentations p ON p.id=e.selection_id WHERE r.user_id=? ORDER BY e.created_at DESC,e.id DESC LIMIT 100',
+        [userId],
+      ),
+    );
+  });
+}

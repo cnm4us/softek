@@ -33,6 +33,9 @@ import {
   Sprout,
   Target,
   Wallet,
+  Menu,
+  X,
+  LogOut,
 } from 'lucide-react';
 import { api, ApiError, minor, money, type State } from './api';
 import {
@@ -42,10 +45,30 @@ import {
   initialize,
   observe,
 } from './analytics';
+import {
+  ImageBanner,
+  Placeholder,
+  RevisionControls,
+  sections,
+  interaction,
+  rememberBanner,
+  restoreBanner,
+  type Banner,
+} from './revision';
 import './theme.css';
 
-type Context = { state: State | null; refresh: () => Promise<void> };
-const Demo = createContext<Context>({ state: null, refresh: async () => {} });
+type Context = {
+  state: State | null;
+  banner: Banner | null;
+  refresh: () => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+};
+const Demo = createContext<Context>({
+  state: null,
+  banner: null,
+  refresh: async () => {},
+  login: async () => {},
+});
 const useDemo = () => useContext(Demo);
 function Card({
   title,
@@ -82,81 +105,80 @@ function Heading({
   return (
     <div className="page-heading">
       <p className="eyebrow">{eyebrow}</p>
-      <h1>{title}</h1>
+      <h2 className="feature-title">{title}</h2>
       {children && <p className="lead">{children}</p>}
     </div>
   );
 }
 function Entry() {
-  const { refresh } = useDemo();
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState('');
-  const navigate = useNavigate();
-  async function enter(profileId: string) {
+  const { login } = useDemo();
+  const [username, setUsername] = useState(''),
+    [password, setPassword] = useState(''),
+    [error, setError] = useState(''),
+    [busy, setBusy] = useState(false);
+  async function submit(e: FormEvent) {
+    e.preventDefault();
     setBusy(true);
     setError('');
     try {
-      await api('/entry', { profileId });
-      await refresh();
-      navigate('/');
+      await login(username, password);
+      setPassword('');
     } catch (e) {
       setError((e as Error).message);
+      setPassword('');
     } finally {
       setBusy(false);
     }
   }
   return (
-    <div className="entry">
-      <div className="entry-art" aria-hidden="true">
-        <div className="orbit">
-          <Sprout size={68} />
+    <div className="login-layout">
+      <div className="login-welcome">
+        <div className="login-orbit" aria-hidden="true">
+          <Leaf size={48} />
         </div>
-        <span className="art-caption">SMALL STEPS. BIG POSSIBILITIES.</span>
+        <p className="eyebrow">A LITTLE MORE POSSIBILITY</p>
+        <h1>Welcome to Harbor.</h1>
+        <p>Your everyday, with room to grow.</p>
       </div>
-      <div>
-        <Heading
-          eyebrow="WELCOME TO HARBOR"
-          title="Your next chapter starts here."
-        >
-          Everyday banking, with a little more room for what matters.
-        </Heading>
-        <Card title="Choose a fictional profile">
-          <p>
-            Explore the experience with an independent set of demo accounts.
-          </p>
-          <div className="profile-options" data-clarity-mask="true">
-            <button
-              className="profile-button"
-              disabled={busy}
-              onClick={() => void enter('alex')}
-            >
-              <span className="avatar">AM</span>
-              <span>
-                <strong>Alex Morgan</strong>
-                <small>Everyday banking · savings goals available</small>
-              </span>
-              <ChevronRight size={20} />
-            </button>
-            <button
-              className="profile-button"
-              disabled={busy}
-              onClick={() => void enter('jamie')}
-            >
-              <span className="avatar">JC</span>
-              <span>
-                <strong>Jamie Chen</strong>
-                <small>Everyday banking · standard profile</small>
-              </span>
-              <ChevronRight size={20} />
-            </button>
-          </div>
+      <section className="surface card login-card">
+        <div className="login-caption">
+          <LockKeyhole size={18} />
+          <h2>Sign in to your account</h2>
+        </div>
+        <form onSubmit={submit} data-clarity-mask="true">
+          <label>
+            Username
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              maxLength={40}
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              maxLength={128}
+            />
+          </label>
           <Alert message={error} />
-        </Card>
-        <p className="quiet-note">
-          <ShieldCheck size={18} />
-          Fictional accounts. No real money moves.
+          <button className="button" disabled={busy}>
+            {busy ? 'Signing in…' : 'Sign in'}
+            <ArrowRight size={17} />
+          </button>
+        </form>
+        <p className="small-note">
+          Use the demo login provided by your administrator.
         </p>
-      </div>
+      </section>
     </div>
   );
 }
@@ -237,22 +259,11 @@ function Promotion({ placement }: { placement: 'banner' | 'sidebar' }) {
   );
 }
 function Overview() {
-  const { state } = useDemo();
+  const { state, banner } = useDemo();
   if (!state) return <Entry />;
   return (
     <>
-      <div className="welcome-row" data-clarity-mask="true">
-        <Heading
-          eyebrow="YOUR FINANCIAL HOME"
-          title={`Good to see you, ${state.profile.firstName}.`}
-        >
-          <span data-clarity-mask="true">
-            Here’s a little snapshot of your day.
-          </span>
-        </Heading>
-        <div className="date-note">YOUR ACCOUNTS, AT A GLANCE</div>
-      </div>
-      <Promotion placement="banner" />
+      <ImageBanner state={state} banner={banner} />
       <section
         aria-label="Account balances"
         className="accounts-grid"
@@ -776,10 +787,6 @@ function Controls() {
     [start, setStart] = useState(''),
     [end, setEnd] = useState(''),
     [cutoff, setCutoff] = useState('');
-  const [profile, setProfile] = useState('alex'),
-    [variant, setVariant] = useState('baseline'),
-    [eligible, setEligible] = useState(true);
-  const navigate = useNavigate();
   useEffect(() => {
     void api<{ authenticated: boolean; csrf?: string }>('/admin/status')
       .then((s) => setAuth(s.csrf ?? null))
@@ -808,25 +815,6 @@ function Controls() {
       const result = await api<{ csrf: string }>('/admin/login', { password });
       setPassword('');
       setAuth(result.csrf);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function restart(e: FormEvent) {
-    e.preventDefault();
-    if (!auth) return;
-    setBusy(true);
-    setError('');
-    try {
-      await api(
-        '/admin/restart',
-        { profileId: profile, variant, eligible },
-        auth,
-      );
-      await refresh();
-      navigate('/');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -886,44 +874,7 @@ function Controls() {
             </button>
           </div>
           <Alert message={error} />
-          <Card title="Start a configured demo">
-            <form className="controls-form" onSubmit={(e) => void restart(e)}>
-              <label>
-                Profile
-                <select
-                  value={profile}
-                  onChange={(e) => {
-                    setProfile(e.target.value);
-                    setEligible(e.target.value === 'alex');
-                  }}
-                >
-                  <option value="alex">Alex Morgan</option>
-                  <option value="jamie">Jamie Chen</option>
-                </select>
-              </label>
-              <label>
-                Campaign variant
-                <select
-                  value={variant}
-                  onChange={(e) => setVariant(e.target.value)}
-                >
-                  <option value="baseline">Baseline · What’s next</option>
-                  <option value="value">Value · Build a cushion</option>
-                </select>
-              </label>
-              <label className="checkbox-field">
-                <input
-                  type="checkbox"
-                  checked={eligible}
-                  onChange={(e) => setEligible(e.target.checked)}
-                />
-                Eligible for savings goals
-              </label>
-              <button className="button" disabled={busy}>
-                {busy ? 'Starting…' : 'Start configured demo'}
-              </button>
-            </form>
-          </Card>
+          <RevisionControls csrf={auth} onChanged={refresh} />
           <Card title="Adoption report">
             <p>
               One institution · Savings goals · Savings launch campaign. Counts
@@ -1106,13 +1057,21 @@ function About() {
   );
 }
 function AnalyticsChoice() {
-  const { state } = useDemo();
+  const { state, banner } = useDemo();
+  const location = useLocation();
   const [choice, setChoice] = useState(
     sessionStorage.getItem('softek_analytics_consent'),
   );
   useEffect(() => {
-    if (state) initialize(state);
-  }, [state?.runId, state?.visitId]);
+    if (state) {
+      initialize(state);
+      if (
+        collectionAvailable(state) &&
+        sessionStorage.getItem('softek_analytics_consent') === 'granted'
+      )
+        window.clarity?.('set', 'banner', banner?.bannerId ?? 'none');
+    }
+  }, [state?.runId, state?.visitId, location.pathname, banner?.id]);
   if (!state || !collectionAvailable(state)) return null;
   return (
     <aside className="analytics-choice" aria-label="Experience analytics">
@@ -1144,20 +1103,34 @@ function AnalyticsChoice() {
     </aside>
   );
 }
+const initialSummaryDocument = location.pathname === '/';
+let bootstrap: Promise<{ state: State; banner: Banner | null }> | undefined;
 function App() {
   const [state, setState] = useState<State | null>(null),
+    [banner, setBanner] = useState<Banner | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
+    [menuOpen, setMenuOpen] = useState(false),
     [resetting, setResetting] = useState(false);
   const navigate = useNavigate(),
-    location = useLocation();
+    location = useLocation(),
+    menuButton = useRef<HTMLButtonElement>(null),
+    menuPanel = useRef<HTMLElement>(null);
+  const closeMenu = () => {
+    setMenuOpen(false);
+    menuButton.current?.focus();
+  };
   const refresh = useCallback(async () => {
     try {
-      setState(await api<State>('/state'));
+      const next = await api<State>('/state');
+      const current = await restoreBanner(next, false);
+      setState(next);
+      setBanner(current);
       setError('');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         setState(null);
+        setBanner(null);
       } else {
         setError((e as Error).message);
         throw e;
@@ -1165,92 +1138,275 @@ function App() {
     }
   }, []);
   useEffect(() => {
-    void refresh()
-      .catch(() => {})
+    bootstrap ??= (async () => {
+      const next = await api<State>('/state');
+      return {
+        state: next,
+        banner: await restoreBanner(next, initialSummaryDocument),
+      };
+    })();
+    void bootstrap
+      .then((result) => {
+        setState(result.state);
+        setBanner(result.banner);
+      })
+      .catch((e) => {
+        if (!(e instanceof ApiError && e.status === 401)) setError(e.message);
+      })
       .finally(() => setLoading(false));
-  }, [refresh]);
-  useEffect(() => {
-    document.getElementById('main')?.focus({ preventScroll: true });
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
-  async function reset() {
+  }, []);
+  const login = async (username: string, password: string) => {
+    const result = await api<{ userId: string; banner: Banner | null }>(
+      '/auth/login',
+      { username, password, requestId: crypto.randomUUID() },
+    );
+    rememberBanner(result.userId, result.banner);
+    await refresh();
+    navigate('/');
+  };
+  async function logout() {
     if (!state) return;
+    try {
+      await api('/auth/logout', {}, state.csrf);
+      if (window.clarity)
+        window.clarity('consentv2', {
+          ad_Storage: 'denied',
+          analytics_Storage: 'denied',
+        });
+      sessionStorage.removeItem('softek_banner');
+      sessionStorage.removeItem('softek_analytics_consent');
+      locationAssignLogin();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  function locationAssignLogin() {
+    window.location.assign('/login');
+  }
+  async function reset() {
+    if (
+      !state ||
+      !window.confirm(
+        'Reset your demo accounts and goals? Previous report history will be retained.',
+      )
+    )
+      return;
     setResetting(true);
-    setError('');
     try {
       await api('/reset', {}, state.csrf);
+      sessionStorage.removeItem('softek_banner');
       await refresh();
       navigate('/');
+      closeMenu();
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setResetting(false);
     }
   }
+  useEffect(() => {
+    closeMenu();
+    document.getElementById('main')?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+    if (state && !['/controls', '/login'].includes(location.pathname))
+      void interaction(state, 'page_view').catch(() => {});
+  }, [location.pathname, state?.runId]);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if (state)
+        void interaction(state, 'placeholder_action', {
+          targetKey: (e as CustomEvent<string>).detail,
+        }).catch(() => {});
+    };
+    window.addEventListener('demo-action', handler);
+    return () => window.removeEventListener('demo-action', handler);
+  }, [state]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const controls = () =>
+      Array.from(
+        menuPanel.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not(:disabled)',
+        ) ?? [],
+      );
+    controls()[0]?.focus();
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const keys = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+      }
+      if (e.key === 'Tab') {
+        const items = controls(),
+          first = items[0],
+          last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', keys);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener('keydown', keys);
+    };
+  }, [menuOpen]);
+  const controlsPage = location.pathname === '/controls';
+  const title = controlsPage
+    ? 'Demo Administration'
+    : (sections.find((s) => s.href === location.pathname)?.label ??
+      (
+        {
+          '/savings-goals': 'Savings Goals',
+          '/enroll': 'Savings Goals',
+          '/about': 'About Harbor',
+        } as Record<string, string>
+      )[location.pathname] ??
+      'Harbor');
+  useEffect(() => {
+    document.title = `${state || controlsPage ? title : 'Sign in'} · Harbor Community Bank`;
+  }, [title, state, controlsPage]);
   return (
-    <Demo.Provider value={{ state, refresh }}>
+    <Demo.Provider value={{ state, banner, refresh, login }}>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="site-header">
-        <Link to="/" className="brand" aria-label="Harbor Community Bank home">
-          <span className="brand-mark">
-            <Landmark size={24} />
-          </span>
-          <span>
-            <strong>Harbor</strong>
-            <span className="brand-subtitle">COMMUNITY BANK</span>
-          </span>
-        </Link>
-        <div className="header-right">
-          <span className="demo-badge">Fictional demo</span>
-          {state && (
-            <span
-              className="avatar"
-              data-clarity-mask="true"
-              aria-label="Demo profile"
-            >
-              {state.profile.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')}
+      <header
+        className={`site-header ${state || controlsPage ? 'section-header' : 'login-header'}`}
+      >
+        {state || controlsPage ? (
+          <div>
+            <p className="section-eyebrow">HARBOR COMMUNITY BANK</p>
+            <h1>{title}</h1>
+          </div>
+        ) : (
+          <Link
+            to="/"
+            className="brand"
+            aria-label="Harbor Community Bank home"
+          >
+            <span className="brand-mark">
+              <Landmark size={26} />
             </span>
-          )}
-        </div>
+            <span>
+              <strong>Harbor</strong>
+              <span className="brand-subtitle">COMMUNITY BANK</span>
+            </span>
+          </Link>
+        )}
+        {state || controlsPage ? (
+          <button
+            ref={menuButton}
+            className="menu-button"
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            aria-controls="bank-menu"
+            onClick={() => {
+              setMenuOpen(true);
+              if (state && !controlsPage)
+                void interaction(state, 'menu_open').catch(() => {});
+            }}
+          >
+            <Menu size={24} />
+          </button>
+        ) : null}
       </header>
+      {menuOpen && (
+        <div className="menu-overlay">
+          <button
+            className="menu-backdrop"
+            tabIndex={-1}
+            aria-label="Close navigation"
+            onClick={closeMenu}
+          />
+          <nav
+            ref={menuPanel}
+            id="bank-menu"
+            className="bank-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Banking menu"
+          >
+            <div className="menu-top">
+              <strong>Harbor</strong>
+              <button
+                className="menu-button"
+                aria-label="Close menu"
+                onClick={closeMenu}
+              >
+                <X size={22} />
+              </button>
+            </div>
+            {state && (
+              <p className="menu-greeting" data-clarity-mask="true">
+                Welcome, {state.profile.firstName}
+              </p>
+            )}
+            {sections.map((section) => (
+              <NavLink
+                end={section.href === '/'}
+                key={section.key}
+                to={section.href}
+                onClick={() => {
+                  if (state && !controlsPage)
+                    void interaction(state, 'menu_selected', {
+                      targetKey: section.key,
+                    }).catch(() => {});
+                  closeMenu();
+                }}
+              >
+                {section.label}
+                <ChevronRight size={16} />
+              </NavLink>
+            ))}
+            <div className="menu-secondary">
+              <Link to="/about" onClick={closeMenu}>
+                About this demo
+              </Link>
+              <Link
+                to="/controls"
+                onClick={() => {
+                  if (window.clarity) {
+                    window.clarity('consentv2', {
+                      ad_Storage: 'denied',
+                      analytics_Storage: 'denied',
+                    });
+                    window.location.assign('/controls');
+                  } else closeMenu();
+                }}
+              >
+                Demo controls
+              </Link>
+              {state && (
+                <>
+                  <button
+                    className="text-button"
+                    disabled={resetting}
+                    onClick={() => void reset()}
+                  >
+                    {resetting ? 'Resetting…' : 'Reset my demo'}
+                  </button>
+                  <button className="text-button" onClick={() => void logout()}>
+                    <LogOut size={17} />
+                    Sign out
+                  </button>
+                </>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
       <div className="app-layout">
-        <nav aria-label="Main navigation" className="navigation">
-          <NavLink end to="/">
-            <Wallet size={18} />
-            Overview
-          </NavLink>
-          <NavLink to={state?.enrolled ? '/goals' : '/savings-goals'}>
-            <Target size={18} />
-            Savings goals
-          </NavLink>
-          <NavLink to="/about">
-            <ShieldCheck size={18} />
-            About the demo
-          </NavLink>
-          <NavLink to="/controls">
-            <Landmark size={18} />
-            Demo controls
-          </NavLink>
-          {state && (
-            <button
-              className="reset-button"
-              disabled={resetting}
-              onClick={() => void reset()}
-            >
-              {resetting ? 'Resetting…' : 'Reset my demo'}
-            </button>
-          )}
-        </nav>
         <main id="main" tabIndex={-1}>
           <Alert message={error} />
           {loading ? (
             <p role="status">Preparing your Harbor experience…</p>
-          ) : error && !state ? (
+          ) : error && !state && !controlsPage ? (
             <Card title="Let’s reconnect">
               <p>We couldn’t reach your accounts.</p>
               <button
@@ -1262,29 +1418,51 @@ function App() {
             </Card>
           ) : (
             <Routes>
-              <Route path="/" element={<Overview />} />
-              <Route path="/savings-goals" element={<Details />} />
-              <Route path="/enroll" element={<Enrollment />} />
-              <Route path="/goals" element={<Goals />} />
               <Route path="/controls" element={<Controls />} />
               <Route path="/about" element={<About />} />
-              <Route
-                path="*"
-                element={
-                  <Card title="Page not found">
-                    <Link className="button" to="/">
-                      Back to overview
-                    </Link>
-                  </Card>
-                }
-              />
+              <Route path="/login" element={<Entry />} />
+              {state ? (
+                <>
+                  <Route path="/" element={<Overview />} />
+                  <Route path="/savings-goals" element={<Details />} />
+                  <Route path="/enroll" element={<Enrollment />} />
+                  <Route path="/goals" element={<Goals />} />
+                  {sections
+                    .filter((s) => !['summary', 'goals'].includes(s.key))
+                    .map((section) => (
+                      <Route
+                        key={section.key}
+                        path={section.href}
+                        element={
+                          <Placeholder
+                            title={section.label}
+                            kind={section.key}
+                          />
+                        }
+                      />
+                    ))}
+                  <Route
+                    path="*"
+                    element={
+                      <Card title="Page not found">
+                        <Link className="button" to="/">
+                          Back to Account Summary
+                        </Link>
+                      </Card>
+                    }
+                  />
+                </>
+              ) : (
+                <Route path="*" element={<Entry />} />
+              )}
             </Routes>
           )}
         </main>
       </div>
-      <AnalyticsChoice />
+      {!controlsPage && <AnalyticsChoice />}
       <footer className="site-footer">
         Harbor Community Bank · Fictional demonstration · No real money moves
+        {!state && <Link to="/controls"> · Demo controls</Link>}
       </footer>
     </Demo.Provider>
   );

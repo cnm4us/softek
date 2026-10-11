@@ -12,18 +12,12 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import { analyticsConfig, databaseConfig } from './config.js';
+import { HttpError } from './errors.js';
+import { authenticatedRun, registerRevision } from './revision.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
 type Row = Record<string, any>;
-class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
 const uuid = z.string().uuid();
 const hash = (value: string) =>
   createHash('sha256').update(value).digest('hex');
@@ -43,7 +37,7 @@ const stages = [
   'repeat_use',
 ] as const;
 const service = 'savings-goals';
-const cookieName = 'softek_run',
+const cookieName = 'softek_user',
   adminCookie = 'softek_admin';
 
 export function createApp(test = false) {
@@ -81,12 +75,15 @@ export function createApp(test = false) {
   const csrf = (token: string) =>
     createHmac('sha256', secret).update(token).digest('hex');
   const token = (req: Request) => String(req.cookies[cookieName] ?? '');
-  function checkOrigin(req: Request) {
-    if (req.get('origin') !== origin || !req.is('application/json'))
+  function checkOrigin(req: Request, multipart = false) {
+    if (
+      req.get('origin') !== origin ||
+      !(multipart ? req.is('multipart/form-data') : req.is('application/json'))
+    )
       throw new HttpError(403, 'Please use this demo from its own website.');
   }
-  function checkCsrf(req: Request, raw: string) {
-    checkOrigin(req);
+  function checkCsrf(req: Request, raw: string, multipart = false) {
+    checkOrigin(req, multipart);
     if (!raw || !equal(req.get('x-csrf-token') ?? '', csrf(raw)))
       throw new HttpError(403, 'Your session changed. Refresh and try again.');
   }
@@ -98,13 +95,6 @@ export function createApp(test = false) {
     message: { error: 'Please wait a moment before trying again.' },
   });
   app.use('/api', limiter);
-  const entryLimiter = rateLimit({
-    windowMs: 60_000,
-    limit: 30,
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    message: { error: 'Please wait a minute before starting another demo.' },
-  });
   const loginLimiter = rateLimit({
     windowMs: 15 * 60_000,
     limit: 10,
@@ -115,9 +105,15 @@ export function createApp(test = false) {
   });
   async function transaction<T>(
     action: (c: Connection) => Promise<T>,
+    snapshot = false,
   ): Promise<T> {
     const c = await pool.getConnection();
     try {
+      await c.query(
+        snapshot
+          ? 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ'
+          : 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+      );
       await c.beginTransaction();
       const result = await action(c);
       await c.commit();
@@ -130,21 +126,20 @@ export function createApp(test = false) {
     }
   }
   async function active(c: Connection, req: Request): Promise<Row> {
-    const rows = await c.query(
-      "SELECT * FROM participant_runs WHERE token_hash=? AND status='active' AND expires_at>UTC_TIMESTAMP(6) FOR UPDATE",
-      [hash(token(req))],
-    );
-    if (!rows.length)
-      throw new HttpError(401, 'Choose a demo profile to continue.');
-    return rows[0];
+    return authenticatedRun(c, req);
   }
-  async function visit(c: Connection, run: Row, req: Request): Promise<string> {
+  async function visit(
+    c: Connection,
+    run: Row,
+    req: Request,
+    force = false,
+  ): Promise<string> {
     const browser = uuid.parse(req.get('x-browser-session'));
     const rows = await c.query(
       'SELECT id FROM visits WHERE run_id=? AND browser_session=? AND last_seen_at>DATE_SUB(UTC_TIMESTAMP(6),INTERVAL 30 MINUTE) ORDER BY created_at DESC LIMIT 1',
       [run.id, browser],
     );
-    if (rows.length) {
+    if (rows.length && !force) {
       await c.query(
         'UPDATE visits SET last_seen_at=UTC_TIMESTAMP(6) WHERE id=?',
         [rows[0].id],
@@ -256,9 +251,9 @@ export function createApp(test = false) {
     // Set the cookie only after the transaction commits (route owns response).
     return { runId: run.id, raw, csrf: csrf(raw), visitId };
   }
-  async function admin(req: Request, mutate = false) {
+  async function admin(req: Request, mutate = false, multipart = false) {
     const raw = String(req.cookies[adminCookie] ?? '');
-    if (mutate) checkCsrf(req, raw);
+    if (mutate) checkCsrf(req, raw, multipart);
     const rows = await pool.query(
       'SELECT token_hash FROM admin_sessions WHERE token_hash=? AND expires_at>UTC_TIMESTAMP(6)',
       [hash(raw)],
@@ -320,6 +315,22 @@ export function createApp(test = false) {
     }
     return events;
   }
+  registerRevision({
+    app,
+    pool,
+    test,
+    transaction,
+    active,
+    visit,
+    createRun,
+    event,
+    admin,
+    csrf,
+    token,
+    checkOrigin,
+    checkCsrf,
+    cookieOptions,
+  });
   app.get('/api/health', async (_req, res) => {
     try {
       await pool.query('SELECT 1');
@@ -334,30 +345,6 @@ export function createApp(test = false) {
         'SELECT id,display_name AS name,eligible FROM customer_profiles ORDER BY id',
       ),
     );
-  });
-  app.post('/api/entry', entryLimiter, async (req, res) => {
-    checkOrigin(req);
-    const body = z
-      .object({ profileId: z.enum(['alex', 'jamie']) })
-      .strict()
-      .parse(req.body);
-    const automated =
-      process.env.AUTOMATION_SECRET &&
-      equal(req.get('x-demo-automation') ?? '', process.env.AUTOMATION_SECRET);
-    const result = await transaction((c) =>
-      createRun(
-        c,
-        req,
-        res,
-        body.profileId,
-        automated ? 'automation' : 'human',
-      ),
-    );
-    res.cookie(cookieName, result.raw, cookieOptions).status(201).json({
-      csrf: result.csrf,
-      runId: result.runId,
-      visitId: result.visitId,
-    });
   });
   app.get('/api/state', async (req, res) => {
     const data = await transaction(async (c) => {
@@ -388,7 +375,16 @@ export function createApp(test = false) {
         visitId,
         csrf: csrf(token(req)),
         profileId: r.profile_id,
-        profile: p,
+        profile: {
+          ...p,
+          name: r.display_name,
+          firstName: r.display_name.split(' ')[0],
+        },
+        user: {
+          id: r.user_id,
+          username: r.username,
+          displayName: r.display_name,
+        },
         variant: r.variant,
         eligible: Boolean(r.eligible),
         enrolled: enrollment.length > 0,
@@ -399,29 +395,6 @@ export function createApp(test = false) {
       };
     });
     res.json(data);
-  });
-  app.post('/api/reset', async (req, res) => {
-    checkCsrf(req, token(req));
-    z.object({}).strict().parse(req.body);
-    const result = await transaction(async (c) => {
-      const r = await active(c, req);
-      await c.query(
-        "UPDATE participant_runs SET status='retired',retired_at=UTC_TIMESTAMP(6) WHERE id=?",
-        [r.id],
-      );
-      return createRun(
-        c,
-        req,
-        res,
-        r.profile_id,
-        r.actor,
-        r.variant,
-        Boolean(r.eligible),
-      );
-    });
-    res
-      .cookie(cookieName, result.raw, cookieOptions)
-      .json({ csrf: result.csrf, runId: result.runId });
   });
   app.post('/api/events', async (req, res) => {
     checkCsrf(req, token(req));
@@ -662,46 +635,6 @@ export function createApp(test = false) {
     ]);
     res.clearCookie(adminCookie, cookieOptions).json({ ok: true });
   });
-  app.post('/api/admin/restart', async (req, res) => {
-    await admin(req, true);
-    const b = z
-      .object({
-        profileId: z.enum(['alex', 'jamie']),
-        variant: z.enum(['baseline', 'value']),
-        eligible: z.boolean(),
-      })
-      .strict()
-      .parse(req.body);
-    const result = await transaction(async (c) => {
-      const old = await c.query(
-        "SELECT * FROM participant_runs WHERE token_hash=? AND status='active' FOR UPDATE",
-        [hash(token(req))],
-      );
-      if (old.length)
-        await c.query(
-          "UPDATE participant_runs SET status='retired',retired_at=UTC_TIMESTAMP(6) WHERE id=?",
-          [old[0].id],
-        );
-      const automation =
-        process.env.AUTOMATION_SECRET &&
-        equal(
-          req.get('x-demo-automation') ?? '',
-          process.env.AUTOMATION_SECRET,
-        );
-      return createRun(
-        c,
-        req,
-        res,
-        b.profileId,
-        old[0]?.actor ?? (automation ? 'automation' : 'human'),
-        b.variant,
-        b.eligible,
-      );
-    });
-    res
-      .cookie(cookieName, result.raw, cookieOptions)
-      .json({ runId: result.runId, csrf: result.csrf });
-  });
   app.get('/api/admin/report', async (req, res) => {
     await admin(req);
     const f = z
@@ -822,7 +755,7 @@ export function createApp(test = false) {
         })),
         eventCount: events.length,
       };
-    });
+    }, true);
     res.json(result);
   });
   app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
@@ -833,6 +766,15 @@ export function createApp(test = false) {
       res: Response,
       _next: express.NextFunction,
     ) => {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        String(error.code).startsWith('LIMIT_')
+      ) {
+        res.status(413).json({ error: 'Use one image up to 5 MiB.' });
+        return;
+      }
       if (error instanceof z.ZodError) {
         res
           .status(400)

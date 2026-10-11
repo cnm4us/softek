@@ -1,8 +1,17 @@
 # MariaDB schema migration contract
 
-Status: `0001_demo_foundation.sql` is committed and applied to `demo` and
-`demo_test`. Status/repeat checks show no pending work or drift. Applied files are
-immutable; the next schema change uses `0002_<description>.sql`.
+Status: migrations `0001_demo_foundation.sql`, `0002_demo_users.sql`, and
+`0003_demo_banners.sql` are committed and applied to `demo` and `demo_test`.
+Both ledgers are version 3 with no pending work or drift. Applied files are
+immutable; the next schema change uses `0004_<description>.sql`.
+
+Migrations 0002/0003 were committed in `e239925` before test application. Production
+backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`
+(private, 0600). All ten pre-upgrade run IDs and retained banking/history rows
+were preserved. Anonymous historical ownership remains NULL; no user is inferred
+from a legacy cookie. The first authenticated release replaces public anonymous
+entry: old releases are not a compatible public authentication rollback. See
+[LOCAL_SETUP.md](../../LOCAL_SETUP.md#rollback-and-renewal).
 
 ## Implemented commands
 
@@ -80,7 +89,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **1**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. The actual applied version is **3**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 

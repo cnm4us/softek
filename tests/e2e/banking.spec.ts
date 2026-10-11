@@ -1,9 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
 import mariadb from 'mariadb';
 import { databaseConfig } from '../../apps/api/src/config.js';
+import { fixtureUser, cleanUsers } from '../fixtures.js';
+import sharp from 'sharp';
+import { unlink } from 'node:fs/promises';
+import { join } from 'node:path';
+import { assetDirectory } from '../../apps/api/src/banner-assets.js';
 const headers = { 'X-Demo-Automation': process.env.AUTOMATION_SECRET! };
 test.use({ extraHTTPHeaders: headers });
 const ids: string[] = [];
+const userIds: string[] = [];
+const uploads: { id: string; asset_key: string }[] = [];
 const pool = mariadb.createPool({
   ...databaseConfig('runtime', true),
   connectionLimit: 2,
@@ -20,13 +27,34 @@ async function state(page: Page) {
   });
 }
 async function entry(page: Page, profile = 'Alex Morgan') {
+  const user = await fixtureUser(
+    pool,
+    profile === 'Jamie Chen' ? 'jamie' : 'alex',
+  );
+  userIds.push(user.id);
   await page.goto('/');
-  await page.getByRole('button', { name: new RegExp(profile) }).click();
+  await page.getByLabel('Username', { exact: true }).fill(user.username);
+  await page.getByLabel('Password', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: /Good to see you/ }),
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
   ).toBeVisible();
   ids.push((await state(page)).runId);
+  return user;
 }
+async function menu(page: Page, label: string) {
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page.getByRole('link', { name: label, exact: true }).click();
+}
+async function resetDemo(page: Page) {
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Reset my demo', exact: true })
+    .click();
+}
+test.beforeEach(async ({ page }) => {
+  page.on('dialog', (dialog) => void dialog.accept());
+});
 async function count(runId: string, name: string, placement?: string) {
   const r = await pool.query(
     'SELECT COUNT(*) AS n FROM adoption_events WHERE run_id=? AND name=? AND (? IS NULL OR placement=?)',
@@ -42,12 +70,175 @@ async function noOverflow(page: Page) {
   ).toBe(true);
 }
 test.afterAll(async () => {
-  for (const id of ids)
-    await pool.query(
-      "DELETE FROM participant_runs WHERE id=? AND actor='automation'",
-      [id],
-    );
+  await cleanUsers(pool, userIds);
+  for (const row of uploads) {
+    await pool.query('DELETE FROM demo_banners WHERE id=?', [row.id]);
+    await pool.query('DELETE FROM banner_assets WHERE asset_key=?', [
+      row.asset_key,
+    ]);
+    await unlink(join(assetDirectory(true), row.asset_key)).catch(() => {});
+  }
   await pool.end();
+});
+
+test('banner rotation, menu actions, keyboard close, logout and relogin', async ({
+  page,
+}) => {
+  const user = await entry(page);
+  const banner = page.getByTestId('promotion-banner');
+  await expect(banner).toHaveAttribute('href', '/savings-goals');
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Banking menu' }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Open menu', exact: true }),
+  ).toBeFocused();
+  await menu(page, 'Bill Pay');
+  await expect(
+    page.getByRole('heading', { name: 'Bill Pay', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Try bill pay', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Demo action completed.',
+  );
+  await menu(page, 'Account Summary');
+  await expect(banner).toHaveAttribute('href', '/savings-goals');
+  await page.reload();
+  await expect(banner).toHaveAttribute('href', '/bill-pay');
+  await banner.click();
+  await expect(
+    page.getByRole('heading', { name: 'Bill Pay', exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await menu(page, 'Account Summary');
+  await expect(banner).toHaveAttribute('href', '/bill-pay');
+  const before = await state(page);
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByLabel('Username', { exact: true })).toBeVisible();
+  await page.getByLabel('Username', { exact: true }).fill(user.username);
+  await page.getByLabel('Password', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(banner).toHaveAttribute('href', '/cards');
+  const after = await state(page);
+  expect(after.runId).toBe(before.runId);
+  expect(after.user.id).toBe(before.user.id);
+  expect(after.visitId).not.toBe(before.visitId);
+  const events = await pool.query(
+    'SELECT name FROM interaction_events WHERE run_id=?',
+    [after.runId],
+  );
+  expect(
+    events.some((e: { name: string }) => e.name === 'placeholder_action'),
+  ).toBe(true);
+  await noOverflow(page);
+});
+
+test('two tabs retain their selected banner independently', async ({
+  page,
+  context,
+}) => {
+  await entry(page);
+  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/savings-goals',
+  );
+  const other = await context.newPage();
+  await other.goto('/');
+  await expect(other.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/bill-pay',
+  );
+  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/savings-goals',
+  );
+  await menu(page, 'Savings Goals');
+  await menu(page, 'Account Summary');
+  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/savings-goals',
+  );
+  await other.reload();
+  await expect(other.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/cards',
+  );
+  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
+    'href',
+    '/savings-goals',
+  );
+  await other.close();
+});
+
+test('admin can create a login, upload a banner, and persist its settings', async ({
+  page,
+}) => {
+  await page.goto('/controls');
+  await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Demo users', exact: true }),
+  ).toBeVisible();
+  const username = `test.ui-${Date.now()}`;
+  const form = page
+    .locator('.admin-revision > section')
+    .first()
+    .locator('form')
+    .first();
+  await form.getByLabel('Username', { exact: true }).fill(username);
+  await form.getByLabel('Display name', { exact: true }).fill('Demo UI User');
+  await form.getByLabel('Initial password').fill('temporary-test-password');
+  await form.getByLabel('Activity mode').selectOption('automation');
+  await form.getByRole('button', { name: 'Create user' }).click();
+  await expect(page.getByRole('status')).toContainText('Demo user created.');
+  const [created] = await pool.query(
+    'SELECT id FROM demo_users WHERE username=?',
+    [username],
+  );
+  userIds.push(created.id);
+  const bannerSection = page.locator('.admin-revision > section').nth(1),
+    upload = bannerSection.locator('form').first();
+  const buffer = await sharp({
+    create: { width: 1200, height: 400, channels: 3, background: '#205747' },
+  })
+    .png()
+    .toBuffer();
+  await upload
+    .getByLabel('Image', { exact: true })
+    .setInputFiles({ name: 'demo.png', mimeType: 'image/png', buffer });
+  await upload.getByLabel('Banner title').fill('UI Upload Test');
+  await upload
+    .getByLabel('Accessible link text')
+    .fill('Explore fictional cards');
+  await upload.getByLabel('Destination').selectOption('cards');
+  await upload.getByLabel('Display order').fill('99');
+  await upload.getByRole('button', { name: 'Upload banner' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Banner uploaded and enabled.',
+  );
+  const [uploaded] = await pool.query(
+    "SELECT id,asset_key FROM demo_banners WHERE title='UI Upload Test' ORDER BY created_at DESC LIMIT 1",
+  );
+  uploads.push(uploaded);
+  await page.reload();
+  await expect(
+    page
+      .locator('.admin-banner')
+      .filter({ has: page.locator('input[value="UI Upload Test"]') }),
+  ).toBeVisible();
+  await page.goto('/');
+  await page.getByLabel('Username', { exact: true }).fill(username);
+  await page
+    .getByLabel('Password', { exact: true })
+    .fill('temporary-test-password');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  await noOverflow(page);
 });
 
 test('complete enrollment, persistence, contribution, later visit, and reset', async ({
@@ -75,10 +266,7 @@ test('complete enrollment, persistence, contribution, later visit, and reset', a
     path: `artifacts/banking-${testInfo.project.name}.png`,
     fullPage: true,
   });
-  await page
-    .getByTestId('promotion-banner')
-    .getByRole('link', { name: 'Explore savings goals' })
-    .click();
+  await page.getByTestId('promotion-banner').click();
   await expect(
     page.getByRole('heading', { name: 'Something to look forward to.' }),
   ).toBeVisible();
@@ -136,9 +324,9 @@ test('complete enrollment, persistence, contribution, later visit, and reset', a
   await expect(laterPage.getByText('$5.00 added to your goal.')).toBeVisible();
   expect(await count(initial.runId, 'repeat_use')).toBe(1);
   await later.close();
-  await page.getByRole('button', { name: 'Reset my demo' }).click();
+  await resetDemo(page);
   await expect(
-    page.getByRole('heading', { name: /Good to see you/ }),
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
   ).toBeVisible();
   const reset = await state(page);
   ids.push(reset.runId);
@@ -158,19 +346,15 @@ test('independent participants and unavailable profile', async ({
   await entry(page, 'Jamie Chen');
   const jamie = await state(page);
   expect(jamie.eligible).toBe(false);
-  await expect(page.getByTestId('promotion-banner')).toHaveCount(0);
-  await page.getByRole('link', { name: 'Savings goals', exact: true }).click();
+  await expect(page.getByTestId('promotion-banner')).toBeVisible();
+  await page.goto('/savings-goals');
   await expect(
     page.getByText('Savings goals isn’t available for this demo profile.'),
   ).toBeVisible();
   await noOverflow(page);
   const other = await browser.newContext({ extraHTTPHeaders: headers });
   const otherPage = await other.newPage();
-  await otherPage.goto('http://127.0.0.1:5173/');
-  await otherPage.getByRole('button', { name: /Alex Morgan/ }).click();
-  await expect(
-    otherPage.getByRole('heading', { name: /Good to see you/ }),
-  ).toBeVisible();
+  await entry(otherPage);
   const alex = await state(otherPage);
   ids.push(alex.runId);
   expect(alex.runId).not.toBe(jamie.runId);
@@ -207,13 +391,16 @@ test('protected controls show explicit funnel denominators and start a new varia
 }) => {
   await entry(page);
   const original = await state(page);
-  await page.getByRole('link', { name: 'Demo controls', exact: true }).click();
+  await menu(page, 'Demo controls');
   await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Adoption report', exact: true }),
   ).toBeVisible();
-  await page.getByLabel('Activity').selectOption('automation');
+  await page
+    .locator('.report-filters')
+    .getByLabel('Activity')
+    .selectOption('automation');
   await expect(
     page.getByText('Eligible denominator', { exact: true }),
   ).toBeVisible();
@@ -225,16 +412,22 @@ test('protected controls show explicit funnel denominators and start a new varia
     path: `artifacts/report-${test.info().project.name}.png`,
     fullPage: true,
   });
-  await page.getByLabel('Campaign variant').selectOption('value');
-  await page.getByRole('button', { name: 'Start configured demo' }).click();
-  await expect(
-    page.getByRole('heading', { name: /Good to see you/ }),
-  ).toBeVisible();
+  const userCard = page
+    .locator('.admin-user')
+    .filter({ hasText: original.user.username });
+  await userCard
+    .locator('summary')
+    .filter({ hasText: 'Reset banking state' })
+    .click();
+  await userCard.getByLabel('Campaign variant').selectOption('baseline');
+  await userCard
+    .getByRole('button', { name: 'Reset banking state', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Banking state reset.');
   const configured = await state(page);
   ids.push(configured.runId);
-  expect(configured.variant).toBe('value');
+  expect(configured.variant).toBe('baseline');
   expect(configured.runId).not.toBe(original.runId);
-  await page.getByRole('link', { name: 'Demo controls', exact: true }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByLabel('Admin password')).toBeVisible();
 });
@@ -244,9 +437,7 @@ test('abandonment and direct entry preserve form errors and keyboard actions', a
 }) => {
   await entry(page);
   const abandoned = await state(page);
-  const promotion = page
-    .getByTestId('promotion-banner')
-    .getByRole('link', { name: 'Explore savings goals' });
+  const promotion = page.getByTestId('promotion-banner');
   await promotion.focus();
   await promotion.press('Enter');
   await page.getByRole('link', { name: 'Get started' }).click();
@@ -256,9 +447,9 @@ test('abandonment and direct entry preserve form errors and keyboard actions', a
   await expect.poll(() => count(abandoned.runId, 'enrollment_started')).toBe(1);
   expect(await count(abandoned.runId, 'enrollment_completed')).toBe(0);
   expect(await count(abandoned.runId, 'first_use')).toBe(0);
-  await page.getByRole('button', { name: 'Reset my demo' }).click();
+  await resetDemo(page);
   await expect(
-    page.getByRole('heading', { name: /Good to see you/ }),
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
   ).toBeVisible();
   const direct = await state(page);
   ids.push(direct.runId);

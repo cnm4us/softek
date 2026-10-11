@@ -883,3 +883,262 @@ tbody th {
 .analytics-choice p {
   font-size: 13px;
 }
+
+/* One shared section shell at every width. */
+.app-layout {
+  display: block;
+  max-width: 1200px;
+}
+.site-header {
+  max-width: 1200px;
+  margin: auto;
+  border-bottom: 0;
+  background: transparent;
+}
+.section-header {
+  padding-bottom: 12px;
+  align-items: center;
+}
+.section-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 40px);
+}
+.section-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  margin: 0 0 12px;
+}
+.menu-button {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+  background: #e7eee5;
+  border-radius: 14px;
+}
+.app-layout main {
+  padding-top: 16px;
+}
+.feature-title {
+  font-size: clamp(25px, 4vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.login-header {
+  padding-top: clamp(28px, 8vh, 72px);
+  padding-bottom: 28px;
+  justify-content: center;
+}
+.login-header .brand-mark {
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+}
+.login-header .brand strong {
+  font-size: 30px;
+}
+.login-layout {
+  max-width: 520px;
+  margin: 0 auto 48px;
+}
+.login-welcome {
+  text-align: center;
+  padding: 10px 8px 20px;
+}
+.login-welcome h1 {
+  font-size: clamp(32px, 5vw, 42px);
+  margin-bottom: 10px;
+}
+.login-welcome p {
+  margin: 10px 0;
+}
+.login-orbit {
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  margin: 8px auto 28px;
+  color: #52764a;
+  background: #e5eddb;
+  border: 1px solid #d7e2cc;
+  border-radius: 28px;
+}
+.login-caption {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.login-caption h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.login-card .button {
+  width: 100%;
+  margin-top: 8px;
+}
+.login-card .small-note {
+  text-align: center;
+}
+.image-banner {
+  display: block;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  margin: 0 0 28px;
+  background: #e5ecdf;
+  box-shadow: 0 8px 24px #19372f0a;
+}
+.image-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #17372f55;
+  backdrop-filter: blur(3px);
+}
+.bank-menu {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(360px, 90vw);
+  background: #fafbf8;
+  padding: 24px;
+  overflow-y: auto;
+  box-shadow: -10px 0 40px #19372f22;
+}
+.menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+.bank-menu > a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+.bank-menu > a.active {
+  background: #e6eee2;
+  font-weight: 650;
+  color: var(--color-primary);
+}
+.menu-greeting {
+  font-size: 13px;
+  padding: 0 12px;
+}
+.menu-secondary {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 4px;
+}
+.menu-secondary a {
+  padding: 12px 14px;
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.menu-secondary .text-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+}
+.placeholder-page {
+  padding: clamp(28px, 5vw, 48px);
+}
+.placeholder-page h2 {
+  font-size: 30px;
+  line-height: 1.25;
+}
+.placeholder-page .success {
+  margin-top: 24px;
+}
+.admin-revision {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.user-list,
+.banner-admin-list {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+}
+.admin-user,
+.admin-banner {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+}
+.lookup-id {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+}
+.admin-user .form-actions .text-button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.password-reset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+.password-reset label {
+  flex: 1 1 220px;
+  margin-bottom: 0;
+}
+details {
+  margin-top: 20px;
+}
+summary {
+  padding: 12px 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.admin-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+@media (min-width: 850px) {
+  .login-header {
+    padding-top: 60px;
+  }
+  .login-layout {
+    max-width: 500px;
+  }
+}
+@media (max-height: 700px) {
+  .login-header {
+    padding-top: 24px;
+  }
+  .login-orbit {
+    display: none;
+  }
+}

@@ -1,6 +1,6 @@
 # Architecture
 
-Status: M1 implemented and deployed. MariaDB remains authoritative for banking
+Status: M1 and Plan 001 implemented and deployed. MariaDB remains authoritative for banking
 state and adoption reporting; live Clarity evaluation is pending in M2.
 
 ## System shape
@@ -71,8 +71,9 @@ sidebar campaign adapted inline on mobile remains analyzable.
 
 - Validate requests and use parameterized SQL. Enforce participant and institution
   boundaries on every read and write, not just in frontend navigation.
-- A secure cookie identifies the participant run. Profiles are reusable templates;
-  entering the demo creates independently mutable participant data.
+- A secure cookie identifies an expiring user session. The server resolves that
+  user's owned current run. Profiles are reusable templates; first login initializes
+  independent banking state, and explicit reset retires it.
 - Runtime access uses a dedicated application account. Migrations use a separate
   account with schema-management privileges on dedicated Softek schemas only.
 - Use integer minor units for simulated monetary values and explicit currency.
@@ -166,20 +167,27 @@ eligibility snapshot, service enrollment, and goal use remain distinct records.
 The campaign and baseline/value assignment are fixed on the run. Admin changes
 create a new run; ordinary reset preserves the current profile/eligibility/variant.
 
-The browser receives an opaque 256-bit token in an HttpOnly cookie. MariaDB stores
-only its SHA-256 hash and a 30-day expiry. Every current-state operation locks and
-checks the active run. Mutations require JSON, exact origin, and an HMAC CSRF token
-bound to that cookie. Reset retires the run, invalidating its cookie for current
-state but preserving owned records/events. A separate hashed admin cookie expires
-in one hour and protects report/configuration routes. Login and entry are limited.
+The browser receives an opaque 256-bit token in the HttpOnly `softek_user` cookie.
+MariaDB stores its SHA-256 hash with a 24-hour expiry. The API locks the enabled
+user, rechecks the session, and resolves its owned current run. Legacy run-token
+expiry does not expire banking data. Logout revokes only authentication; reset
+changes the user's current run while retaining authentication and historical rows.
+Password replacement and disable revoke all that user's sessions. A separate
+hashed admin cookie expires in one hour. Username/password login is rate limited;
+legacy `/api/entry` is retired (410). JSON and upload mutations require exact origin
+and an HMAC CSRF token bound to the applicable cookie.
 
 The browser supplies a session-scoped UUID; the server creates visits scoped to
-its authenticated run, renewing after 30 minutes of inactivity. Assignments persist
-across visits. Actor designation comes from the server checking a private harness
-header at entry, then stays immutable. Public ordinary traffic is labeled human;
+its authenticated run, renewing on explicit login or after 30 minutes of inactivity. Assignments persist
+across visits. Admin configures dedicated human/automation users; authentication
+checks the private harness header against the configured actor, which stays
+immutable on a run. Public ordinary traffic is labeled human;
 this separates controlled automation, not every possible bot.
 
-Business actions serialize on the run row. A unique run/request UUID receipt
+Business actions serialize on the user and run rows using READ COMMITTED. This
+lets a request that waited for the user lock see the preceding committed run,
+receipt, and banner selection. Reports explicitly use REPEATABLE READ for a
+consistent snapshot. A unique run/request UUID receipt
 stores an operation and normalized payload hash. Retries return the committed
 result without repeating funds or milestones; changed payloads receive 409.
 Enrollment, goals, contributions, histories, receipts, and confirmed events share
@@ -200,7 +208,8 @@ their original cohorts. This is one campaign, not a general analytics platform.
 ## Clarity and deployment boundaries
 
 The adapter allows only named events and fixed institution/service/campaign/
-variant/actor tags, using pseudonymous run/visit identifiers. Banking text, goal
+variant/actor/route/banner tags. Identify uses the stable opaque user UUID, with
+visit/session and allowlisted route/page context; run ID is a separate tag. Banking text, goal
 forms/progress, and all controls/reporting have explicit DOM masking attributes.
 The loader requires verified backend configuration, a matching frontend flag,
 and explicit visitor opt-in. It queues ConsentV2 with analytics storage granted
@@ -219,3 +228,58 @@ application DB credentials and application secrets. It cannot access the source
 home or modify code/system files. Development/test API uses 3101; production uses
 3100. Static files alone are public. The exact paths, installation, and rollback
 are maintained in [LOCAL_SETUP.md](LOCAL_SETUP.md).
+
+## Implemented login and banner revision
+
+Migrations 0002/0003 add users, hashed sessions, nullable historical run ownership,
+a unique user/current-run mapping, immutable assets/presentations, per-user
+rotation, and allowlisted interaction observations. Root planning/status files
+retain the implementation task IDs and deployment evidence.
+
+Passwords use asynchronous Node scrypt (N=32768, r=8, p=1, 64 MiB limit), random
+16-byte salt and a versioned 32-byte hash. Usernames normalize to lower-case ASCII
+3–40 characters; passwords allow 8–128 characters. Plaintext is never stored.
+These are proportionate demo choices, with no signup or self-service recovery.
+Reference: [Node scrypt](https://nodejs.org/docs/latest-v22.x/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback).
+
+The branded login and shared section-title shell use the same theme tokens.
+Account Summary places the padded linked image above checking/savings/credit,
+activity and goals. The upper-right modal menu contains keyboard focus, closes
+on Escape/outside activation/selection, and returns focus. Banking placeholders
+have explicit simulated actions; existing savings remains functional.
+
+Banner destinations are server-owned keys, never arbitrary URLs. Admin uploads
+JPEG/PNG/WebP up to 5 MiB and 4096 pixels per side. Sharp decodes bounded pixels,
+rotates orientation, scales to at most 1600 pixels wide, and re-encodes WebP without
+metadata. Multer parses only the protected upload route. Files publish atomically
+under generated UUID keys; failed DB publication removes its newly created file.
+Replacements disable the prior creative and use a new immutable URL; old assets
+and selection snapshots remain readable. Production assets are stored outside
+releases in `/var/lib/softek/banner-assets`, the service's only persistent writable
+path. Nginx permits 6 MiB only on the exact upload endpoint; other limits remain
+small. Public media requires a published DB asset and a validated generated key.
+References: [Sharp](https://sharp.pixelplumbing.com/api-constructor/),
+[Multer](https://expressjs.com/en/resources/middleware/multer/).
+
+Enabled creatives sort by explicit order then stable ID. Selection and cursor
+updates share a locked-user transaction. Login and Account Summary document
+refresh each advance once; unique request keys make concurrent retries return
+the same presentation. SPA returns/data refetches preserve selection. Tabs share
+the sequence but retain their own immutable selection in session storage.
+Disabled/replaced selections fall back once. Reset keeps the user cursor and
+selects from the retained cursor for the new run without advancing. Three
+fictional starter images are seeded only when absent, preserving admin edits
+and immutable URLs. No-enabled and image-error states leave accounts usable.
+
+Interactions retain page/presentation evidence separately from distinct-run
+adoption. Only explicitly savings-associated banners feed the savings funnel.
+The backend still owns enrollment and first/repeat-use success. Login/admin/banking
+private text is masked; navigation and artwork remain visible. Logout clears
+user/banner/consent state and starts a new document; controls suppress capture.
+Actual SDK account separation/masking still needs Plan 002 playback verification.
+The optional `?banner=` heatmap parameter is deferred pending that validation.
+
+`scripts/lib/journey-scenarios.ts` defines a validated credential-free scenario
+contract (assigned alias, viewport, waits, click/skip, menu routes); it is not a
+runner or scheduler. Routine authenticated Playwright/public smoke journeys remain
+collection-off. The small Clarity capture pilot belongs to Plan 002.

@@ -1,6 +1,6 @@
 # Testing
 
-M1 behavior is covered by MariaDB/API integration and Chromium journeys. Routine
+M1 and the login/banner revision are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -51,21 +51,32 @@ loopback server and MariaDB. It checks:
 - Repeat seeds preserving participant state.
 - Protected reports: exact cohorts, ordered prerequisites, denominators, actor
   labels, placements, and observation cutoff.
-- Reset invalidating the old cookie while retaining historical events.
-- Admin variant/eligibility restart and logout revocation.
+- Reset preserving authentication while retiring the old banking run and retaining history.
+- Selected-user variant/eligibility reset and admin logout revocation.
 
-The Node runner reports 22 passing entries: twenty nested scenarios plus two
-parents. Application cleanup deletes only run IDs created by that test with an
-automation predicate, plus its admin-session tokens. It never drops a schema.
+`tests/revision.test.ts` adds eight authenticated-user/banner scenarios: admin
+creation and salted hashes, concurrent first login producing one run, expiry and
+relogin preserving state, serialized retry-safe rotation, observation ownership,
+actual raster decoding/limits/internal destinations/immutable replacement URLs,
+zero/one-enabled fallback, and reset/password/disable behavior.
+
+The Node runner reports **31 passing entries**: 28 nested scenarios plus three
+parents. Test files run serially. Cleanup deletes only fixture-owned users/runs
+and uploads, removing their interaction/presentation references before run
+cleanup and restoring temporarily changed banner settings. Admin-session tokens
+are also removed. It never drops a schema.
 Do not run the API suite and browser suite concurrently: their report assertions
 expect their own isolated execution window.
 
 ## Browser acceptance
 
-Five journeys run at **360×800, 390×844, and 1440×900**: fifteen Chromium checks.
+Eight journeys run at **360×800, 390×844, and 1440×900**: **24 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
+| Login, ordered rotation and menu | Keyboard Escape/focus, placeholder action, logout/relogin, same run retained |
+| Two tabs | Independent retained selection while sharing the user sequence |
+| Admin users and banners | Create login, upload actual image, persist order/link/enable settings |
 | Complete promotion → enrollment → goal → contribution | State/balances persist through refresh; secure backend milestones |
 | Later browser session | Same run/assignment, different server-owned visit, one repeat-use event |
 | Reset | Clean new run; historical first use remains queryable |
@@ -79,7 +90,7 @@ Five journeys run at **360×800, 390×844, and 1440×900**: fifteen Chromium che
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and
 report were visually inspected. The report's wide table scrolls inside its card.
-Navigation can scroll horizontally on mobile without widening the page.
+The shared hamburger menu works on mobile and desktop without page overflow.
 
 The browser observation is best-effort evidence of behavior, never proof of
 business success. First/repeat use and enrollment are committed transactionally
@@ -94,9 +105,15 @@ npm run smoke:public
 ```
 
 The public smoke uses HTTPS at 360/1440px, checks Secure/HttpOnly/SameSite cookies,
-loads accounts, completes enrollment/goal/contribution, refreshes state, signs
-into reporting, signs out, and resets. It asserts no browser errors or Clarity
+creates users, signs in, completes enrollment/goal/contribution, proves saved
+state across relogin, cycles banners on Summary reload, preserves menu return,
+uses a placeholder action, opens reporting, signs out, and resets. It asserts no browser errors or Clarity
 requests. Its labeled automated history is intentionally retained in `demo`.
+
+A production multipart upload was decoded/published by the hardened service,
+disabled as a retained check fixture, and its immutable image hash verified after
+service restart and repeat deployment. This exercises the actual writable asset
+path and Nginx upload limit. Local API tests also verify old URLs after replacement.
 
 Host verification includes Nginx syntax, HTTP redirect, API 200, blocked `.env`,
 unknown API 404, loopback-only API, dedicated service identity/protections, private

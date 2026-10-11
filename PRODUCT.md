@@ -24,8 +24,8 @@ Access Softek's unknown production platform or connect to real financial systems
 
 ## Approved demo revision (2026-10-11, America/Los_Angeles)
 
-The user approved these decisions during discussion; application changes have
-not started yet:
+These approved requirements are implemented and deployed. Live Clarity recording
+acceptance remains in Plan 002:
 
 - Initial screen: logo/name above a simple real username/password login form.
 - Admin creates demo users and resets passwords; no self-registration.
@@ -69,7 +69,7 @@ visit can use the service again. Reset starts a new run with clean fictional dat
 
 The milestone includes:
 
-- A customer-entry flow and session-scoped participant data.
+- An authenticated customer-entry flow and persistent user-owned banking runs.
 - Account overview with a banner and sidebar/inline promotion.
 - Service details, a short multistep enrollment, and savings-goal creation.
 - A simple controls surface for customer/session reset and the first campaign.
@@ -120,8 +120,8 @@ Working instrumentation rules to implement and verify:
 | First use | Backend commits the first qualifying savings-goal action in this run |
 | Repeat use | Backend commits another qualifying service action during a later visit in the same run |
 
-Define a visit as a new browser session under the same participant run, or renewed
-activity after 30 minutes of inactivity. These are demo analysis rules, not claims
+Define a visit as explicit login, a new browser session under the same participant
+run, or renewed activity after 30 minutes of inactivity. These are demo analysis rules, not claims
 about Clarity's own session definitions. The API owns visit IDs for confirmed use.
 
 Do not count a rendered, below-the-fold promotion as visible. Deduplicate exposure
@@ -149,8 +149,9 @@ identifiers, or URLs. Demonstrate masking for banking details.
 The user confirmed Clarity project `yvs5hp3ivb` is the intended demo project and
 has created the account. Chris does not yet have project access. The existing
 loader needs only this project ID; the manual-install snippet is not required.
-Verify current consent/collection settings, masking, and recording behavior
-before enabling it. Chris needs a Clarity team-member invitation to review data.
+On 2026-10-11 UTC the owner reported Balanced masking, cookies on, bot detection
+on, and cookie consent required. Verify consent/masking in real playback before
+claiming recording acceptance. Collection remains off for the deployed revision. Chris needs a Clarity team-member invitation to review data.
 
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.

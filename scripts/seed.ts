@@ -1,6 +1,7 @@
 import mariadb from 'mariadb';
 import { databaseConfig } from '../apps/api/src/config.js';
 import { accounts, activity, profiles } from '../db/seeds/fixtures.js';
+import { seedBanners } from './lib/banner-fixtures.js';
 export async function seed(test = false) {
   const connection = await mariadb.createConnection(
     databaseConfig('runtime', test),
@@ -41,6 +42,7 @@ export async function seed(test = false) {
           ],
         );
     }
+    await seedBanners(connection, test);
     await connection.commit();
   } catch (error) {
     await connection.rollback();

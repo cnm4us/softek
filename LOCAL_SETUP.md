@@ -25,10 +25,9 @@ npm run db:seed
 npm run db:seed -- --test
 ```
 
-Commit and review each migration before applying it. The initial migration is
-already applied on this instance; repeated migration is a verified no-op. Seeds
-upsert fictional templates only, preserving participant balances, goals, and
-history. Reset is a customer-run operation, never a database drop.
+Commit and review each migration before applying it. Migrations 0001–0003 are
+already applied on this instance; repeated migration is a verified no-op. Seeds upsert fictional templates and add absent starter banner fixtures,
+preserving participant balances/goals/history and existing admin banner settings. Reset is a customer-run operation, never a database drop.
 
 ## Database access
 
@@ -55,7 +54,7 @@ npm run dev
 ```
 
 Frontend: `http://127.0.0.1:5173`; development/test API: `127.0.0.1:3101`.
-Vite proxies `/api` to 3101. Production API remains on 3100. Use VS Code port
+Vite proxies `/api` and `/media` to 3101. Production API remains on 3100. Use VS Code port
 forwarding for 5173; stop dev servers with Ctrl+C without stopping production.
 
 `PUBLIC_ORIGIN` must match the browser's exact origin for mutation requests. If
@@ -89,22 +88,48 @@ admin DB, migration, and test credentials.
 | `PUBLIC_ORIGIN` | Exact allowed origin; deployed HTTPS hostname |
 | `SESSION_SECRET` | HMAC protection for session-scoped CSRF tokens; at least 32 characters |
 | `DEMO_ADMIN_SECRET` | Password for `/controls`; at least 24 characters |
-| `AUTOMATION_SECRET` | Trusted harness header; actor label set at run creation |
+| `AUTOMATION_SECRET` | Trusted harness header; must match a dedicated automation user |
+| `BANNER_ASSET_DIR` | Optional local asset path; production is `/var/lib/softek/banner-assets` |
 | `CLARITY_ENABLED` | Server collection gate, false |
 | `CLARITY_CONFIG_VERIFIED` | Explicit verification gate, false |
 | `CLARITY_PROJECT_ID` | Candidate project must be verified before use |
 | `VITE_CLARITY_ENABLED` | Public build gate, false |
 
 Open your private `.env` in VS Code to retrieve `DEMO_ADMIN_SECRET`, then sign in
-at `/controls`. Participant profiles need no password. Controls choose profile,
-eligibility, and baseline/value copy; starting a configured demo retires the
-current run. The report defaults to human activity. Switch to automated journeys
+at `/controls`. A banking login is not required for admin access. In Users, create
+a unique username (case-insensitive ASCII, 3–40 characters), fictional display
+label, password (8–128 characters), profile, eligibility, variant, and actor.
+Use Human for ordinary demo logins; Automation requires the private harness
+header. First login creates banking state; later login resumes the same state.
+You can copy the Clarity lookup ID, inspect observations, replace passwords,
+enable/disable, or explicitly reset/reconfigure a selected user. Password reset
+and disable revoke authentication without clearing banking state. The report defaults to human activity. Switch to automated journeys
 to view deployed smoke checks. Admin sessions expire after one hour.
 
 Clarity needs both collection gates, a valid verified project ID, a matching
 frontend build, visitor opt-in, and an approved Nginx CSP. The current CSP permits
 only same-origin scripts/connections. Updating it for verified Clarity domains
-belongs to M2; flipping flags alone is insufficient. No live collection is enabled.
+belongs to M2; flipping flags alone is insufficient. No live collection is enabled. The owner reported Balanced masking, cookies on,
+bot detection on, and required consent for `yvs5hp3ivb` on 2026-10-11 UTC. Actual
+playback, account switching, consent behavior, and Chris's access remain M2 checks.
+
+## Banner administration
+
+Use Banners in `/controls` to upload, preview, set accessible link text, choose an
+internal destination, set order, enable/disable, or upload a replacement. JPEG,
+PNG, and WebP are supported; maximum upload 5 MiB and dimensions 4096×4096.
+Recommended artwork is 3:1 (1200×400), with important text inside image margins.
+Output is WebP scaled to at most 1600 pixels wide. Existing image URLs remain
+immutable and readable after replacement. Disabling avoids deleting history.
+
+Three starter creatives target Savings Goals, Bill Pay and Cards. Login and full
+Account Summary refresh cycle enabled images; menu returns/data fetches preserve
+the current tab's selection. The user sequence survives logout and banking reset.
+Public artwork is intentionally readable without login for replay rendering; use
+fictional marketing content. Local files default to `artifacts/banner-assets`,
+test files to `artifacts/test-banner-assets`; production storage is independent
+of release paths. A disabled 'Deployment persistence check' creative is retained
+as deployment evidence and does not join normal rotation.
 
 ## Production deployment
 
@@ -127,14 +152,18 @@ installation remain in place.
 | Nginx logs | `/var/log/nginx/softek.access.log`, `/var/log/nginx/softek.error.log` |
 | API logs | `journalctl -u softek-api` |
 | Private backups | `/var/backups/softek/` |
+| Persistent public banner assets | `/var/lib/softek/banner-assets`, `softek:softek`, 0750 |
 
 Before a schema change, review status/target and recovery requirements. Retained
-data needs a scoped backup before destructive changes. Initial empty-schema
+data needs a scoped backup before destructive changes. The login/banner upgrade
+was backed up at `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`.
+Back up the persistent asset directory along with the schema, and keep published
+files referenced by old presentations. Initial empty-schema
 backup: `/var/backups/softek/before-0001-demo.sql`. Example scoped backup uses
 socket administration and prints no credentials:
 
 ```bash
-sudo sh -c 'umask 077; mariadb-dump --databases demo > /var/backups/softek/demo-before-change.sql'
+sudo sh -c 'umask 077; mariadb-dump --single-transaction --databases demo > /var/backups/softek/demo-before-change.sql'
 ```
 
 Choose a new backup filename for each change; do not overwrite a retained backup.
@@ -154,30 +183,38 @@ npm run smoke:public
 
 `deploy` refuses pending or drifted migrations; it never runs SQL implicitly. It
 installs production API dependencies as Ubuntu without lifecycle scripts, copies
-built API/static files into new root-owned releases, writes a runtime-only secret
+built API/static files into new root-owned releases, provisions the persistent
+asset directory and copies only missing starter assets, writes a runtime-only secret
 allowlist over protected stdin, updates links, tests Nginx, and restarts only
 `softek-api` before reloading Nginx. It forces Clarity off. It requires this host's
 existing passwordless sudo access. No repository sources or `.env` are public.
 
 The service starts on boot, restarts on failure, runs without sudo, and uses
 `NoNewPrivileges`, `ProtectHome`, `ProtectSystem=strict`, and a private temporary
-directory. The runtime cannot edit application code. `/api/health` checks the API
+directory. The runtime cannot edit application code; only the banner directory is writable. `/api/health` checks the API
 and DB; `/healthz` is only an Nginx marker. SPA routes support direct refresh;
 unknown API paths return JSON 404 rather than the SPA. HTTP redirects to HTTPS;
 participant/admin cookies are HttpOnly, Secure, and SameSite=Lax in production.
 
-`smoke:public` creates labeled automated runs on `demo`, exercises goals/reporting,
-and resets them. It retains their retired history for the demo report. Routine
-integration/browser tests use `demo_test` and remove only their own fixture runs.
+`smoke:public` creates dedicated admin-created automation users/runs on `demo`,
+exercises login, menu, rotation, goals, persistence, reporting, and reset. It retains their retired history for the demo report. Routine
+integration/browser tests use `demo_test` and remove only their own fixture users, runs, and uploaded assets.
 
 ## Rollback and renewal
 
 Keep the prior API/frontend release paths from `readlink` before a deployment.
-For an application rollback, point both `current` links at the chosen existing
-release directories, restart `softek-api`, then verify public health and refresh.
+For an application rollback, choose an authenticated release compatible with
+schema version 3 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
 Use `ln -s <reviewed-path> <current>.next` and `mv -T <current>.next <current>` for
 atomic link replacement. Never select an unreviewed release by an assumed name.
 A schema downgrade is separate and requires a reviewed recovery plan.
+
+The pre-revision anonymous releases (including `2026-10-11T06-07-44-353Z`) do not
+meet the current login boundary. If no compatible authenticated release is
+available, use the scoped placeholder below as a maintenance fallback. Preserve
+the database and persistent images; do not re-enable public anonymous access.
+Uploaded image persistence was verified through a hardened service restart and
+repeat deployment. An actual schema downgrade or rollback was not exercised.
 
 Each deployment saves the prior dedicated Nginx config under
 `/var/backups/softek/nginx-before-<release>.conf`. If configuration installation

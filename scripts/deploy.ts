@@ -65,6 +65,7 @@ try {
     HOST: '127.0.0.1',
     PORT: '3100',
     PUBLIC_ORIGIN: 'https://demo.bawebtech.com',
+    BANNER_ASSET_DIR: '/var/lib/softek/banner-assets',
     CLARITY_ENABLED: 'false',
     VITE_CLARITY_ENABLED: 'false',
     CLARITY_CONFIG_VERIFIED: 'false',
@@ -86,12 +87,19 @@ import json,os,pwd,shutil,subprocess,sys
 p=json.load(sys.stdin)
 try: pwd.getpwnam('softek')
 except KeyError: subprocess.run(['useradd','--system','--user-group','--home-dir','/nonexistent','--shell','/usr/sbin/nologin','softek'],check=True)
-for path in ['/opt/softek/releases','/opt/softek/runtime/bin','/etc/softek','/var/www/softek/releases','/var/backups/softek']:
+for path in ['/opt/softek/releases','/opt/softek/runtime/bin','/etc/softek','/var/www/softek/releases','/var/backups/softek','/var/lib/softek/banner-assets']:
  os.makedirs(path,exist_ok=True)
 os.chmod('/etc/softek',0o750)
 os.chmod('/var/backups/softek',0o700)
 uid=pwd.getpwnam('softek').pw_uid;gid=pwd.getpwnam('softek').pw_gid
 os.chown('/etc/softek',0,gid)
+os.chown('/var/lib/softek/banner-assets',uid,gid);os.chmod('/var/lib/softek/banner-assets',0o750)
+# Copy immutable seeded creatives only when absent; uploads remain outside releases.
+if os.path.isdir(p['bannerAssets']):
+ for name in os.listdir(p['bannerAssets']):
+  if name.endswith('.webp') and not name.startswith('.'):
+   target='/var/lib/softek/banner-assets/'+name
+   if not os.path.exists(target):shutil.copy2(os.path.join(p['bannerAssets'],name),target);os.chown(target,uid,gid);os.chmod(target,0o644)
 release='/opt/softek/releases/'+p['release']
 shutil.copytree(p['staging'],release,ignore=shutil.ignore_patterns('install.py'))
 # Runtime can read the release, but cannot edit code or credentials.
@@ -139,6 +147,7 @@ subprocess.run(['systemctl','reload','nginx'],check=True)
     unit: join(projectRoot, 'deploy/systemd.softek-api.service'),
     nginx: join(projectRoot, 'deploy/nginx/demo.bawebtech.com.conf'),
     env,
+    bannerAssets: join(projectRoot, 'artifacts/banner-assets'),
   });
   const output = run('sudo', ['-n', 'python3', helperPath], input);
   if (output.trim()) console.log(output.trim());
