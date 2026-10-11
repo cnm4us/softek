@@ -29,7 +29,7 @@ its backlog ID.
 
 | ID | Question | Needed by | Current handling |
 | --- | --- | --- | --- |
-| Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | Owner reported Balanced masking, cookies/bot detection on, consent required; actual playback and Chris access pending; collection disabled |
+| Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | Owner reported Balanced masking, cookies/bot detection on, consent required; owner-only playback/heatmaps pending; admin collection control authorized |
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | Plan 005 / later service expansion | User supplied twelve campaigns, captured in Plan 005; page/CTA engagement is scoped, real service models and independent product verification remain outside this phase |
 
@@ -40,7 +40,7 @@ Features submenu, twelve confirmation-only landing pages and separate activity
 reporting. Actual product activation remains deferred. Q-003 remains the subsequent Clarity evaluation dependency:
 verify consent/masking behavior and required CSP domains in a controlled pilot.
 Owner-reported settings are recorded in PROJECT_STATE.md; actual playback and
-Chris's project access remain unverified. Host/database operation is documented in
+Chris's invitation is deferred by the owner until the demo is ready. Host/database operation is documented in
 `LOCAL_SETUP.md`.
 
 ## Resolved requirements

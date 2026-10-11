@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"npm run dev -w @softek/api\" \"npm run dev -w @softek/web\"",
-    "build": "npm run build --workspaces",
+    "build": "tsx scripts/build.ts",
     "typecheck": "npm run typecheck --workspaces && tsc -p tsconfig.scripts.json",
     "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:e2e": "playwright test",
@@ -22,8 +22,10 @@
     "db:seed": "tsx scripts/seed.ts",
     "deploy": "tsx scripts/deploy.ts",
     "smoke:public": "tsx scripts/smoke-public.ts",
-    "format": "prettier --write \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" playwright.config.ts",
-    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" playwright.config.ts"
+    "format": "prettier --write \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" \"playwright*.config.ts\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"db/seeds/*.ts\" \"playwright*.config.ts\"",
+    "test:clarity": "playwright test -c playwright.clarity.config.ts",
+    "clarity:pilot": "tsx scripts/clarity-pilot.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",

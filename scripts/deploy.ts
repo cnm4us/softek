@@ -3,6 +3,7 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   mkdtempSync,
   rmSync,
   writeFileSync,
@@ -16,6 +17,14 @@ import {
 } from '../apps/api/src/config.js';
 import { migrationStatus } from './lib/migrations.js';
 
+import { collectionMode } from './lib/collection-mode.js';
+
+const collection = collectionMode(process.argv.slice(2));
+const profile = JSON.parse(
+  readFileSync(join(projectRoot, 'apps/web/dist/collection-mode.json'), 'utf8'),
+);
+if (profile.clarity !== collection)
+  throw new Error('Build and deployment collection profiles must match.');
 // Publish only already built files. No database migration is hidden in deployment.
 serverConfig();
 databaseConfig('runtime');
@@ -66,9 +75,12 @@ try {
     PORT: '3100',
     PUBLIC_ORIGIN: 'https://demo.bawebtech.com',
     BANNER_ASSET_DIR: '/var/lib/softek/banner-assets',
-    CLARITY_ENABLED: 'false',
-    VITE_CLARITY_ENABLED: 'false',
-    CLARITY_CONFIG_VERIFIED: 'false',
+    CLARITY_ENABLED: String(collection),
+    VITE_CLARITY_ENABLED: String(collection),
+    CLARITY_CONFIG_VERIFIED: String(collection),
+    ...(collection
+      ? { CLARITY_PROJECT_ID: process.env.CLARITY_PROJECT_ID! }
+      : {}),
   };
   for (const name of [
     'DB_HOST',
@@ -101,7 +113,7 @@ if os.path.isdir(p['bannerAssets']):
    target='/var/lib/softek/banner-assets/'+name
    if not os.path.exists(target):shutil.copy2(os.path.join(p['bannerAssets'],name),target);os.chown(target,uid,gid);os.chmod(target,0o644)
 release='/opt/softek/releases/'+p['release']
-shutil.copytree(p['staging'],release,ignore=shutil.ignore_patterns('install.py'))
+shutil.copytree(p['staging'],release,ignore=shutil.ignore_patterns('install.py','nginx.conf'))
 # Runtime can read the release, but cannot edit code or credentials.
 for root,dirs,files in os.walk(release):
  os.chmod(root,0o755)
@@ -136,6 +148,23 @@ subprocess.run(['systemctl','enable','softek-api.service'],check=True)
 subprocess.run(['systemctl','restart','softek-api.service'],check=True)
 subprocess.run(['systemctl','reload','nginx'],check=True)
 `;
+  const nginxPath = join(staging, 'nginx.conf');
+  let nginx = readFileSync(
+    join(projectRoot, 'deploy/nginx/demo.bawebtech.com.conf'),
+    'utf8',
+  );
+  if (collection)
+    nginx = nginx
+      .replace("script-src 'self'", "script-src 'self' https://*.clarity.ms")
+      .replace(
+        "connect-src 'self'",
+        "connect-src 'self' https://*.clarity.ms https://c.bing.com",
+      )
+      .replace(
+        "img-src 'self' data:",
+        "img-src 'self' data: https://*.clarity.ms https://c.bing.com",
+      );
+  writeFileSync(nginxPath, nginx);
   const helperPath = join(staging, 'install.py');
   writeFileSync(helperPath, helper, { mode: 0o600 });
   // Root's copy excludes the installer; secrets remain stdin-only.
@@ -145,7 +174,7 @@ subprocess.run(['systemctl','reload','nginx'],check=True)
     node: process.execPath,
     web: join(projectRoot, 'apps/web/dist'),
     unit: join(projectRoot, 'deploy/systemd.softek-api.service'),
-    nginx: join(projectRoot, 'deploy/nginx/demo.bawebtech.com.conf'),
+    nginx: nginxPath,
     env,
     bannerAssets: join(projectRoot, 'artifacts/banner-assets'),
   });

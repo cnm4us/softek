@@ -53,8 +53,9 @@ The banking demo is live at `https://demo.bawebtech.com` through Nginx/Certbot.
 M1 and Plan 001 include real demo-user login, persistent user-owned runs,
 protected user/banner administration, ordered image rotation, savings goals,
 reset, and adoption reporting. Plan 004 separates the Admin Menu and Customer
-Menu, with focused `/controls/*` pages and independent sign-outs. Clarity
-collection remains disabled pending M2. Plan 005 adds twelve Explore Features
+Menu, with focused `/controls/*` pages and independent sign-outs. Plan 002 adds
+Admin Menu → Clarity Settings and owner-authorized, consent-required collection;
+actual dashboard playback and heatmaps remain to be reviewed. Plan 005 adds twelve Explore Features
 landing pages, internal banner destinations and separate Feature Activity reporting;
 their CTAs only confirm a demo action.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.

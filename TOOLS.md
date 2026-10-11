@@ -60,6 +60,10 @@ does not establish visual quality.
 Clarity is an optional evaluation tool. Verify current official API, masking,
 consent/collection guidance, and observed recordings before relying on behavior.
 Keep routine development and test traffic separate from presentation data.
+`npm run test:clarity` uses an intercepted SDK stub with no Microsoft traffic.
+`npm run clarity:pilot -- --collect` deliberately sends two labeled pilot journeys
+to the real project and saves ignored lookup evidence; use it only within authorized
+collection scope. Admin Menu → Clarity Settings controls the persistent switch.
 
 ## Official references for implementation
 

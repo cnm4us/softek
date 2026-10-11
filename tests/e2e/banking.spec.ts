@@ -216,7 +216,9 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
   await form.getByLabel('Initial password').fill('temporary-test-password');
   await form.getByLabel('Activity mode').selectOption('automation');
   await form.getByRole('button', { name: 'Create customer' }).click();
-  await expect(page.getByRole('status')).toContainText('Customer created.');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Customer created.' }),
+  ).toBeVisible();
   const [created] = await pool.query(
     'SELECT id FROM demo_users WHERE username=?',
     [username],

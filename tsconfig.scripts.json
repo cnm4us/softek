@@ -6,5 +6,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "tests/**/*.ts", "playwright.config.ts"]
+  "include": ["scripts/**/*.ts", "tests/**/*.ts", "playwright.config.ts", "playwright.clarity.config.ts"]
 }

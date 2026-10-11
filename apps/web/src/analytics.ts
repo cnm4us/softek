@@ -24,20 +24,81 @@ declare global {
     clarity?: Clarity;
   }
 }
+type Policy = State['analytics'];
+let policy: Policy | null = null;
+let captureUser: string | null = null;
+export function consentChoice(state: State): 'granted' | 'denied' | null {
+  try {
+    const value = JSON.parse(
+      sessionStorage.getItem('softek_analytics_consent') ?? 'null',
+    );
+    return value?.userId === state.user.id &&
+      value?.revision === state.analytics.revision &&
+      ['granted', 'denied'].includes(value.choice)
+      ? value.choice
+      : null;
+  } catch {
+    return null;
+  }
+}
+export function stopCollection() {
+  if (window.clarity) {
+    window.clarity('consentv2', {
+      ad_Storage: 'denied',
+      analytics_Storage: 'denied',
+    });
+    window.clarity('stop');
+  }
+  // Remove this site's first-party Clarity cookies even if the script is blocked.
+  const domains = [
+    location.hostname,
+    ...location.hostname
+      .split('.')
+      .slice(1)
+      .map((_, i) =>
+        location.hostname
+          .split('.')
+          .slice(i + 1)
+          .join('.'),
+      ),
+  ];
+  for (const name of ['_clck', '_clsk']) {
+    document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
+    for (const domain of domains)
+      document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain}; SameSite=Lax`;
+  }
+  captureUser = null;
+}
+export function syncCollectionPolicy(next: Policy) {
+  const changed =
+    policy &&
+    (policy.revision !== next.revision || policy.enabled !== next.enabled);
+  policy = next;
+  if (changed || !next.enabled) {
+    const loaded = Boolean(window.clarity);
+    if (loaded) stopCollection();
+    if (changed) sessionStorage.removeItem('softek_analytics_consent');
+    if (loaded) window.location.reload();
+  }
+}
 export function collectionAvailable(state: State) {
   return (
     !isAdminRoute(location.pathname) &&
     state.analytics.enabled &&
+    (policy === null ||
+      (policy.enabled && policy.revision === state.analytics.revision)) &&
     import.meta.env?.VITE_CLARITY_ENABLED === 'true' &&
     Boolean(state.analytics.projectId?.match(/^[a-z0-9]{6,30}$/))
   );
 }
 export function initialize(state: State) {
-  if (
-    !collectionAvailable(state) ||
-    sessionStorage.getItem('softek_analytics_consent') !== 'granted'
-  )
+  if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
+  if (captureUser && captureUser !== state.user.id) {
+    stopCollection();
+    window.location.reload();
     return;
+  }
+  captureUser = state.user.id;
   if (!window.clarity) {
     const queue: (string | Consent)[][] = [];
     window.clarity = Object.assign(
@@ -74,11 +135,7 @@ export function initialize(state: State) {
   );
 }
 export function confirmed(state: State, names: string[]) {
-  if (
-    !collectionAvailable(state) ||
-    sessionStorage.getItem('softek_analytics_consent') !== 'granted'
-  )
-    return;
+  if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
   initialize(state);
   for (const name of names)
     if (eventNames.includes(name as Name)) window.clarity?.('event', name);
@@ -86,14 +143,15 @@ export function confirmed(state: State, names: string[]) {
 export function chooseConsent(state: State, allow: boolean) {
   sessionStorage.setItem(
     'softek_analytics_consent',
-    allow ? 'granted' : 'denied',
+    JSON.stringify({
+      choice: allow ? 'granted' : 'denied',
+      userId: state.user.id,
+      revision: state.analytics.revision,
+    }),
   );
   if (allow) initialize(state);
   else if (window.clarity) {
-    window.clarity('consentv2', {
-      ad_Storage: 'denied',
-      analytics_Storage: 'denied',
-    });
+    stopCollection();
     location.reload();
   }
 }
@@ -126,11 +184,7 @@ export function emitFeatureObservation(
   state: State,
   name: 'feature_viewed' | 'feature_cta_clicked',
 ) {
-  if (
-    !collectionAvailable(state) ||
-    sessionStorage.getItem('softek_analytics_consent') !== 'granted'
-  )
-    return;
+  if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
   initialize(state);
   window.clarity?.('event', name);
 }

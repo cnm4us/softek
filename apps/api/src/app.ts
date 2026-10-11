@@ -11,7 +11,8 @@ import {
   randomUUID,
   timingSafeEqual,
 } from 'node:crypto';
-import { analyticsConfig, databaseConfig } from './config.js';
+import { databaseConfig } from './config.js';
+import { clarityStatus, customerAnalytics } from './clarity.js';
 import { HttpError } from './errors.js';
 import { authenticatedRun, registerRevision } from './revision.js';
 
@@ -391,10 +392,64 @@ export function createApp(test = false) {
         accounts,
         transactions,
         goals,
-        analytics: { ...analyticsConfig(), actor: r.actor },
+        analytics: await customerAnalytics(
+          c,
+          r.actor,
+          equal(
+            req.get('x-demo-capture') ?? '',
+            process.env.AUTOMATION_SECRET ?? randomUUID(),
+          ),
+        ),
       };
     });
     res.json(data);
+  });
+  app.get('/api/analytics', async (req, res) => {
+    res.json(
+      await transaction(async (c) => {
+        const r = await active(c, req);
+        return customerAnalytics(
+          c,
+          r.actor,
+          equal(
+            req.get('x-demo-capture') ?? '',
+            process.env.AUTOMATION_SECRET ?? randomUUID(),
+          ),
+        );
+      }),
+    );
+  });
+  app.get('/api/admin/clarity', async (req, res) => {
+    await admin(req);
+    res.json(await clarityStatus(pool));
+  });
+  app.post('/api/admin/clarity', async (req, res) => {
+    await admin(req, true);
+    const b = z
+      .object({ enabled: z.boolean(), revision: z.string().uuid() })
+      .strict()
+      .parse(req.body);
+    res.json(
+      await transaction(async (c) => {
+        const [row] = await c.query(
+          'SELECT enabled,revision FROM clarity_collection WHERE id=1 FOR UPDATE',
+        );
+        const status = await clarityStatus(c);
+        if (b.enabled && !status.configured)
+          throw new HttpError(
+            400,
+            'Clarity is not configured in this deployment.',
+          );
+        if (Boolean(row.enabled) === b.enabled) return status;
+        if (row.revision !== b.revision)
+          throw new HttpError(409, 'Settings changed. Refresh and try again.');
+        await c.query(
+          'UPDATE clarity_collection SET enabled=?,revision=?,updated_at=UTC_TIMESTAMP(6) WHERE id=1',
+          [b.enabled, randomUUID()],
+        );
+        return clarityStatus(c);
+      }),
+    );
   });
   app.post('/api/events', async (req, res) => {
     checkCsrf(req, token(req));

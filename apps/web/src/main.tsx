@@ -35,6 +35,9 @@ import { api, ApiError, minor, money, type State } from './api';
 import {
   chooseConsent,
   collectionAvailable,
+  consentChoice,
+  stopCollection,
+  syncCollectionPolicy,
   confirmed,
   initialize,
   observe,
@@ -735,14 +738,21 @@ function About() {
 function AnalyticsChoice() {
   const { state, banner } = useDemo();
   const location = useLocation();
-  const [choice, setChoice] = useState(
-    sessionStorage.getItem('softek_analytics_consent'),
-  );
+  const [choice, setChoice] = useState(state ? consentChoice(state) : null);
   useEffect(() => {
     if (state) {
+      syncCollectionPolicy(state.analytics);
+      setChoice(consentChoice(state));
       initialize(state);
     }
-  }, [state?.runId, state?.visitId, location.pathname, banner?.id]);
+  }, [
+    state?.runId,
+    state?.visitId,
+    state?.analytics.enabled,
+    state?.analytics.revision,
+    location.pathname,
+    banner?.id,
+  ]);
   if (!state || !collectionAvailable(state)) return null;
   return (
     <aside className="analytics-choice" aria-label="Experience analytics">
@@ -751,7 +761,7 @@ function AnalyticsChoice() {
           ? 'Experience analytics is enabled for this browser session.'
           : 'Help us understand this demo with Microsoft Clarity? Account details and form contents are masked.'}
       </p>
-      {!choice && (
+      {choice !== 'granted' && (
         <button
           className="button"
           onClick={() => {
@@ -797,6 +807,11 @@ function CustomerApp() {
       setError('');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
+        if (window.clarity) {
+          stopCollection();
+          window.location.assign('/login');
+          return;
+        }
         setState(null);
         setBanner(null);
       } else {
@@ -826,6 +841,48 @@ function CustomerApp() {
       })
       .finally(() => setLoading(false));
   }, []);
+  useEffect(() => {
+    if (!state) return;
+    let running = false,
+      disposed = false;
+    const check = async () => {
+      if (running) return;
+      running = true;
+      try {
+        const analytics = await api<State['analytics']>('/analytics');
+        if (!disposed) {
+          syncCollectionPolicy(analytics);
+          setState((current) =>
+            current ? { ...current, analytics } : current,
+          );
+        }
+      } catch (e) {
+        if (disposed) return;
+        // Fail closed if the collection/auth policy cannot be refreshed.
+        const closed = { ...state.analytics, enabled: false };
+        syncCollectionPolicy(closed);
+        setState((current) =>
+          current ? { ...current, analytics: closed } : current,
+        );
+        if (e instanceof ApiError && e.status === 401)
+          window.location.assign('/login');
+      } finally {
+        running = false;
+      }
+    };
+    const timer = window.setInterval(() => void check(), 5000);
+    const visible = () => {
+      if (document.visibilityState === 'visible') void check();
+    };
+    window.addEventListener('focus', visible);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', visible);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [state?.user.id]);
   const login = async (username: string, password: string) => {
     const result = await api<{ userId: string; banner: Banner | null }>(
       '/auth/login',
@@ -841,11 +898,7 @@ function CustomerApp() {
     if (!state) return;
     try {
       await api('/auth/logout', {}, state.csrf);
-      if (window.clarity)
-        window.clarity('consentv2', {
-          ad_Storage: 'denied',
-          analytics_Storage: 'denied',
-        });
+      stopCollection();
       sessionStorage.removeItem('softek_banner');
       sessionStorage.removeItem('softek_analytics_consent');
       locationAssignLogin();
@@ -1013,10 +1066,7 @@ function AdminDocument() {
   const [captureActive] = useState(() => Boolean(window.clarity));
   useEffect(() => {
     if (captureActive) {
-      window.clarity?.('consentv2', {
-        ad_Storage: 'denied',
-        analytics_Storage: 'denied',
-      });
+      stopCollection();
       sessionStorage.removeItem('softek_analytics_consent');
       window.location.replace(window.location.href);
     }

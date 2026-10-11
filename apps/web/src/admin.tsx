@@ -13,6 +13,7 @@ import {
   LogOut,
   Users,
   ChartNoAxesCombined,
+  Activity,
 } from 'lucide-react';
 import { api, ApiError } from './api';
 import { AdminSession, initialReportFilters, useAdmin } from './admin-session';
@@ -25,6 +26,7 @@ import {
 import { adminSections, adminTitle } from './routes';
 import { AppShell } from './shell';
 import { Card, Alert } from './ui';
+import { ClaritySettings } from './clarity-settings';
 
 function CustomerRoute() {
   const { userId } = useParams(),
@@ -38,8 +40,9 @@ function AdminHome() {
     'Create logins, manage access, and inspect individual activity.',
     'Upload artwork, choose destinations, and arrange banner rotation.',
     'Review enrollment and service use with clear participant counts.',
+    'Control Microsoft Clarity collection for the customer demo.',
   ];
-  const icons = [Users, Image, ChartNoAxesCombined];
+  const icons = [Users, Image, ChartNoAxesCombined, Activity];
   return (
     <>
       <p className="lead">Manage the Harbor demo.</p>
@@ -211,6 +214,7 @@ export function AdminApp() {
             />
             <Route path="/controls/banners" element={<Banners />} />
             <Route path="/controls/report" element={<AdoptionReport />} />
+            <Route path="/controls/clarity" element={<ClaritySettings />} />
             <Route
               path="*"
               element={

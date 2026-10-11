@@ -216,10 +216,33 @@ and explicit visitor opt-in. It queues ConsentV2 with analytics storage granted
 and advertising storage denied before loading. Live behavior and masking still
 need M2 verification against the intended project.
 
-Both production collection flags remain false. Nginx's current CSP also restricts
-scripts and connections to the same origin. M2 must verify the project and adjust
-the CSP allowlist before enabling collection. Routine browser tests make no
-Clarity requests. Reference: [ConsentV2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2)
+Collection is authorized for the owner-only evaluation. Admin Menu → Clarity
+Settings updates the singleton `clarity_collection` table through an admin-only,
+CSRF/origin-protected API. Migration 0005 creates it initially off. Each actual
+change creates a revision UUID; stale conflicting updates return 409 and a retry
+of the already-applied value preserves its revision. Readiness gates still require
+verified project settings, a valid project ID and matching frontend/runtime flags.
+
+Consent in sessionStorage is bound to user UUID and revision. Global off/on, logout
+and shared-browser user switching require fresh opt-in. `/api/analytics` polls every
+five seconds and on focus/visibility without creating visits or rotating banners.
+An unavailable policy fails closed. Open SDK documents stop/reload before private
+admin content renders, on consent withdrawal, and on observed disabling or expiry.
+Background timers may be throttled until the tab resumes. ConsentV2 denial alone
+allows cookieless tracking: the app additionally calls SDK `stop`, removes local
+Clarity cookies, and replaces the document. Advertising storage remains denied.
+
+Build/deploy default off and support deliberate matching `--clarity` profiles.
+The evaluation CSP allows `*.clarity.ms` scripts/connections/images plus
+`c.bing.com` connections/images; default sources stay same-origin. Automated users
+cannot collect unless a bounded authorized pilot also supplies private
+`X-Demo-Capture`; routine smoke supplies only the automation authentication header.
+The dedicated privacy browser suite intercepts every external request and uses an
+SDK stub. Real network uploads prove transport, not dashboard recordings or masks.
+
+References: [ConsentV2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2),
+[SDK stop implementation](https://github.com/microsoft/clarity/blob/master/packages/clarity-js/src/clarity.ts),
+[CSP](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-csp),
 and [masking/client API](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-api).
 
 Production runs as the dedicated nonlogin `softek` system user, using root-owned
@@ -370,11 +393,14 @@ observations while discarding prior-run entry context. Selected-customer activit
 names these engagement observations separately.
 
 The gated Clarity adapter derives bounded route/feature/service/campaign/banner
-context via `feature-context.ts`, clearing old values on navigation. Feature
+context via `feature-context.ts`, sending current values (or `none`) on navigation.
+Clarity custom tags accumulate values across a session: sending `none` does not
+erase earlier feature/banner tags. Session filters mean the value occurred during
+the session; use route, event timeline and database attribution for exact entries. Feature
 SDK events follow API acknowledgement; late acknowledgements from an unmounted
 page do not emit events under another page's context. The Savings Goals adapter
 continues to use its own confirmed-business-event path. Local stub tests verify
-context clearing with collection off. Real SDK playback remains Plan 002 work.
+current-context calls with collection off. Real SDK playback remains Plan 002 work.
 
 The scenario contract accepts a stable feature ID plus existing action click/skip;
 no runner or scheduler is added. The frozen user-provided report is linked from

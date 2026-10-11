@@ -97,6 +97,7 @@ try {
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Enable savings goals' }).click();
+    await page.waitForURL(origin + '/goals');
     await page.getByLabel('Goal name').fill('Deployment check');
     await page.getByLabel('Target amount ($)').fill('100');
     await page

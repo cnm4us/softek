@@ -19,17 +19,17 @@ scenario-builder UI remain [Plan 003](003-automation-journeys.md) scope.
 
 - [x] Record owner-reported settings for project `yvs5hp3ivb` on
   `demo.bawebtech.com`: Balanced masking, cookies on, bot detection on, and cookie
-  consent required (2026-10-11 UTC). Collection remains off in the application.
+  consent required (2026-10-11 UTC). Owner authorized collection and the admin switch in the current phase.
   Real capture/consent/masking behavior still requires M2-04 verification.
-- [ ] Owner invites Chris through Settings → Team as a Member and verifies he
-  can access recordings/heatmaps. This is separate from his banking demo login.
-  No Microsoft password or manual-install snippet is needed.
-- [ ] Preserve explicit visitor opt-in and ConsentV2: analytics storage follows
-  the choice; advertising storage remains denied. Check decline and withdrawal.
-- [ ] Review all new DOM masks before a pilot. Confirm public banner/CSS access.
-- [ ] Identify the actual script/collection domains needed for a narrow CSP
+- Chris invitation/access is deferred by the owner: evaluation is owner-only until
+  the demo is ready. Team access is separate from banking login; no Microsoft
+  password or manual-install snippet is needed.
+- [x] Preserve explicit visitor opt-in and ConsentV2: analytics storage follows
+  the choice; advertising storage remains denied. Decline/withdrawal checked with the stub; actual SDK pilot evidence below.
+- [x] Review all new DOM masks before a pilot. Confirm public banner/CSS access.
+- [x] Identify the actual script/collection domains needed for a narrow CSP
   allowance using official guidance and observed pilot network requests.
-- [ ] Update the deployment script's current unconditional collection-off behavior
+- [x] Update the deployment script's current unconditional collection-off behavior
   to support an explicit verified evaluation mode, still defaulting off.
   Ensure the build-time frontend flag and runtime backend configuration agree.
   A normal deploy or test command must not accidentally start collection.
@@ -37,6 +37,21 @@ scenario-builder UI remain [Plan 003](003-automation-journeys.md) scope.
 References: [ConsentV2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2),
 [masking](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-masking),
 and [team access](https://learn.microsoft.com/en-us/clarity/setup-and-installation/team-management).
+
+### M2-C01–05 — Owner-authorized admin collection control
+
+- [x] C01: add protected Admin Menu → Clarity Settings, readiness/status/project,
+  persistent global on/off, revision conflict handling and retry-safe writes.
+- [x] C02: commit/apply migration 0005 after scoped production backup; verify
+  both ledgers, retained data and repeat no-op.
+- [x] C03: bind consent to user/revision; stop and replace captured documents on
+  withdrawal/admin entry/expiry and observed disabling. Poll without rotation.
+  Preserve opt-in, ad-storage denial and exclusion of routine automated users.
+- [x] C04: explicit matching build/deploy profiles and narrow site-only CSP;
+  normal commands remain collection-off and mismatches fail before host changes.
+- [x] C05: complete API/privacy/banking/public checks, real SDK transport pilot,
+  deployment, documentation and owner-ready collection control. Dashboard
+  recording/heatmap acceptance remains separately unchecked below.
 
 ### Existing completed hosting work
 
@@ -47,7 +62,7 @@ and [team access](https://learn.microsoft.com/en-us/clarity/setup-and-installati
 
 ### M2-04 — Human walkthrough and real recording acceptance
 
-- [ ] After settings verification and within authorized collection scope, enable
+- [x] After settings verification and within authorized collection scope, enable
   the evaluation configuration and allowlisted CSP on this site.
 - [ ] Log in with a pilot user, grant opt-in, view/click a banner, inspect a linked
   page, use its action, open the menu, return to Account Summary, refresh to the
@@ -72,7 +87,7 @@ continue but the real-recording checks remain incomplete.
 
 ### M2-05 — Controlled synthetic pilot
 
-- [ ] Implement/run the small harness against dedicated automation users: banner
+- [x] Implement/run the small harness against dedicated automation users: banner
   click versus skip, action versus skip, explicit waits, and menu returns.
 - [ ] Start with a small number of journeys; verify actual recordings before
   expanding traffic. Keep timestamps/user IDs/scenario labels for lookup.
@@ -85,17 +100,45 @@ continue but the real-recording checks remain incomplete.
 
 Reference: [installation verification and bot detection](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup).
 
+Transport evidence: `npm run clarity:pilot -- --collect` passed two labeled
+click/skip journeys at 360px on 2026-10-11 UTC; ten `/collect` responses acknowledged.
+Decline made no vendor requests; withdrawal removed cookies and stopped traffic;
+admin made no requests. UUID/run/visit/time lookup is in ignored 0600
+`artifacts/clarity-pilot.json`. Bot detection remains On. Recordings/heatmaps and
+actual masking replay remain unchecked; transport is not dashboard acceptance.
+
 ### M2-06 — Repeatable demonstration and findings
 
-- [ ] Write a short presentation runbook covering user creation, copied Clarity
+- [x] Write a short presentation runbook covering user creation, copied Clarity
   ID, banner setup, deterministic rotation, click/skip cases, and explicit reset.
 - [ ] Document how Chris filters recordings and heatmaps and how to distinguish
   users, banking runs, visits, creatives, and human/automated activity.
 - [ ] Record masking/consent/bot settings, observed limitations, and repeatable
   lookup examples without including credentials or sensitive screenshots.
-- [ ] Leave a fresh-agent handoff with checked task IDs, outstanding acceptance,
+- [x] Leave a fresh-agent handoff with checked task IDs, outstanding acceptance,
   exact current configuration, and the next executable task.
 
-**Exit criteria:** Chris can exercise assigned users and inspect distinguishable
-recordings and relevant heatmaps in the real project. Reset/relogin/rotation are
-repeatable. Findings distinguish observed behavior from adoption claims.
+**Exit criteria:** The owner can exercise assigned users and inspect distinguishable
+recordings and relevant heatmaps in the real project before involving Chris.
+Reset/relogin/rotation are repeatable. Findings distinguish observed behavior from adoption claims.
+
+## Owner's first recording walkthrough
+
+1. Open Admin Menu → Clarity Settings and confirm Collection On. Create/select a
+   **Human** customer in Manage Customers and copy its Clarity lookup UUID.
+2. Sign into that customer on the customer site; choose Allow analytics. Pause on
+   Summary, click the banner, open the menu and Explore Features, view a landing
+   page and its CTA, then return to Summary and refresh to advance the creative.
+3. Optionally exercise Savings Goals enrollment/goal/contribution separately.
+   Pause between actions. Repeat a skip case; sign out and try another customer.
+4. Open Microsoft Clarity project `yvs5hp3ivb`, filter recordings by the copied
+   custom user ID and test time. Check masked banking/form text, readable public
+   copy/artwork, routes/menu playback and feature/adoption event distinction.
+5. Compare database Adoption Report and Feature Activity using the same actor,
+   variant and UTC window. Clarity starts after opt-in, can filter bots, and has
+   its own session definition; exact totals need not match. Session custom tags
+   retain earlier values, so use the timeline to attribute a specific page entry.
+6. Review banner/layout heatmaps and screenshot selection; record any delay or
+   mixed-creative limitation. Turning collection Off stops open foreground pages
+   on their next settings check; On requires a new customer opt-in. Chris's access
+   is added later when the owner is ready.

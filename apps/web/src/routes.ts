@@ -6,6 +6,7 @@ export const adminSections = [
   { key: 'customers', label: 'Manage Customers', href: '/controls/customers' },
   { key: 'banners', label: 'Manage Banners', href: '/controls/banners' },
   { key: 'report', label: 'Adoption Report', href: '/controls/report' },
+  { key: 'clarity', label: 'Clarity Settings', href: '/controls/clarity' },
 ];
 
 export function adminTitle(path: string) {

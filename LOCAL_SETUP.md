@@ -118,12 +118,20 @@ admin access. Customer navigation uses the separate **Customer Menu**. The custo
 login footer links to admin sign-in; the admin footer links to the customer site.
 
 
-Clarity needs both collection gates, a valid verified project ID, a matching
-frontend build, visitor opt-in, and an approved Nginx CSP. The current CSP permits
-only same-origin scripts/connections. Updating it for verified Clarity domains
-belongs to M2; flipping flags alone is insufficient. No live collection is enabled. The owner reported Balanced masking, cookies on,
-bot detection on, and required consent for `yvs5hp3ivb` on 2026-10-11 UTC. Actual
-playback, account switching, consent behavior, and Chris's access remain M2 checks.
+Use **Admin Menu → Clarity Settings** (`/controls/clarity`) to turn site-wide
+collection on/off. The setting persists in MariaDB. Only a configured evaluation
+deployment can enable it. Each signed-in customer must then choose **Allow
+analytics**; **Keep analytics off** contacts no Clarity servers. Withdrawal stops
+the SDK, removes this site's Clarity cookies and reloads the document. Admin pages
+are excluded. Consent belongs to the customer and collection revision in this tab;
+logout, switching users, or a global off/on cycle requires fresh opt-in.
+Open foreground customer pages check settings every five seconds and on focus;
+background browser throttling can delay the check until the tab resumes.
+
+The owner confirmed project `yvs5hp3ivb`: Balanced masking, cookies on, bot detection
+on, and required consent. These are owner-reported settings. Actual dashboard
+recordings, heatmaps and masking playback still require owner verification.
+Chris's invitation is deferred until the owner is ready to involve him.
 
 ## Banner administration
 
@@ -199,8 +207,24 @@ installs production API dependencies as Ubuntu without lifecycle scripts, copies
 built API/static files into new root-owned releases, provisions the persistent
 asset directory and copies only missing starter assets, writes a runtime-only secret
 allowlist over protected stdin, updates links, tests Nginx, and restarts only
-`softek-api` before reloading Nginx. It forces Clarity off. It requires this host's
+`softek-api` before reloading Nginx. With no arguments, build/deploy force collection off. It requires this host's
 existing passwordless sudo access. No repository sources or `.env` are public.
+
+For authorized Clarity evaluation, record `CLARITY_CONFIG_VERIFIED=true` and the
+verified `CLARITY_PROJECT_ID` in private `.env`, then run:
+
+```bash
+npm run build -- --clarity
+npm run deploy -- --clarity
+```
+
+Build writes a collection-profile marker; deploy refuses a mismatched profile
+before changing the host. Evaluation deployment installs matching frontend/runtime
+gates and permits `*.clarity.ms` scripts/connections/images and `c.bing.com`
+connections/images only in this site's CSP. Default deployment restores the
+same-origin CSP and disabled runtime gates; the stored requested toggle is retained.
+After evaluation deployment, turn collection on in Admin Menu → Clarity Settings.
+Routine public smoke still cannot collect from its automated users.
 
 The service starts on boot, restarts on failure, runs without sudo, and uses
 `NoNewPrivileges`, `ProtectHome`, `ProtectSystem=strict`, and a private temporary
@@ -216,8 +240,12 @@ integration/browser tests use `demo_test` and remove only their own fixture user
 ## Rollback and renewal
 
 Keep the prior API/frontend release paths from `readlink` before a deployment.
+Prefer `npm run build` followed by `npm run deploy` to return the current code to
+collection-off mode. Before pointing at an older release that lacks the database
+switch, explicitly restore collection-off runtime flags and same-origin CSP;
+otherwise that release could ignore the new toggle. Keep the additive 0005 table.
 For an application rollback, choose an authenticated release compatible with
-schema version 4 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
+schema version 5 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
 Use `ln -s <reviewed-path> <current>.next` and `mv -T <current>.next <current>` for
 atomic link replacement. Never select an unreviewed release by an assumed name.
 A schema downgrade is separate and requires a reviewed recovery plan.
@@ -268,6 +296,6 @@ not enrollment or adoption. Normal navigation/reload can produce new page entrie
 Schema 0004 only appends two interaction ENUM names; old values/order remain.
 Back up schema/data/ledger before applying it, then run migration status and a
 repeat no-op. Never modify applied files or downgrade the ENUM to roll back UI.
-The previous authenticated application must be checked against version 4 before
-choosing it as a rollback target; it will not expose feature routes. See the exact
-verified release and backup in PROJECT_STATE.
+Historical compatibility was checked on schema 4. The current schema is version
+5; follow the rollback section above, including collection-off runtime/CSP before
+using pre-switch code. See the verified releases and backups in PROJECT_STATE.

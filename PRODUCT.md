@@ -98,7 +98,8 @@ Harbor branding remains the working default. The report's secondary CTAs and
 simulated enrollment/application destinations are superseded by confirmation-only
 behavior. All twelve pages and banner destinations are implemented. Feature Activity
 within Adoption Report distinguishes raw views/clicks from distinct users/runs and
-uses the existing actor/variant/UTC filters. Clarity stays off.
+uses the existing actor/variant/UTC filters. Plan 005 itself did not enable collection;
+the owner-authorized Plan 002 phase now provides the collection control.
 
 ## First milestone: one complete adoption experiment
 
@@ -195,7 +196,11 @@ has created the account. Chris does not yet have project access. The existing
 loader needs only this project ID; the manual-install snippet is not required.
 On 2026-10-11 UTC the owner reported Balanced masking, cookies on, bot detection
 on, and cookie consent required. Verify consent/masking in real playback before
-claiming recording acceptance. Collection remains off for the deployed revision. Chris needs a Clarity team-member invitation to review data.
+claiming recording acceptance. The owner authorized collection and an Admin Menu → Clarity Settings control.
+The global switch persists; collection requires customer opt-in. Turning it off
+stops open pages at the next settings check and re-enabling requires fresh consent.
+Admin pages and routine automation are excluded. The owner reviews recordings and
+heatmaps first; Chris's project invitation is deferred until the demo is ready.
 
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.

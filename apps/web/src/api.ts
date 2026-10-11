@@ -33,6 +33,7 @@ export type State = {
   goals: Goal[];
   analytics: {
     enabled: boolean;
+    revision: string;
     projectId: string | null;
     actor: 'human' | 'automation';
   };

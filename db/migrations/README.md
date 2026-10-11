@@ -1,13 +1,15 @@
 # MariaDB schema migration contract
 
 Status: migrations `0001_demo_foundation.sql` through
-`0004_feature_interactions.sql` are committed and applied to `demo` and `demo_test`.
-Both ledgers are version 4, no pending/checksum drift; repeat application is a no-op.
-0004 was committed in **d0ec4c6** before application. It appends two engagement ENUM
-values without changing existing ordinals or banking/adoption tables. Scoped
-production schema/data/ledger backup (0600):
-`/var/backups/softek/demo-before-0004-20261011T212954Z.sql`.
-Applied files are immutable; next schema change uses `0005_<description>.sql`.
+`0005_clarity_collection.sql` are committed and applied to `demo` and `demo_test`.
+Both ledgers are version 5, no pending/checksum drift. 0005 was committed in
+**69fb54e** before application. It creates a singleton collection switch and
+revision, initially off; banking/history tables are unchanged. Scoped production
+schema/data/ledger backup (0600):
+`/var/backups/softek/demo-before-0005-20261011T222313Z.sql`.
+Applied files are immutable; next schema change uses `0006_<description>.sql`.
+Earlier 0004 appends two feature ENUM values; its committed history and backup
+are preserved in PROJECT_STATE.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
 backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`

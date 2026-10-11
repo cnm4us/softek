@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-11 (America/Los_Angeles)**.
-Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (next phase).
+Last updated: **2026-10-11 UTC**.
+Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (owner-only evaluation).
 Latest completed implementation: **Plan 005 including FEAT-09 compact landing headlines, verified and deployed**.
-Current request: **FEAT-09 compact landing headlines is complete and deployed; collection remains off**.
-Next task: **M2-01: prepare deliberate evaluation configuration/CSP and review collection boundaries before an authorized capture pilot**.
+Current request: **Enable Clarity collection and provide the Admin Menu control; implemented and deployed**.
+Next task: **M2-04: owner reviews actual human recordings, masking and heatmaps in the Clarity dashboard**.
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Next phase after 005; owner-reported settings/hosting retained, capture/access unverified; collection off |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Admin collection control and real SDK transport verified/deployed; owner dashboard playback/heatmaps pending; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -50,7 +50,7 @@ Active identifies focus and does not itself authorize additional scope.
   CSRF and optional immutable banner entry; retries deduplicate per page/feature.
   Banner history state belongs to the exact landing entry; menu/direct entries do
   not inherit another tab's or the user's last banner attribution.
-- Admin Menu retains Manage Customers, Manage Banners and Adoption Report at
+- Admin Menu contains Manage Customers, Manage Banners, Adoption Report and Clarity Settings at
   `/controls/*`. Feature Activity within the report shows raw views/clicks, distinct
   customers/runs and banner-attributed counts under actor/variant/UTC filters.
   Savings Goals funnel queries/denominators are unchanged. Selected-customer activity
@@ -60,23 +60,28 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0004** are applied to **demo and demo_test**, version 4 with no
-  pending files/checksum drift; repeat application is a no-op. 0004 was committed in
-  **d0ec4c6** before application and only appends two interaction ENUM names.
-  Next schema change uses **0005**; applied migrations are immutable.
-- Scoped schema/data/ledger backup before 0004 (root-only, 0600):
-  `/var/backups/softek/demo-before-0004-20261011T212954Z.sql`.
-  Earlier pre-0002 backup remains. All ten original production run IDs and retained
-  banking/history counts survived; historical anonymous ownership remains NULL.
-- Current release: **2026-10-11T21-46-00-510Z**. Previous authenticated release:
-  **2026-10-11T21-30-01-050Z**. Both current links point to the new release.
-  Production API is enabled/active as nonlogin `softek` on loopback **3100**.
-  No development/test listener remains. API health is 200 with DB connected.
+- Migrations **0001–0005** applied to **demo and demo_test**, version 5 with no
+  pending/checksum drift; repeat application is a no-op. 0005 creates the persistent
+  singleton collection switch/epoch; committed **69fb54e** before application.
+  Next migration is **0006**. Existing banking/history tables are unchanged.
+- Root-only 0600 pre-0005 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0005-20261011T222313Z.sql`.
+  Earlier pre-0002/pre-0004 backups remain. All ten original runs and retained
+  counts survived; anonymous ownership remains NULL; upload public hash unchanged.
+- Current release: **2026-10-11T22-24-55-744Z**. Previous authenticated release:
+  **2026-10-11T21-46-00-510Z**. Both current links point to the new release.
+  Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
+  connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
+  Matching build/deploy profiles and site-specific Clarity CSP are installed.
+  Private development flags remain off. No development/test listeners remain.
 - Earlier authenticated API **2026-10-11T19-49-23-608Z** was explicitly tested
   against schema 4 containing both
   feature ENUM values: owned state, original interactions, report, users and retained
   activity work. That rollback loses feature routes/reporting but preserves schema
   and history; never downgrade the ENUM. Actual rollback was not performed.
+  This was prior schema-4 evidence, not a schema-5 rollback check. Before rolling
+  back to pre-switch code, restore collection-off runtime flags/CSP; older code
+  cannot honor the new switch. Prefer a current-code default-off deployment.
   Pre-auth anonymous releases remain incompatible public rollback targets.
 - Dedicated Nginx/HTTPS/upload configuration and persistent assets are intact.
   All unrelated Nginx configuration hashes and enabled symlink targets match the
@@ -125,39 +130,66 @@ Service/DB health, original data, immutable upload and unrelated Nginx hashes/li
 remain verified; credential scan passed. The earlier full API/browser baseline
 above was not rerun for this presentation-only change. No failing check remains.
 
-## Clarity configuration and remaining acceptance
+## Clarity control, transport and remaining acceptance
 
-Intended project: **`yvs5hp3ivb`**, owner confirmed. Owner reported on 2026-10-11 UTC:
-**Balanced masking, cookies on, bot detection on, cookie consent required**.
-These are owner-reported settings, not dashboard inspection. Chris's project access
-remains unverified; do not send invitations without an instruction.
+Project **`yvs5hp3ivb`** and settings are owner-confirmed: **Balanced masking,
+cookies On, bot detection On, consent Required**. These are reported settings,
+not dashboard inspection. The owner authorized enabling collection and the admin
+control. **Chris is deferred until the owner says the demo is ready.**
 
-**Collection remains disabled; recordings and heatmaps remain unverified.** Normal
-deployment forces all collection gates off and same-origin CSP. The adapter now
-prepares accurate bounded feature/service/campaign/banner context and clears stale
-tags; its local stub passes. Actual opt-in/withdrawal, masking, account switching,
-creative rendering/filtering and synthetic capture still need Plan 002 playback.
-The optional public `?banner=` heatmap parameter remains deferred pending evaluation.
+Admin Menu → **Clarity Settings** (`/controls/clarity`) persists site-wide on/off
+with protected, conflict/retry-safe writes. Customer opt-in is required; advertising
+storage is denied. Consent belongs to user UUID/revision in the tab. Off/on, logout,
+shared-browser switching and captured admin entry require a fresh opt-in/document.
+Foreground pages poll every five seconds/on focus without visits or banner changes;
+background timers can be throttled. Policy failure closes collection. Withdrawal
+stops SDK, clears first-party Clarity cookies, and reloads.
+
+| Check actually run this phase | Result |
+| --- | --- |
+| `npm test` | **45 TAP entries passed** including four new collection/control scenarios |
+| `npm run test:clarity` | **6/6** SDK-stub journeys at 360/390/1440px; all external traffic intercepted; no real collection |
+| Banking browser suite | **39 journeys covered**: 38 passed initially; all three affected admin-create journeys passed after scoping a selector that collided with a loading status |
+| Typecheck, both build profiles, format | Passed; default-off and explicit evaluation builds verified; existing ~583 kB bundle advisory remains B-011 |
+| Profile mismatch refusal | Default deploy rejects an evaluation build before host mutation, as intended |
+| Migration/repeat | Both ledgers version 5, no pending/drift; repeat no-op; retained data/assets verified |
+| Evaluation deploy | Release **2026-10-11T22-24-55-744Z**; admin switch enabled through protected API |
+| Real SDK pilot | Two labeled mobile click/skip journeys; **10 acknowledged `/collect` uploads**, real cookie creation/withdrawal, no requests after withdrawal or on admin pages, no browser/CSP errors |
+| Public HTTPS smoke | 360/1440px passes with automated users still excluded and no Clarity requests; route-transition wait added after an initial goal-form timing failure |
+| Host/privacy | Nginx syntax, service/DB health, root:softek runtime permissions/allowlist, evaluation gates, unrelated site hashes/links verified |
+
+Real pilot observed `www.clarity.ms`, `scripts.clarity.ms`, `c.clarity.ms`,
+`u.clarity.ms`, `z.clarity.ms` and `c.bing.com`, within the dedicated CSP allowlist.
+Lookup evidence with UUID/run/visit/scenario/time is ignored, 0600
+`artifacts/clarity-pilot.json`; pilot timestamps **22:25:50–22:25:58 UTC**.
+Owned automation users/history remain. Bot detection was not changed and may filter
+these recordings. **Network success does not establish dashboard recordings,
+heatmaps, or masking playback.** Public smoke/test timing fixes changed harnesses
+only; no unresolved application check failure remains.
+
+Clarity session tags accumulate values; sending `none` on navigation describes
+current context but does not erase earlier session tags. Compare the event timeline
+and database attribution for exact entries. Events before opt-in are not backfilled.
+The optional public `?banner=` heatmap parameter remains deferred.
 
 ## Exact resume point
 
-1. Read AGENTS/START_HERE, this state, PRODUCT and Plan 002. Inspect Git/current
-   release before assuming documented environment facts still hold.
-2. Plan 005 is complete. For the next authorized phase, begin M2-01: review official
-   SDK/CSP/consent guidance, final DOM masks and existing deploy defaults; prepare an
-   explicit evaluation mode that leaves normal deployments/tests collection-off.
-   Actual collection enablement/pilot is separate from the completed feature request.
-3. Verify Chris access and actual recordings/heatmaps with the owner; no Microsoft
-   password or manual-install snippet is needed. Use dedicated labeled pilot users.
-4. Implement only the small Plan 002 pilot first. Bot detection is on; browser
-   success is not proof Clarity records automation. Broad scheduling remains Plan 003.
+1. Read AGENTS/START_HERE, state, PRODUCT and Plan 002; inspect Git/live settings.
+2. Owner-only human walkthrough: sign into a Human customer, choose Allow analytics,
+   click/skip banners, explore a feature/CTA, use Savings Goals, navigate/reload,
+   withdraw/sign out, and repeat with another user. Copy UUID from Manage Customers.
+3. In project `yvs5hp3ivb`, find actual recordings by that ID and inspect masks,
+   artwork/CSS, menu routes and separate feature-versus-adoption events. Review
+   creative/layout heatmaps and document processing delay/limitations.
+4. Check M2-04/05 dashboard acceptance based on observed results, not upload counts.
+   Do not invite Chris yet or expand automation to Plan 003. The pilot command
+   intentionally collects only when explicitly invoked with `--collect`.
 
 ## Git and operational handoff
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
-implementation **bd6a774**. Plan 005 code including FEAT-09,
-checks, plan/reference and durable documentation are committed locally on `main`;
-inspect `git log -1` for the implementation hash. **No push** was made. Origin is
+implementation **bd6a774**. Plan 005 including FEAT-09 and the current Clarity implementation/checks/docs are
+committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.

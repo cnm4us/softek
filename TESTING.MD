@@ -65,12 +65,16 @@ zero/one-enabled fallback, and reset/password/disable behavior.
 strict auth/action/time/ownership, concurrent/retried observations, exact immutable
 banner attribution, separate human/automation report counts/cutoffs and retained
 reset history. It verifies unchanged banking/enrollment and Savings Goals events.
-A local Clarity stub checks bounded context and stale-tag clearing without loading
-the SDK. `tests/feature-migration.test.ts` applies the exact committed ENUM SQL to
+A local Clarity stub checks bounded current-context calls without loading the SDK.
+Real Clarity session tag values accumulate; these tests do not prove historical
+session tags are erased. `tests/feature-migration.test.ts` applies the exact committed ENUM SQL to
 an owned probe, checking old rows/ordinals, new values and repeat no-op.
 
-The Node runner reports **40 passing entries**: 34 nested scenarios, four parents,
-and two standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
+`tests/clarity.test.ts` adds four admin/collection scenarios: authorization,
+origin/CSRF and strict settings; explicit profile/runtime readiness; revision
+conflicts and retry-safe persistence; human consent availability versus ordinary
+and specifically authorized automation. The Node runner reports **45 passing
+entries** including parent tests and two standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
 are also removed; browser cleanup removes only its own hashed admin cookie token. It never drops a schema.
@@ -139,13 +143,46 @@ runtime environment permissions, and unchanged preexisting site hashes/links.
 Certbot renewal was verified during initial HTTPS setup; application deployment
 preserves the challenge route and certificate configuration.
 
+## Consent and Clarity control checks
+
+```bash
+npm run test:clarity
+```
+
+Run serially with the API/banking suites. Two privacy journeys at 360/390/1440px
+(six checks) use evaluation gates against `demo_test` and intercept **all external
+requests**, returning an SDK stub. They verify decline/no load, opt-in/ConsentV2,
+pseudonymous identification, feature CTA events, explicit DOM masks, withdrawal
+and cookie clearing, admin document separation, fresh consent for another user,
+persisted admin off/on, stopped open pages and fresh consent after re-enable.
+They restore the exact original singleton settings and remove owned fixtures.
+These checks do not send data to Microsoft or establish real masking playback.
+
+## Authorized real SDK pilot
+
+```bash
+npm run clarity:pilot -- --collect
+```
+
+Requires the already-authorized evaluation deployment and admin collection On.
+This command intentionally contacts the real project. It creates two labeled
+automation customers on `demo`, uses one mobile browser, declines then opts in,
+executes banner/feature-CTA click and skip cases, returns through the menu, checks
+acknowledged `/collect` responses, first-party cookies, withdrawal, shared-browser
+logout/login and no admin collection/CSP errors. Private capture headers are read
+from `.env`. Owned pilot users/history remain for lookup. Only UUIDs, timestamps,
+scenario names and transport counts are saved in ignored 0600
+`artifacts/clarity-pilot.json`; credentials and collection payloads are not saved.
+Bot detection stays On and may exclude these synthetic recordings.
+
 ## Remaining evaluation
 
-Real devices, actual Clarity recordings/heatmaps, opt-in behavior against the
-verified project, and masking fidelity need human evaluation before presentation.
-The current production CSP blocks third-party collection; M2 must deliberately
-update its allowlist after verification. Automated success proves software and
-instrumentation behavior, not customer adoption improvement.
+The owner must inspect actual Clarity recordings/heatmaps, private-content masks,
+rendered artwork/CSS and user/route/event context before presentation. Network
+uploads demonstrate SDK transport, not dashboard processing, bot inclusion or
+recording fidelity. No Microsoft password is needed. Chris is invited later when
+the owner says the demo is ready. Human walkthrough instructions are in Plan 002.
+Automated success does not establish customer adoption improvement.
 
 Historical user-creation fix: all 32 API/migration entries passed; the admin
 creation/upload/login browser journey was rerun at 360/390/1440px to verify email
