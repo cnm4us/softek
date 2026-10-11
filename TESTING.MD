@@ -149,12 +149,14 @@ preserves the challenge route and certificate configuration.
 npm run test:clarity
 ```
 
-Run serially with the API/banking suites. Two privacy journeys at 360/390/1440px
-(six checks) use evaluation gates against `demo_test` and intercept **all external
+Run serially with the API/banking suites. Three privacy journeys at 360/390/1440px
+(nine checks) use evaluation gates against `demo_test` and intercept **all external
 requests**, returning an SDK stub. They verify decline/no load, opt-in/ConsentV2,
 pseudonymous identification, feature CTA events, explicit DOM masks, withdrawal
 and cookie clearing, admin document separation, fresh consent for another user,
 persisted admin off/on, stopped open pages and fresh consent after re-enable.
+Modal coverage includes focus, keyboard navigation, explicit decline, Escape,
+short-viewport fit, scroll unlocking and no repeat prompt after a saved decline.
 They restore the exact original singleton settings and remove owned fixtures.
 These checks do not send data to Microsoft or establish real masking playback.
 

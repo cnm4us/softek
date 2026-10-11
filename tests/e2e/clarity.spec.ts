@@ -124,10 +124,30 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
     other = await fixtureUser(pool);
   ids.push(user.id, other.id);
   await login(page, user);
+  const modal = page.getByRole('dialog', {
+    name: 'Allow experience analytics?',
+  });
+  await expect(modal).toBeVisible();
+  await expect(
+    modal.getByRole('button', { name: 'Keep analytics off', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(
+    modal.getByRole('button', { name: 'Allow analytics', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(
+    modal.getByRole('button', { name: 'Keep analytics off', exact: true }),
+  ).toBeFocused();
+  await page.screenshot({
+    path: `artifacts/clarity-modal-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   expect(scripts).toBe(0);
   await page
     .getByRole('button', { name: 'Keep analytics off', exact: true })
     .click();
+  await expect(modal).toHaveCount(0);
   expect(scripts).toBe(0);
   await page
     .getByRole('button', { name: 'Allow analytics', exact: true })
@@ -202,6 +222,9 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
   await expect(
     page.getByRole('button', { name: 'Allow analytics', exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Keep analytics off', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByLabel('Username', { exact: true })).toBeVisible();
@@ -223,6 +246,42 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
     ),
   ).toBe(true);
 });
+test('consent modal fits a short viewport and Escape declines without collection', async ({
+  page,
+}) => {
+  await page.setViewportSize({
+    width: test.info().project.use.viewport!.width,
+    height: 420,
+  });
+  let scripts = 0;
+  page.on('request', (request) => {
+    if (request.url().startsWith('https://www.clarity.ms/tag/')) scripts++;
+  });
+  const user = await fixtureUser(pool);
+  ids.push(user.id);
+  await login(page, user);
+  const modal = page.getByRole('dialog', {
+    name: 'Allow experience analytics?',
+  });
+  await expect(modal).toBeVisible();
+  const bounds = await modal.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.y).toBeGreaterThanOrEqual(0);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(420);
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe(
+    'hidden',
+  );
+  await page.keyboard.press('Escape');
+  await expect(modal).toHaveCount(0);
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+  expect(scripts).toBe(0);
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'Allow analytics', exact: true }),
+  ).toBeVisible();
+  await expect(modal).toHaveCount(0);
+  expect(scripts).toBe(0);
+});
 test('admin switch stops open pages and a re-enable requires fresh consent', async ({
   page,
 }) => {
@@ -239,18 +298,17 @@ test('admin switch stops open pages and a re-enable requires fresh consent', asy
     .click();
   await expect.poll(() => scripts).toBe(1);
   const before = await customerState(page);
+  const reloaded = page.waitForEvent('load', { timeout: 12000 });
   const settings = await setEnabled(page, csrf, false);
-  await expect
-    .poll(
-      async () =>
-        page.evaluate(() =>
-          Boolean((window as Window & { clarity?: unknown }).clarity),
-        ),
-      {
-        timeout: 12000,
-      },
-    )
-    .toBe(false);
+  await reloaded;
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      Boolean((window as Window & { clarity?: unknown }).clarity),
+    ),
+  ).toBe(false);
   await expect(
     page.getByRole('button', { name: 'Allow analytics', exact: true }),
   ).toHaveCount(0);

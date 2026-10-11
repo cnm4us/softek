@@ -53,6 +53,13 @@ and [team access](https://learn.microsoft.com/en-us/clarity/setup-and-installati
   deployment, documentation and owner-ready collection control. Dashboard
   recording/heatmap acceptance remains separately unchecked below.
 
+### M2-C06 — Initial consent modal
+
+- [x] Replace the initial bottom prompt with a themed, responsive modal overlay;
+  keep explicit allow/decline, focus containment, Escape-as-decline, scroll lock
+  and later consent management. Verify privacy journeys at mobile/desktop widths,
+  short viewports, deploy and update the handoff. No schema change.
+
 ### Existing completed hosting work
 
 - [x] M2-02 Inspect the existing Nginx configuration and establish the

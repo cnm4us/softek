@@ -223,7 +223,11 @@ change creates a revision UUID; stale conflicting updates return 409 and a retry
 of the already-applied value preserves its revision. Readiness gates still require
 verified project settings, a valid project ID and matching frontend/runtime flags.
 
-Consent in sessionStorage is bound to user UUID and revision. Global off/on, logout
+Consent in sessionStorage is bound to user UUID and revision. The unanswered
+choice uses a native modal dialog: the browser makes the background inert and
+contains keyboard focus; the app locks page scroll and treats Escape as decline.
+Both explicit choices dismiss it. Known choices retain page-bottom management
+controls and do not reopen the modal on navigation/reload. Global off/on, logout
 and shared-browser user switching require fresh opt-in. `/api/analytics` polls every
 five seconds and on focus/visibility without creating visits or rotating banners.
 An unavailable policy fails closed. Open SDK documents stop/reload before private

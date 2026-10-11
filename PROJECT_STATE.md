@@ -2,8 +2,8 @@
 
 Last updated: **2026-10-11 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (owner-only evaluation).
-Latest completed implementation: **Plan 005 including FEAT-09 compact landing headlines, verified and deployed**.
-Current request: **Enable Clarity collection and provide the Admin Menu control; implemented and deployed**.
+Latest completed implementation: **Plan 002 collection controls and M2-C06 initial consent modal**.
+Current request: **Show initial customer analytics consent in a modal overlay; implemented and deployed**.
 Next task: **M2-04: owner reviews actual human recordings, masking and heatmaps in the Clarity dashboard**.
 
 ## Plan status registry
@@ -68,8 +68,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0005-20261011T222313Z.sql`.
   Earlier pre-0002/pre-0004 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-11T22-24-55-744Z**. Previous authenticated release:
-  **2026-10-11T21-46-00-510Z**. Both current links point to the new release.
+- Current release: **2026-10-11T22-42-00-516Z**. Previous authenticated release:
+  **2026-10-11T22-24-55-744Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -171,6 +171,27 @@ Clarity session tags accumulate values; sending `none` on navigation describes
 current context but does not erase earlier session tags. Compare the event timeline
 and database attribution for exact entries. Events before opt-in are not backfilled.
 The optional public `?banner=` heatmap parameter remains deferred.
+
+## M2-C06 consent modal follow-up
+
+The initial unanswered customer consent now uses a centered native modal over a
+dimmed account page. Shared Harbor tokens, two full-width choices, a scrollable
+card for short viewports, background inertness and page-scroll locking apply.
+Keep analytics off receives initial focus; Escape declines. A saved choice dismisses
+the modal and survives navigation/reload; page-bottom controls still allow changing
+it. Existing user/revision gates and withdrawal behavior remain unchanged.
+
+Relevant verification: all nine privacy journeys covered at 360/390/1440px
+(eight initially passed; all three global-off cases passed after the harness fix),
+including six modal/short-viewport journeys. An initial harness timeout was fixed
+by choosing consent before trying to use the now-inert menu; the global-off harness
+was adjusted to await the expected reload rather than evaluate during navigation.
+Typecheck/evaluation build/format passed; source and live mobile/desktop visuals
+reviewed. Release **2026-10-11T22-42-00-516Z** deployed. Focused HTTPS checks verify
+modal/focus/decline/navigation/saved choice without vendor traffic at 360/1440px.
+Service/DB health and credential scan (94 files) passed. No unresolved check
+failure remains. No migration/API changes. The previous API/banking baseline and real SDK transport
+pilot above were not rerun for this UI change. Dashboard acceptance is still pending.
 
 ## Exact resume point
 

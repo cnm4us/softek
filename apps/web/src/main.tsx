@@ -739,6 +739,10 @@ function AnalyticsChoice() {
   const { state, banner } = useDemo();
   const location = useLocation();
   const [choice, setChoice] = useState(state ? consentChoice(state) : null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const available = Boolean(state && collectionAvailable(state));
+  const pending =
+    available && choice === null && state && consentChoice(state) === null;
   useEffect(() => {
     if (state) {
       syncCollectionPolicy(state.analytics);
@@ -753,7 +757,57 @@ function AnalyticsChoice() {
     location.pathname,
     banner?.id,
   ]);
-  if (!state || !collectionAvailable(state)) return null;
+  useEffect(() => {
+    if (!pending || !dialog.current) return;
+    const modal = dialog.current;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    modal.showModal();
+    modal.querySelector<HTMLButtonElement>('[data-consent-decline]')?.focus();
+    return () => {
+      modal.close();
+      document.body.style.overflow = overflow;
+    };
+  }, [pending]);
+  if (!state || !available) return null;
+  function choose(allow: boolean) {
+    dialog.current?.close();
+    chooseConsent(state!, allow);
+    setChoice(allow ? 'granted' : 'denied');
+  }
+  if (pending)
+    return (
+      <dialog
+        ref={dialog}
+        className="analytics-modal"
+        aria-labelledby="analytics-title"
+        aria-describedby="analytics-description"
+        onCancel={(event) => {
+          event.preventDefault();
+          choose(false);
+        }}
+      >
+        <p className="section-eyebrow">YOUR DEMO EXPERIENCE</p>
+        <h2 id="analytics-title">Allow experience analytics?</h2>
+        <p id="analytics-description">
+          Help us understand this demo with Microsoft Clarity. With your
+          permission, it records how you use the site. Account details and form
+          contents are masked. You can turn analytics off at any time.
+        </p>
+        <div className="analytics-modal-actions">
+          <button className="button" onClick={() => choose(true)}>
+            Allow analytics
+          </button>
+          <button
+            className="button secondary"
+            data-consent-decline
+            onClick={() => choose(false)}
+          >
+            Keep analytics off
+          </button>
+        </div>
+      </dialog>
+    );
   return (
     <aside className="analytics-choice" aria-label="Experience analytics">
       <p>
@@ -762,23 +816,11 @@ function AnalyticsChoice() {
           : 'Help us understand this demo with Microsoft Clarity? Account details and form contents are masked.'}
       </p>
       {choice !== 'granted' && (
-        <button
-          className="button"
-          onClick={() => {
-            chooseConsent(state, true);
-            setChoice('granted');
-          }}
-        >
+        <button className="button" onClick={() => choose(true)}>
           Allow analytics
         </button>
       )}
-      <button
-        className="text-button"
-        onClick={() => {
-          chooseConsent(state, false);
-          setChoice('denied');
-        }}
-      >
+      <button className="text-button" onClick={() => choose(false)}>
         {choice === 'granted' ? 'Turn off analytics' : 'Keep analytics off'}
       </button>
     </aside>

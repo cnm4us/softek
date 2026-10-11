@@ -197,7 +197,9 @@ loader needs only this project ID; the manual-install snippet is not required.
 On 2026-10-11 UTC the owner reported Balanced masking, cookies on, bot detection
 on, and cookie consent required. Verify consent/masking in real playback before
 claiming recording acceptance. The owner authorized collection and an Admin Menu → Clarity Settings control.
-The global switch persists; collection requires customer opt-in. Turning it off
+The global switch persists; collection requires customer opt-in. The initial opt-in
+appears in a centered modal overlay with Allow analytics and Keep analytics off.
+Escape declines. After choosing, page-bottom controls allow changing the choice. Turning it off
 stops open pages at the next settings check and re-enabling requires fresh consent.
 Admin pages and routine automation are excluded. The owner reviews recordings and
 heatmaps first; Chris's project invitation is deferred until the demo is ready.

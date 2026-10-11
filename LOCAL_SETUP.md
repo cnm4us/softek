@@ -121,7 +121,9 @@ login footer links to admin sign-in; the admin footer links to the customer site
 Use **Admin Menu → Clarity Settings** (`/controls/clarity`) to turn site-wide
 collection on/off. The setting persists in MariaDB. Only a configured evaluation
 deployment can enable it. Each signed-in customer must then choose **Allow
-analytics**; **Keep analytics off** contacts no Clarity servers. Withdrawal stops
+analytics** in the initial modal overlay; **Keep analytics off** or Escape declines
+without contacting Clarity. Later controls at the bottom of the page allow changing
+the choice. Withdrawal stops
 the SDK, removes this site's Clarity cookies and reloads the document. Admin pages
 are excluded. Consent belongs to the customer and collection revision in this tab;
 logout, switching users, or a global off/on cycle requires fresh opt-in.
