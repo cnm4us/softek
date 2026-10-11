@@ -57,6 +57,8 @@ Menu, with focused `/controls/*` pages and independent sign-outs. Plan 002 adds
 Admin Menu → Clarity Settings and owner-authorized, consent-required collection;
 actual dashboard playback and heatmaps remain to be reviewed. Plan 005 adds twelve Explore Features
 landing pages, internal banner destinations and separate Feature Activity reporting;
-their CTAs only confirm a demo action.
+their CTAs only confirm a demo action. Plan 006 adds Generate Customers under
+Manage Customers: 1–200 unique fictional identities per batch, saved individual
+checking/savings balances, and a password-free CSV for later automation.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

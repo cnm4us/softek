@@ -1,6 +1,6 @@
 # Testing
 
-M1, the login/banner revision, and Plans 004/005 menus/features are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -73,7 +73,7 @@ an owned probe, checking old rows/ordinals, new values and repeat no-op.
 `tests/clarity.test.ts` adds four admin/collection scenarios: authorization,
 origin/CSRF and strict settings; explicit profile/runtime readiness; revision
 conflicts and retry-safe persistence; human consent availability versus ordinary
-and specifically authorized automation. The Node runner reports **45 passing
+and specifically authorized automation. The Node runner reports **51 passing
 entries** including parent tests and two standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
@@ -81,9 +81,17 @@ are also removed; browser cleanup removes only its own hashed admin cookie token
 Do not run the API suite and browser suite concurrently: their report assertions
 expect their own isolated execution window.
 
+`tests/customer-generation.test.ts` adds five scenarios: admin/origin/CSRF and
+count/amount bounds; simultaneous 200-user creation with distinct identities,
+varied cent amounts, unique salted password hashes and no premature runs;
+concurrent replay/configuration conflicts and cross-batch uniqueness;
+contribution/relogin/customer-reset/admin-reset persistence; and late collision
+rolling back earlier inserted users. Cleanup removes only owned `test.*` users
+and their batches after cascading opening rows. A full 200-user run takes ~14s.
+
 ## Browser acceptance
 
-Thirteen journeys run at **360×800, 390×844, and 1440×900**: **39 Chromium checks**.
+Fourteen journeys run at **360×800, 390×844, and 1440×900**: **42 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -104,6 +112,7 @@ Thirteen journeys run at **360×800, 390×844, and 1440×900**: **39 Chromium ch
 | Twelve feature pages | Source copy, one CTA, confirmation, no forms/banner/overflow, rapid clicks and lost-response retry with identical request UUID; banking/adoption unchanged |
 | Feature banner and reporting | Owned uploaded feature banner, exact landing attribution across independent tabs/reload/menu, separate raw/distinct activity totals and admin destination options |
 | Feature routes and submenu | Authenticated direct entry, unavailable Savings Goals profile, unknown ID/back/forward, active child, short viewport, Enter/Space/Tab/Escape |
+| Bulk customer generation | Protected direct child route, form/count/ranges, lost-response retry with the same request UUID, three-row CSV without passwords, customer links, per-customer login amounts and no overflow/browser errors |
 | Responsive / privacy | No page overflow; no Clarity requests during complete journey; explicit masking attributes |
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and
@@ -131,6 +140,15 @@ checks unchanged accounts/goals/run and separate Feature Activity, then opens th
 separate admin customer/banner pages,
 checks admin sign-out/reload while preserving the customer login, and resets. It asserts no browser errors or Clarity
 requests. Its labeled automated history is intentionally retained in `demo`.
+After enrollment it waits for the final Goals-route acknowledgement before
+filling the form, since the enrollment route briefly renders a temporary form.
+
+Plan 006's owned live check (`artifacts/check-live-generation.ts`, ignored) verified
+the protected generation UI, same-request retry, CSV omission of passwords,
+balance bounds, customer details and login/relogin/reset at 360/1440px. It uses
+only the private automation label, without the collection override, and asserts
+no Clarity traffic. Its six test customers and password-free 0600 evidence manifest
+are retained; test-schema fixtures are cleaned by the committed suites.
 
 A production multipart upload was decoded/published by the hardened service,
 disabled as a retained check fixture, and its immutable image hash verified after

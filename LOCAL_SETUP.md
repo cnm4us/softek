@@ -135,6 +135,30 @@ on, and required consent. These are owner-reported settings. Actual dashboard
 recordings, heatmaps and masking playback still require owner verification.
 Chris's invitation is deferred until the owner is ready to involve him.
 
+## Bulk customer generation
+
+Open **Admin Menu → Manage Customers → Generate customers**
+(`/controls/customers/generate`). Choose 1–200, a prefix and shared demo password,
+then adjust checking/savings ranges and existing account/activity settings.
+Default count is 10, Human activity, eligible/value Alex template, checking
+$100–$10,000 and savings $0–$50,000. Amounts permit two decimal places and $0–$1M.
+The generated balance is saved per customer and restored on explicit reset;
+normal relogin resumes the current balance. Existing manual users stay unchanged.
+
+Download the customer list after success. CSV includes stable UUID, username,
+display name, opening amounts and activity mode; passwords are omitted. Customers
+use the shared password entered for that batch, and existing individual password
+resets still work. A lost response can be retried with the same form/request;
+Start new batch makes a new request. Large batches may take about 14 seconds.
+Generation alone does not sign in users or grant Clarity consent. Select Human
+for manual logins; Automation requires the existing private harness header.
+This phase does not automatically generate the eventual 100–200 production cohort.
+
+Migration 0006 creates only batch/opening-amount tables. Applied SQL stays immutable.
+Before application inspect both ledgers and back up production schema/data/ledger.
+Old APIs ignore generated opening amounts during resets; choose a compatible
+rollback release and follow the collection-off boundaries above.
+
 ## Banner administration
 
 Use **Admin Menu → Manage Banners** (`/controls/banners`) to upload, preview,
@@ -247,7 +271,9 @@ collection-off mode. Before pointing at an older release that lacks the database
 switch, explicitly restore collection-off runtime flags and same-origin CSP;
 otherwise that release could ignore the new toggle. Keep the additive 0005 table.
 For an application rollback, choose an authenticated release compatible with
-schema version 5 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
+schema version 6 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
+Pre-generation code can read existing customers but does not restore saved individual
+balances on reset. Choose code supporting 0006 when generated customers exist.
 Use `ln -s <reviewed-path> <current>.next` and `mv -T <current>.next <current>` for
 atomic link replacement. Never select an unreviewed release by an assumed name.
 A schema downgrade is separate and requires a reviewed recovery plan.
@@ -299,5 +325,5 @@ Schema 0004 only appends two interaction ENUM names; old values/order remain.
 Back up schema/data/ledger before applying it, then run migration status and a
 repeat no-op. Never modify applied files or downgrade the ENUM to roll back UI.
 Historical compatibility was checked on schema 4. The current schema is version
-5; follow the rollback section above, including collection-off runtime/CSP before
+6; follow the rollback section above, including collection-off runtime/CSP before
 using pre-switch code. See the verified releases and backups in PROJECT_STATE.

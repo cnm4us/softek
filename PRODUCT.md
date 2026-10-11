@@ -101,6 +101,24 @@ within Adoption Report distinguishes raw views/clicks from distinct users/runs a
 uses the existing actor/variant/UTC filters. Plan 005 itself did not enable collection;
 the owner-authorized Plan 002 phase now provides the collection control.
 
+## Bulk customer generation — Plan 006
+
+Manage Customers → Generate customers creates 1–200 fictional customers in a
+chosen batch. The owner can set a username prefix, shared demo password, checking
+and savings amount ranges, template, eligibility, variant and activity mode.
+Generated usernames and display names carry a unique batch/position marker.
+Each customer's sampled starting amounts are saved separately from the templates;
+login resumes current amounts and reset restores those saved starting amounts.
+Credit balance and recent activity retain the selected fictional template.
+
+A successful batch offers a downloadable CSV of IDs, usernames, display names,
+starting checking/savings amounts and activity mode. Passwords are not exported.
+Creation does not sign in customers, grant analytics consent or create banking
+runs before first login. Human is the default for manual testing; Automation is
+for a trusted future runner. A repeated submission returns the same batch;
+conflicting settings require a new request. The large production cohort and
+scheduled browsing remain later owner-selected work. See [Plan 006](plans/006-bulk-customer-generation.md).
+
 ## First milestone: one complete adoption experiment
 
 Implemented working choice: one fictional institution, two customer profiles

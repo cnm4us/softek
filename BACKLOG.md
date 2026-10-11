@@ -19,7 +19,7 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 577 kB (170 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 594 kB (173 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 
@@ -39,7 +39,7 @@ covers the completed Admin/Customer menu organization and focused protected page
 Features submenu, twelve confirmation-only landing pages and separate activity
 reporting. Actual product activation remains deferred. Q-003 remains the subsequent Clarity evaluation dependency:
 verify consent/masking behavior and required CSP domains in a controlled pilot.
-Owner-reported settings are recorded in PROJECT_STATE.md; actual playback and
+Owner-reported settings are recorded in PROJECT_STATE.md; owner reports mouse-behavior playback; full mask/heatmap validation remains.
 Chris's invitation is deferred by the owner until the demo is ready. Host/database operation is documented in
 `LOCAL_SETUP.md`.
 
@@ -54,3 +54,7 @@ Chris's invitation is deferred by the owner until the demo is ready. Host/databa
   `/etc/nginx/sites-available/012_demo.bawebtech.com` is enabled with HTTPS.
 - Q-006: user authorized public test hosting on that hostname. The banking demo is
   live; production API runs on loopback behind the dedicated HTTPS proxy.
+
+Bulk creation is now owned by [Plan 006](plans/006-bulk-customer-generation.md),
+ahead of the remaining Clarity review. Creating the full 100–200 production cohort
+and assigning browser journeys remain owner-selected work, separate from the tool.

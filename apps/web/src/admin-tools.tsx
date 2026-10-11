@@ -121,6 +121,9 @@ export function Customers() {
           <Plus size={17} />
           Create customer
         </Link>
+        <Link className="button secondary" to="/controls/customers/generate">
+          Generate customers
+        </Link>
       </div>
       <Alert message={error} />
       {error && (

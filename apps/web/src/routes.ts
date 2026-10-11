@@ -10,6 +10,7 @@ export const adminSections = [
 ];
 
 export function adminTitle(path: string) {
+  if (path === '/controls/customers/generate') return 'Generate Customers';
   if (path === '/controls/customers/new') return 'Create Customer';
   if (path.startsWith('/controls/customers/')) return 'Customer Details';
   return (

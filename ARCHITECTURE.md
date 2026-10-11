@@ -409,3 +409,33 @@ current-context calls with collection off. Real SDK playback remains Plan 002 wo
 The scenario contract accepts a stable feature ID plus existing action click/skip;
 no runner or scheduler is added. The frozen user-provided report is linked from
 Plan 005; it remains demo marketing copy, not independently verified product data.
+
+## Bulk customer generation — Plan 006
+
+Migration 0006 adds `customer_generation_batches` and `customer_starting_balances`
+without changing existing user/template rows. Batch metadata owns a unique request
+UUID, globally allocated numeric ID and keyed HMAC of normalized configuration,
+including the password; plaintext passwords are never persisted. The protected
+`POST /api/admin/users/generate` creates all users/amounts in one transaction.
+An exclusive upsert lock serializes duplicate request UUIDs without shared-lock
+upgrade deadlocks. Exact retries read the same manifest; changed configuration
+returns 409. A name collision rolls back the whole batch, with no partial users.
+
+Usernames are `<prefix>.<batch>.<position>`; fictional display names include the
+same batch/position marker. Prefix/ranges/count are strictly validated. Balances
+use bounded random integer cents. Each password gets its own scrypt salt/hash;
+two hashes run concurrently to bound per-request memory. In test, 200 customers
+complete in about 14 seconds. Concurrent batch creation uses independent rows;
+this admin tool is not a background scheduler.
+
+Opening amounts are keyed by user UUID and applied when `bindRun` creates a new
+run, covering first login, customer reset and admin reset. Existing runs never
+get overwritten by login or seed; manual users without opening rows retain their
+templates. Generated credit/history remain template examples, not a reconciled
+ledger. The batch form keeps its request UUID and inputs on an uncertain response;
+Start new batch explicitly changes the UUID. CSV uses a local browser Blob and
+omits passwords. All routes remain in the masked, analytics-excluded admin subtree.
+
+This schema is additive, but pre-006 APIs cannot restore generated starting amounts
+on reset. Keep a compatible release for rollback, or return current code to the
+collection-off deployment profile; do not downgrade applied migrations.

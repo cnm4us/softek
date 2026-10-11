@@ -3,7 +3,7 @@ import mariadb from 'mariadb';
 import { databaseConfig } from '../../apps/api/src/config.js';
 import { fixtureUser, cleanUsers } from '../fixtures.js';
 import sharp from 'sharp';
-import { unlink } from 'node:fs/promises';
+import { unlink, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { features } from '../../apps/api/src/features.js';
@@ -12,6 +12,7 @@ const headers = { 'X-Demo-Automation': process.env.AUTOMATION_SECRET! };
 test.use({ extraHTTPHeaders: headers });
 const ids: string[] = [];
 const userIds: string[] = [];
+const generatedBatches: number[] = [];
 const uploads: { id: string; asset_key: string }[] = [];
 const pool = mariadb.createPool({
   ...databaseConfig('runtime', true),
@@ -82,6 +83,11 @@ async function noOverflow(page: Page) {
 }
 test.afterAll(async () => {
   await cleanUsers(pool, userIds);
+  if (generatedBatches.length)
+    await pool.query(
+      'DELETE FROM customer_generation_batches WHERE id IN (?)',
+      [generatedBatches],
+    );
   for (const row of uploads) {
     await pool.query('DELETE FROM demo_banners WHERE id=?', [row.id]);
     await pool.query('DELETE FROM banner_assets WHERE asset_key=?', [
@@ -1080,4 +1086,95 @@ test('feature deep-link login, unavailable savings profile, unknown page and sub
     [(await state(page)).runId],
   );
   expect(invalid).toHaveLength(0);
+});
+
+test('bulk customer creation retries once, exports identities and uses individual starting balances', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/controls/customers/generate');
+  await page.getByLabel('Admin password').fill(process.env.DEMO_ADMIN_SECRET!);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Generate Customers', exact: true }),
+  ).toBeVisible();
+  const password = 'shared-generation-password';
+  await page.getByLabel('Number of customers').fill('3');
+  const prefix = page.getByLabel('Username prefix');
+  await prefix.fill('test.ui-bulk');
+  expect(
+    await prefix.evaluate((input: HTMLInputElement) => input.checkValidity()),
+  ).toBe(true);
+  await page.getByLabel('Shared demo password').fill(password);
+  await page.getByLabel('Activity mode').selectOption('automation');
+  await page.getByLabel('Checking minimum ($)', { exact: true }).fill('200.25');
+  await page.getByLabel('Checking maximum ($)', { exact: true }).fill('400.75');
+  await page.getByLabel('Savings minimum ($)', { exact: true }).fill('10.50');
+  await page.getByLabel('Savings maximum ($)', { exact: true }).fill('500.90');
+  await noOverflow(page);
+  await page.screenshot({
+    path: `artifacts/generation-form-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  let created: any;
+  const requests: string[] = [];
+  await page.route('**/api/admin/users/generate', async (route) => {
+    requests.push(route.request().postDataJSON().requestId);
+    if (requests.length === 1) {
+      const response = await route.fetch();
+      expect(response.status()).toBe(201);
+      created = await response.json();
+      generatedBatches.push(created.batchId);
+      userIds.push(...created.customers.map((c: any) => c.id));
+      await route.abort('failed');
+    } else await route.continue();
+  });
+  await page
+    .getByRole('button', { name: 'Generate customers', exact: true })
+    .click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByLabel('Shared demo password')).toHaveValue(password);
+  await page
+    .getByRole('button', { name: 'Generate customers', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Created 3 customers');
+  expect(requests).toHaveLength(2);
+  expect(requests[0]).toBe(requests[1]);
+  await expect(page.locator('.generated-customers li')).toHaveCount(3);
+  await noOverflow(page);
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download customer list' }).click();
+  const download = await downloadEvent;
+  const csv = await readFile((await download.path())!, 'utf8');
+  expect(csv.trim().split('\r\n')).toHaveLength(4);
+  expect(csv).not.toContain(password);
+  expect(csv).toContain(created.customers[0].username);
+  expect(csv).toContain('checking_balance_usd');
+  await page.screenshot({
+    path: `artifacts/generation-result-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.locator('.generated-customers a').first().click();
+  await expect(
+    page.getByRole('heading', { name: 'Customer Details', exact: true }),
+  ).toBeVisible();
+  const customer = created.customers[0];
+  await page.goto('/');
+  await page.getByLabel('Username', { exact: true }).fill(customer.username);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  const current = await state(page);
+  expect(current.user.displayName).toBe(customer.displayName);
+  expect(
+    current.accounts.find((a: any) => a.kind === 'checking').balanceMinor,
+  ).toBe(customer.checkingMinor);
+  expect(
+    current.accounts.find((a: any) => a.kind === 'savings').balanceMinor,
+  ).toBe(customer.savingsMinor);
+  await noOverflow(page);
+  expect(errors).toEqual([]);
 });

@@ -880,6 +880,35 @@ tbody th {
   padding: 20px var(--space-page);
   border-top: 1px solid var(--color-border);
 }
+.generation-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.generation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.generated-customers {
+  list-style: none;
+  padding: 0;
+  margin-top: 24px;
+}
+.generated-customers li {
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+}
+.generated-customers strong,
+.generated-customers span {
+  display: block;
+}
+.generated-customers p {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+}
 .analytics-choice p {
   font-size: 13px;
 }

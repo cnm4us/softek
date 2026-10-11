@@ -98,6 +98,11 @@ try {
     await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Enable savings goals' }).click();
     await page.waitForURL(origin + '/goals');
+    // Enrollment briefly renders Goals before the final route mounts it again.
+    // Wait for the destination's acknowledgement so input cannot hit that form.
+    await page
+      .getByText('Savings goals is ready. Create your first goal below.')
+      .waitFor();
     await page.getByLabel('Goal name').fill('Deployment check');
     await page.getByLabel('Target amount ($)').fill('100');
     await page

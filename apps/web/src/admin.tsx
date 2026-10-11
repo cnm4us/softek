@@ -27,6 +27,7 @@ import { adminSections, adminTitle } from './routes';
 import { AppShell } from './shell';
 import { Card, Alert } from './ui';
 import { ClaritySettings } from './clarity-settings';
+import { GenerateCustomers } from './generate-customers';
 
 function CustomerRoute() {
   const { userId } = useParams(),
@@ -204,6 +205,10 @@ export function AdminApp() {
           <Routes>
             <Route path="/controls" element={<AdminHome />} />
             <Route path="/controls/customers" element={<Customers />} />
+            <Route
+              path="/controls/customers/generate"
+              element={<GenerateCustomers />}
+            />
             <Route
               path="/controls/customers/new"
               element={<CreateCustomer />}

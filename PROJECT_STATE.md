@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-11 UTC**.
-Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md)** (owner-only evaluation).
-Latest completed implementation: **Plan 002 collection controls and M2-C06 initial consent modal**.
-Current request: **Show initial customer analytics consent in a modal overlay; implemented and deployed**.
-Next task: **M2-04: owner reviews actual human recordings, masking and heatmaps in the Clarity dashboard**.
+Current focus: **[006 — Bulk customer generation](plans/006-bulk-customer-generation.md)**.
+Latest completed implementation: **Plan 006 — bulk generation with persistent individual balances**.
+Current request: **Automated customer creation implemented and verified; no further implementation authorized this turn**.
+Next task: **Owner can generate the desired customer batch in Manage Customers; wait for the next prioritized feature. Remaining Clarity dashboard acceptance and broader automation stay deferred**.
 
 ## Plan status registry
 
@@ -16,16 +16,23 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Admin collection control and real SDK transport verified/deployed; owner dashboard playback/heatmaps pending; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Deferred | Owner reports mouse-behavior playback works; masks/heatmaps remain unverified; owner prioritizes customer generation; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
+| 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | Completed | GEN-01–05 verified/deployed; 200-user test and small live batches; migration 0006 applied |
 
 ## Current reality
 
 - Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
   Admin signs in independently at `/controls` using the private `DEMO_ADMIN_SECRET`.
   Email-style usernames within the 3–40-character limit are supported.
+- Manage Customers → **Generate customers** creates 1–200 fictional users with
+  unique usernames/display names and sampled checking/savings cent amounts. Owner
+  chooses count, prefix, shared password, ranges and existing assignment choices.
+  Human is the default; no login/visit/analytics opt-in occurs during generation.
+  Password-free CSV supports later automation. Saved starting amounts survive
+  reset; current amounts persist across logins. Manual users retain their templates.
 - Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
   replacement/disable revoke that user's sessions. Reset retires the run and retains
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
@@ -60,16 +67,16 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0005** applied to **demo and demo_test**, version 5 with no
-  pending/checksum drift; repeat application is a no-op. 0005 creates the persistent
-  singleton collection switch/epoch; committed **69fb54e** before application.
-  Next migration is **0006**. Existing banking/history tables are unchanged.
-- Root-only 0600 pre-0005 schema/data/ledger backup:
-  `/var/backups/softek/demo-before-0005-20261011T222313Z.sql`.
-  Earlier pre-0002/pre-0004 backups remain. All ten original runs and retained
+- Migrations **0001–0006** applied to **demo and demo_test**, version 6 with no
+  pending/checksum drift; repeat application is a no-op. 0006 adds batch metadata
+  and starting balances; committed **de1f8e1** before application. The collection
+  switch/epoch remains intact. Next migration is **0007**. Existing banking/history tables are unchanged.
+- Root-only 0600 pre-0006 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0006-20261011T230452Z.sql`.
+  Earlier pre-0002/pre-0004/pre-0005 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-11T22-42-00-516Z**. Previous authenticated release:
-  **2026-10-11T22-24-55-744Z**. Both current links point to the new release.
+- Current release: **2026-10-11T23-07-29-587Z**. Previous authenticated release:
+  **2026-10-11T22-42-00-516Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -83,6 +90,9 @@ Active identifies focus and does not itself authorize additional scope.
   back to pre-switch code, restore collection-off runtime flags/CSP; older code
   cannot honor the new switch. Prefer a current-code default-off deployment.
   Pre-auth anonymous releases remain incompatible public rollback targets.
+  Pre-generation code does not restore individual saved starting balances on
+  reset; use code supporting schema 6 when generated customers exist. No rollback
+  or old-code schema-6 compatibility check was performed this phase.
 - Dedicated Nginx/HTTPS/upload configuration and persistent assets are intact.
   All unrelated Nginx configuration hashes and enabled symlink targets match the
   original manifest. The service cannot edit code; only banner storage is writable.
@@ -131,6 +141,10 @@ remain verified; credential scan passed. The earlier full API/browser baseline
 above was not rerun for this presentation-only change. No failing check remains.
 
 ## Clarity control, transport and remaining acceptance
+
+Owner has now reported seeing mouse-behavior playback in Clarity. This confirms
+owner-observed capture/playback, not reviewed masks, attribution or heatmaps. The
+owner emphasized the demo is still far from ready for Chris.
 
 Project **`yvs5hp3ivb`** and settings are owner-confirmed: **Balanced masking,
 cookies On, bot detection On, consent Required**. These are reported settings,
@@ -193,23 +207,57 @@ Service/DB health and credential scan (94 files) passed. No unresolved check
 failure remains. No migration/API changes. The previous API/banking baseline and real SDK transport
 pilot above were not rerun for this UI change. Dashboard acceptance is still pending.
 
+## Plan 006 result and verification
+
+All GEN-01–05 complete. Protected bulk creation is atomic and retry-safe. Unique
+batch/position markers distinguish generated identities across batches. Checking
+and savings use sampled integer cents, saved by user UUID for first login and
+both reset paths. Passwords are independently salted; the local CSV omits them.
+Credit accounts and recent activity remain fictional template samples.
+
+| Check actually run | Result |
+| --- | --- |
+| `npm test` | **51/51 TAP entries passed**, including five generation scenarios and existing banking/features/collection/migration coverage |
+| 200-user batch | **~14 seconds**, all distinct identities/hashes, varied bounded amounts, no premature runs; concurrent retries return the same batch |
+| Integrity | Changed-payload conflict, late collision rolling back earlier inserts, real Human login, contribution/relogin persistence, customer/admin reset restore saved amounts |
+| `npm run test:e2e` | **42/42** banking journeys at 360/390/1440px; three focused generation journeys also passed after using the shared checkbox style |
+| Typecheck/build/format | Passed; Clarity evaluation build ~594 kB / 173 kB gzip; B-011 size advisory remains |
+| Migration/repeat | 0006 committed before test/production application; scoped pre-0006 backup; both ledgers version 6, no pending/drift; repeated application no-op |
+| `npm run deploy -- --clarity` | Release **2026-10-11T23-07-29-587Z**, evaluation profile and existing database switch On preserved |
+| Live generation | HTTPS 360/1440px: three users each, default Human choice, chosen Automation test activity, ranges, same-request retry, password-free CSV, customer details, login/relogin/reset and no Clarity traffic |
+| Public banking smoke | HTTPS 360/1440px passed enrollment/goals/contribution, rotation, relogin, feature CTA/report, independent admin sign-out and reset |
+| Retained host/data | Original ten runs/counts/upload hash intact; service/DB health, loopback binding, Nginx syntax, unrelated site hashes/links and private runtime allowlist/permissions verified |
+| Visual/credentials | Mobile/desktop form and results reviewed; secret scan passed across 99 source/document/build files |
+
+An initial concurrent retry exposed a MariaDB lock-upgrade deadlock; the exclusive
+upsert lock fixed it and the complete API suite passed. The first public banking
+smoke filled a temporary enrollment form before the final Goals route remounted
+it; the harness now waits for the destination acknowledgement, and both widths
+passed. That correction changes the harness only. No unresolved check failure
+remains. Six labeled `test.live-bulk.*` Automation users and public smoke history
+are intentionally retained; no full 100–200 production cohort was generated.
+Ignored, 0600 `artifacts/live-generation-check.json` records only identities,
+starting amounts and checked run IDs, without passwords.
+
 ## Exact resume point
 
-1. Read AGENTS/START_HERE, state, PRODUCT and Plan 002; inspect Git/live settings.
-2. Owner-only human walkthrough: sign into a Human customer, choose Allow analytics,
-   click/skip banners, explore a feature/CTA, use Savings Goals, navigate/reload,
-   withdraw/sign out, and repeat with another user. Copy UUID from Manage Customers.
-3. In project `yvs5hp3ivb`, find actual recordings by that ID and inspect masks,
-   artwork/CSS, menu routes and separate feature-versus-adoption events. Review
-   creative/layout heatmaps and document processing delay/limitations.
-4. Check M2-04/05 dashboard acceptance based on observed results, not upload counts.
-   Do not invite Chris yet or expand automation to Plan 003. The pilot command
-   intentionally collects only when explicitly invoked with `--collect`.
+1. Read AGENTS/START_HERE, state, PRODUCT; inspect Git and the actual live release.
+2. Latest customer-generation request is complete. Owner can choose count, shared
+   demo password and balance ranges in Manage Customers → Generate customers.
+   Select Human for manual logins; Automation is for trusted later harnesses.
+3. Wait for the next owner-prioritized change. Plan 003's scheduler/scenario UI
+   remains deferred; customer generation does not authorize browser automation.
+4. If owner resumes Plan 002, inspect actual masks, attribution, route rendering
+   and heatmaps using UUIDs from Manage Customers, then record observed acceptance.
+   Owner has reported mouse playback; it does not establish all dashboard checks.
+   Chris remains deferred. `clarity:pilot -- --collect` is deliberate collection;
+   do not rerun it as a routine smoke test.
 
 ## Git and operational handoff
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
-implementation **bd6a774**. Plan 005 including FEAT-09 and the current Clarity implementation/checks/docs are
+implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
+Plans 005/006 and the current Clarity implementation/checks/docs are
 committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

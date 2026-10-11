@@ -10,6 +10,7 @@ import { features, getFeature } from './features.js';
 import { HttpError } from './errors.js';
 import { passwordHash, passwordMatches } from './passwords.js';
 import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
+import { generationSchema, generateCustomers } from './customer-generation.js';
 
 type Row = Record<string, any>;
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -209,6 +210,15 @@ export function registerRevision(ctx: Context) {
       user.variant,
       Boolean(user.eligible),
     );
+    const [opening] = await c.query(
+      'SELECT checking_minor,savings_minor FROM customer_starting_balances WHERE user_id=?',
+      [user.id],
+    );
+    if (opening)
+      await c.query(
+        "UPDATE accounts SET balance_minor=CASE kind WHEN 'checking' THEN ? WHEN 'savings' THEN ? END WHERE run_id=? AND kind IN ('checking','savings')",
+        [opening.checking_minor, opening.savings_minor, result.runId],
+      );
     await c.query('UPDATE participant_runs SET user_id=? WHERE id=?', [
       user.id,
       result.runId,
@@ -437,6 +447,42 @@ export function registerRevision(ctx: Context) {
       throw e;
     }
     res.status(201).json({ id, username: b.username });
+  });
+  app.post('/api/admin/users/generate', async (req, res) => {
+    await admin(req, true);
+    const parsed = generationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const field = String(parsed.error.issues[0]?.path[0]);
+      const messages: Record<string, string> = {
+        count: 'Choose between 1 and 200 customers.',
+        prefix:
+          'Username prefix must start with a letter and use 1–16 letters, numbers, dots, underscores or hyphens.',
+        password: 'Shared demo password must be 8–128 characters.',
+        checkingMinMinor: 'Checking minimum must be between $0 and $1,000,000.',
+        checkingMaxMinor:
+          'Checking maximum must be between the minimum and $1,000,000.',
+        savingsMinMinor: 'Savings minimum must be between $0 and $1,000,000.',
+        savingsMaxMinor:
+          'Savings maximum must be between the minimum and $1,000,000.',
+      };
+      throw new HttpError(
+        400,
+        messages[field] ?? 'Check the generation settings and try again.',
+      );
+    }
+    try {
+      const result = await transaction((c) =>
+        generateCustomers(c, parsed.data, csrf(JSON.stringify(parsed.data))),
+      );
+      res.status(201).json(result);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'ER_DUP_ENTRY')
+        throw new HttpError(
+          409,
+          'A generated username is already in use. Start a new batch. No customers were created.',
+        );
+      throw error;
+    }
   });
   async function manageUser(
     req: Request,
