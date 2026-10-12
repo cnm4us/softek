@@ -343,7 +343,7 @@ scroll coordinates cannot be recovered from the count-only manifests. Owner
 mobile-view scrolling is now confirmed; completed-recording lookup, desktop
 display, masking and heatmaps remain separate acceptance checks.
 
-Latest owner dashboard observation: **Today shows one unique user**, native
+Earlier owner dashboard observation: **Today shows one unique user**, native
 Clarity user ID **`1fwxlgf`**. This is a user-count observation, not yet a matched
 pilot/completed recording. It differs from known diagnostic IDs `owexj9` and
 `91iamz`; native IDs were not retained for the original click/skip users. Owner
@@ -353,6 +353,11 @@ tag was obtained; this native user remains unmatched. Earlier observed live
 playback remains valid evidence, but post-session searchable recording availability
 is still unverified. The cause of the unavailable recordings is unknown; do not
 infer deletion, bot filtering, or completed processing from this observation.
+
+Latest owner observation: **two sessions labeled Headless Chrome are visible**.
+These may be pilot captures, but their identities and whether they are playable
+from the regular Recordings list after the session ends are not yet confirmed.
+Owner has been asked whether both open/play there or are only visible in Live users.
 
 ## M2-C06 consent modal follow-up
 
