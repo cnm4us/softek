@@ -4,7 +4,7 @@ Last updated: **2026-10-12 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Owner checks the two October 12 pilot recordings in Clarity; dashboard sign-in is unavailable in the agent browser. Do not scale or claim playback acceptance yet.**
+Next task: **Owner checks diagnostic replay/completed recording and the original two pilot recordings. Owner confirms the diagnostic appears in Clarity live view; replay/masking/heatmaps remain unverified. Broader suite is not yet authorized.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Owner-authorized October 12 Playwright click/skip pilot passed transport and local-event checks; actual synthetic recordings/masks/heatmaps await owner inspection; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | October 12 click/skip pilot and one diagnostic passed transport; playback/identity/tag payloads verified and owner confirms diagnostic live session appears; completed recordings/replay/masks/heatmaps remain pending; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -265,6 +265,31 @@ hours** for new custom tags to appear in project filters:
 [custom tags](https://learn.microsoft.com/en-us/clarity/filters/custom-tags).
 Recheck today's recordings without restrictive filters after processing; do not
 treat the missing early filter as proof of either capture failure or success.
+
+The owner then confirmed each Custom User ID was searched separately and Today's
+unfiltered recordings were empty. One additional new **Clarity Pilot Diagnostic**
+Automation customer was created (none of the owner's ten generated customers or
+personal account was used/reset). The ignored host-local helper
+`artifacts/diagnose-clarity-capture.ts` ran an approximately 80-second actual
+Chromium journey starting **14:46:45 UTC**, with Summary scrolling, Explore
+Features → EasyCoin, CTA confirmation and ordinary logout. It inspects collection
+payloads only in memory and saves boolean/count metadata, never raw bodies.
+
+- Diagnostic customer UUID: `6494fb69-1b44-4efd-beda-90a038877848`.
+- SDK `0.8.72` reports project `yvs5hp3ivb`, native Clarity user ID `owexj9`,
+  session ID `114qxaa`, playback enabled and analytics consent granted.
+- **Six HTTP 204 uploads** matched the project; four included playback events,
+  all six included the customer's SHA-256 custom identity, and the diagnostic
+  `pilot_run` tag was present. No END command, browser/analyzer error or private
+  automation/capture header sent to Microsoft was observed.
+- The owner confirmed **“I can see the live session”** when checking Clarity's
+  live-users panel using the native ID. This establishes owner-observed synthetic
+  live-session visibility, not completed recording availability or replay quality.
+- Evidence: ignored 0600 `artifacts/clarity-capture-diagnostic.json`; owner live
+  confirmation is recorded separately from the still-false playback acceptance.
+- Owner replay inspection is requested. The two original recordings/tag filter
+  have not yet been confirmed; do not attribute their absence definitively to
+  processing delay. Keep traffic small until replay is reviewed.
 
 ## M2-C06 consent modal follow-up
 

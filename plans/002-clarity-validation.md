@@ -130,6 +130,16 @@ The agent's project browser requires Microsoft sign-in; owner dashboard inspecti
 is requested. Actual recordings, classification, masking and heatmaps remain
 unchecked. No larger suite or traffic expansion was executed.
 
+After the owner found neither original recording, one additional diagnostic user
+was exercised at **14:46 UTC**. Six HTTP 204 uploads matched the project, with
+playback events, hashed custom identity and the lookup tag verified in memory.
+SDK metadata reports playback enabled and analytics consent granted. The owner
+confirmed the diagnostic **appears in Clarity's live-users view** (native user ID
+`owexj9`, session `114qxaa`). Replay, completed recordings, masks and heatmaps
+remain unverified; owner playback inspection is requested. See the current state
+for the ignored diagnostic evidence and exact next check. The owner's own and
+ten batch-created customers were not used/reset.
+
 ### M2-06 — Repeatable demonstration and findings
 
 - [x] Write a short presentation runbook covering user creation, copied Clarity
