@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-12 UTC**.
-Current focus: **[009 — Permanent customer deletion](plans/009-delete-customers.md)**.
+Current focus: **[010 — Admin customer impersonation](plans/010-admin-customer-impersonation.md), planning only**.
 Latest completed implementation: **Plan 009 — permanent customer-card deletion and generation retry protection**.
-Current request: **Owner-requested customer cleanup complete: 37 deleted, designated customer preserved**.
-Next task: **Await the next owner-prioritized change; actual Clarity profile classification and broader automation remain deferred**.
+Current request: **Draft the impersonation implementation plan; no application implementation requested yet**.
+Next task: **Owner review of Plan 010; begin IMP-01 only after implementation is requested**.
 
 ## Plan status registry
 
@@ -24,6 +24,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | Completed | DEV-01–05 verified/deployed; schema 7; compatible selectors and matching native profiles |
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
+| 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Active (planning) | Detailed IMP-01–06 plan drafted; no application changes, SQL application, deployment or new collection |
 
 ## Current reality
 
@@ -365,18 +366,32 @@ collection was performed. Private password-free evidence: ignored 0600
 Earlier owned production smoke/pilot histories for deleted customers have now
 been removed by this explicit owner cleanup. Clarity's prior recordings remain
 external to the local operation. Public smoke creates customers; it was not run
-for this cleanup. Resume from the current one-customer cohort rather than the
-earlier test-cohort manifests.
+for this cleanup. The owner has since generated batch 21; inspect the current
+cohort rather than relying on earlier test-cohort manifests.
+
+## Plan 010 — planning handoff
+
+Drafted the detailed plan for an Impersonate customer action on the admin details
+page, actual saved customer banking, a viewing indicator and Exit to Admin just
+above customer Sign out. Proposed sessions are bound to the initiating admin;
+revocation and stale-tab safeguards apply to every customer request. Clarity is
+excluded throughout impersonation; server-derived visit provenance separates
+local history/reporting from genuine customer activity. An additive migration is
+planned, currently next number 0008; no SQL file or application code was changed.
+
+The plan includes source-aware milestone deduplication/cohort treatment, banner
+rotation, entry/exit/retry semantics, migration/rollback and focused acceptance.
+Verified changed-document links and Git whitespace only; no application tests,
+DB writes, live impersonation or vendor capture. OS selector changes were declined.
 
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 009 is complete. Manage Customers cards now have permanent Delete with
-   confirmation, including local report history. Original generation requests
-   cannot recreate deleted users. Creation retains independent eligibility,
-   saved amount ranges and Device/Browser preferences.
-3. Await the next prioritized change. Plan 003's assignment/scheduler remains
-   deferred. Saving preferences does not start jobs or authorize new SDK collection.
+2. Review Plan 010. This turn authorized a plan only; when implementation is
+   requested, begin IMP-01 against the actual session/event/report code and ledger.
+   Plan 009 remains complete; deletion/retry protection must remain intact.
+3. Plan 003's assignment/scheduler and new Clarity profile classification remain
+   deferred. Keep existing device/browser presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just

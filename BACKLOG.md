@@ -29,7 +29,7 @@ its backlog ID.
 
 | ID | Question | Needed by | Current handling |
 | --- | --- | --- | --- |
-| Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | Owner reported Balanced masking, cookies/bot detection on, consent required; owner-only playback/heatmaps pending; admin collection control authorized |
+| Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | Owner reported Balanced masking, cookies on, Bot Detection Off as of 2026-10-12, consent required; owner-only playback/heatmaps pending; admin collection control authorized |
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | Plan 005 / later service expansion | User supplied twelve campaigns, captured in Plan 005; page/CTA engagement is scoped, real service models and independent product verification remain outside this phase |
 
@@ -72,3 +72,9 @@ Savings Goals eligibility.
 [Plan 009](plans/009-delete-customers.md) implements owner-requested permanent
 customer deletion. Local report history is removed; external Clarity recording
 management and bulk retention/cleanup remain separate later work.
+
+[Plan 010](plans/010-admin-customer-impersonation.md) scopes admin entry into a
+customer's real demo state and conditional Exit to Admin, with Clarity excluded
+and local impersonation provenance. Implementation awaits the owner's instruction.
+Recording impersonation visits is separate later scope. The owner declined an
+independent OS selector; retain existing device/browser presets.
