@@ -150,6 +150,14 @@ tags. Native Clarity user ID `91iamz`, session `1oi305m`; ignored 0600 evidence 
 recording availability remain pending. Do not infer full replay/masking/heatmap
 acceptance from live CTA playback or transport counts.
 
+Owner confirms the focused session is visible but still sees no scrolling.
+Visual scroll acceptance remains unresolved. Next inspect full completed playback
+(Normal speed, Skip inactivity off) and More details → Events → Scroll; first
+confirm the owner is not watching Highlights or joining Go Live after the scroll.
+Do not create more capture sessions or mark replay acceptance on count-only
+transport evidence. Previous raw payloads were discarded; manifests retain only
+safe metadata/counts and actual measured document offsets.
+
 ### M2-06 — Repeatable demonstration and findings
 
 - [x] Write a short presentation runbook covering user creation, copied Clarity

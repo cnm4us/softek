@@ -4,7 +4,7 @@ Last updated: **2026-10-12 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Owner checks focused scroll replay and completed recordings after processing. Diagnostic live navigation/click/CTA replay is owner-confirmed; scroll transport is verified, but visual scroll replay/masking/heatmaps remain pending. Broader suite is not yet authorized.**
+Next task: **Investigate scroll replay using the completed full recording at Normal speed and its More details → Events. Owner confirms live navigation/click/CTA replay but sees no scrolling in either diagnostic. Scroll transport is verified; do not claim visual scroll acceptance or generate more captures yet.**
 
 ## Plan status registry
 
@@ -317,9 +317,13 @@ memory and not saved.
 - There are now **four newly created pilot customers** retained for lookup. The
   owner's account and ten generated customers were not used/reset. Impersonation
   geometry visits on the diagnostic are labeled/excluded from normal reports.
-- Owner has been asked to rewind and inspect the focused scroll replay. Completed
-  recording availability and the original two recordings remain unconfirmed.
-  Live visibility is not full presentation readiness. No broader traffic run,
+- Owner confirms the focused session appears but **still sees no scrolling**.
+  Actual document movement and uploaded Scroll events are proven; visual scroll
+  replay is not. Next distinguish full recording versus Highlights/Go Live and
+  inspect Normal-speed playback with Skip inactivity off and More details →
+  Events → Scroll. The owner has been asked which player mode is in use.
+  Completed recording availability and the original two recordings remain
+  unconfirmed. Live visibility is not full presentation readiness. No broader traffic run,
   deployment, application-code change or migration was required for diagnostics.
 
 The owner noted Live entries disappear when the customer stops. Microsoft
@@ -328,6 +332,11 @@ processed-recording retention period (normally 30 days). Live has fewer supporte
 filters; do not use missing live custom-tag filters as proof of upload failure.
 References: [Live recordings](https://learn.microsoft.com/en-us/clarity/session-recordings/clarity-real-time),
 [recording retention](https://learn.microsoft.com/en-us/clarity/faq#how-long-are-my-recordings-retained).
+Microsoft's [inline player guide](https://learn.microsoft.com/en-us/clarity/session-recordings/inline-player)
+documents Highlights, full playback, speed/Skip inactivity controls and Scroll
+events under More details. Raw payload bodies were discarded, so prior decoded
+scroll coordinates cannot be recovered from the count-only manifests. No further
+captures are planned until the existing playback discrepancy is inspected.
 
 ## M2-C06 consent modal follow-up
 
