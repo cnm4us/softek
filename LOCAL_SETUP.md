@@ -25,7 +25,7 @@ npm run db:seed
 npm run db:seed -- --test
 ```
 
-Commit and review each migration before applying it. Migrations 0001–0004 are
+Commit and review each migration before applying it. Migrations 0001–0007 are
 already applied on this instance; repeated migration is a verified no-op. Seeds upsert fictional templates and add absent starter banner fixtures,
 preserving participant balances/goals/history and existing admin banner settings. Reset is a customer-run operation, never a database drop.
 
@@ -159,6 +159,38 @@ Before application inspect both ledgers and back up production schema/data/ledge
 Old APIs ignore generated opening amounts during resets; choose a compatible
 rollback release and follow the collection-off boundaries above.
 
+## Customer device and browser
+
+Create Customer and Generate Customers include Device/Browser selectors. For an
+existing customer, use Customer Details → Device and browser → Save device and
+browser. This preserves accounts, goals, sessions and analytics consent. Missing
+preferences default to Desktop/Chrome; bulk exports include both IDs.
+
+Automation engines need `npx playwright install --with-deps chromium firefox webkit`.
+This host has the matching browser binaries/dependencies installed. The resolver
+uses seven supported pairs from the shared catalog; Safari is WebKit emulation and
+Edge uses Chromium with the Edge preset. Normal logins use the actual browser.
+
+For a deliberate authorized recording pilot only:
+
+```bash
+npm run clarity:pilot -- --collect --device=iphone --browser=safari
+npm run clarity:pilot -- --collect --customer=YOUR_CUSTOMER_UUID
+```
+
+The second command reads the saved pair and username from the protected admin
+API. Set `PILOT_CUSTOMER_PASSWORD` in ignored private `.env` beforehand; don't put
+passwords on the command line. It requires an enabled Automation customer and
+does not reset banking. The first command creates two labeled pilot customers
+with that pair; default without profile flags is Desktop/Chrome. Collection still
+requires the current evaluation deployment, global switch, capture header and
+explicit consent. Never use this command as a routine test. Bot Detection stays
+On; observed uploads do not establish dashboard classification or inclusion.
+
+Migration 0007 is additive and preserves 0006 starting balances. Keep applied SQL
+immutable; rollback code lacking these preferences ignores them. See PROJECT_STATE
+for the scoped pre-0007 backup and verified release.
+
 ## Banner administration
 
 Use **Admin Menu → Manage Banners** (`/controls/banners`) to upload, preview,
@@ -271,7 +303,7 @@ collection-off mode. Before pointing at an older release that lacks the database
 switch, explicitly restore collection-off runtime flags and same-origin CSP;
 otherwise that release could ignore the new toggle. Keep the additive 0005 table.
 For an application rollback, choose an authenticated release compatible with
-schema version 6 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
+schema version 7 and point both `current` links at its existing release directories, restart `softek-api`, then verify public health and refresh.
 Pre-generation code can read existing customers but does not restore saved individual
 balances on reset. Choose code supporting 0006 when generated customers exist.
 Use `ln -s <reviewed-path> <current>.next` and `mv -T <current>.next <current>` for
@@ -325,5 +357,5 @@ Schema 0004 only appends two interaction ENUM names; old values/order remain.
 Back up schema/data/ledger before applying it, then run migration status and a
 repeat no-op. Never modify applied files or downgrade the ENUM to roll back UI.
 Historical compatibility was checked on schema 4. The current schema is version
-6; follow the rollback section above, including collection-off runtime/CSP before
+7; follow the rollback section above, including collection-off runtime/CSP before
 using pre-switch code. See the verified releases and backups in PROJECT_STATE.

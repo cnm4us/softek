@@ -1107,6 +1107,12 @@ test('bulk customer creation retries once, exports identities and uses individua
     await prefix.evaluate((input: HTMLInputElement) => input.checkValidity()),
   ).toBe(true);
   await page.getByLabel('Shared demo password').fill(password);
+  await page
+    .getByRole('combobox', { name: 'Device', exact: true })
+    .selectOption('iphone');
+  await expect(
+    page.getByRole('combobox', { name: 'Browser', exact: true }),
+  ).toHaveValue('safari');
   await page.getByLabel('Activity mode').selectOption('automation');
   await page.getByLabel('Checking minimum ($)', { exact: true }).fill('200.25');
   await page.getByLabel('Checking maximum ($)', { exact: true }).fill('400.75');
@@ -1151,6 +1157,12 @@ test('bulk customer creation retries once, exports identities and uses individua
   expect(csv).not.toContain(password);
   expect(csv).toContain(created.customers[0].username);
   expect(csv).toContain('checking_balance_usd');
+  expect(csv).toContain('\"device\",\"browser\"');
+  expect(
+    created.customers.every(
+      (c: any) => c.device === 'iphone' && c.browser === 'safari',
+    ),
+  ).toBe(true);
   await page.screenshot({
     path: `artifacts/generation-result-${test.info().project.name}.png`,
     fullPage: true,
@@ -1177,4 +1189,76 @@ test('bulk customer creation retries once, exports identities and uses individua
   ).toBe(customer.savingsMinor);
   await noOverflow(page);
   expect(errors).toEqual([]);
+});
+
+test('saved device and browser selectors create compatible profiles without resetting banking', async ({
+  page,
+  context,
+}) => {
+  const user = await entry(page);
+  const original = await state(page);
+  const logged = await context.request.post('/api/admin/login', {
+    headers: { Origin: 'http://127.0.0.1:5173' },
+    data: { password: process.env.DEMO_ADMIN_SECRET! },
+  });
+  expect(logged.status()).toBe(200);
+  await page.goto(`/controls/customers/${user.id}`);
+  const profile = page.getByRole('region', { name: 'Automation profile' });
+  await expect(
+    profile.getByRole('combobox', { name: 'Device', exact: true }),
+  ).toHaveValue('desktop');
+  await expect(
+    profile
+      .getByRole('combobox', { name: 'Browser', exact: true })
+      .locator('option'),
+  ).toHaveCount(4);
+  await profile
+    .getByRole('combobox', { name: 'Device', exact: true })
+    .selectOption('iphone');
+  await expect(
+    profile.getByRole('combobox', { name: 'Browser', exact: true }),
+  ).toHaveValue('safari');
+  await expect(
+    profile
+      .getByRole('combobox', { name: 'Browser', exact: true })
+      .locator('option'),
+  ).toHaveCount(1);
+  await profile
+    .getByRole('button', { name: 'Save device and browser' })
+    .click();
+  await expect(page.getByRole('status')).toHaveText(
+    'Device and browser saved.',
+  );
+  await page.reload();
+  await expect(
+    profile.getByRole('combobox', { name: 'Device', exact: true }),
+  ).toHaveValue('iphone');
+  await profile
+    .getByRole('combobox', { name: 'Device', exact: true })
+    .selectOption('android');
+  await expect(
+    profile.getByRole('combobox', { name: 'Browser', exact: true }),
+  ).toHaveValue('chrome');
+  await profile
+    .getByRole('combobox', { name: 'Device', exact: true })
+    .selectOption('desktop');
+  await profile
+    .getByRole('combobox', { name: 'Browser', exact: true })
+    .selectOption('firefox');
+  await profile
+    .getByRole('button', { name: 'Save device and browser' })
+    .click();
+  await expect(page.getByRole('status')).toHaveText(
+    'Device and browser saved.',
+  );
+  await noOverflow(page);
+  await page.screenshot({
+    path: `artifacts/device-profile-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.goto('/');
+  const after = await state(page);
+  expect(after.runId).toBe(original.runId);
+  expect(after.accounts).toEqual(original.accounts);
+  expect(after.goals).toEqual(original.goals);
 });

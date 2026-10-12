@@ -439,3 +439,37 @@ omits passwords. All routes remain in the masked, analytics-excluded admin subtr
 This schema is additive, but pre-006 APIs cannot restore generated starting amounts
 on reset. Keep a compatible release for rollback, or return current code to the
 collection-off deployment profile; do not downgrade applied migrations.
+
+## Customer device/browser preferences — Plan 007
+
+0007 adds `customer_browser_profiles`, keyed by user UUID with cascading deletion.
+Missing rows resolve to Desktop/Chrome; no retained user, run or history is changed
+by migration. Existing positional user inserts and older authenticated APIs remain
+compatible with the additive table. The shared pure catalog defines seven valid
+pairs, enforced by API schemas and a MariaDB CHECK. Manual and bulk creation save
+preferences in their existing transaction. A protected profile update locks the
+user and upserts the preference without revoking sessions or resetting runs.
+
+The UI uses two selectors, restricting browsers when device changes. CSV adds
+device/browser IDs. The runner resolver uses built-in Playwright presets: Desktop
+Chrome/Edge/Firefox/Safari, Pixel 9, iPhone 17 and iPad Pro 11. It sets viewport,
+screen size, density, mobile/touch flags and UA, with matching Chromium, Firefox or
+WebKit engines. Edge uses the Chromium engine/Edge identity; Safari is WebKit on
+Linux, not physical Apple hardware. Preset details follow the installed Playwright
+version, and exact Clarity classification still needs dashboard observation.
+
+The explicit pilot accepts a saved enabled Automation customer UUID and a private
+`PILOT_CUSTOMER_PASSWORD`. It reads the pair through protected admin APIs before
+launching the browser and records the resolved profile in password-free evidence.
+It can instead create its two labeled users with explicit device/browser flags.
+No collection, bot-detection changes or scheduling happen when preferences are
+saved. Consent and private automation/capture gates remain required. Routine tests
+block collection; no UA spoofing is used to evade Clarity's bot detection.
+The pilot attaches private headers through a route scoped to the application
+origin; third-party SDK requests receive no automation/capture secrets. A local
+intercepted test verifies both directions. Default Desktop/Chrome generation
+fingerprints preserve the pre-007 normalized payload for compatible retries.
+
+Sources: [Playwright emulation](https://playwright.dev/docs/emulation),
+[engine fidelity](https://playwright.dev/docs/browsers), and
+[Clarity bot filtering](https://clarity.microsoft.com/blog/bots-vs-real-users-who-is-really-visiting-your-site/).

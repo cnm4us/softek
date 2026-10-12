@@ -1,40 +1,95 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { chromium, expect } from '@playwright/test';
+import {
+  request,
+  expect,
+  type Browser,
+  type BrowserContext,
+  type APIResponse,
+} from '@playwright/test';
+import { clientProfileSchema } from '../apps/api/src/browser-profile.js';
+import { resolveBrowserProfile } from './lib/browser-profile.js';
+import { installAutomationHeaders } from './lib/automation-headers.js';
 import '../apps/api/src/config.js';
 
 // Deliberate real collection, distinct from collection-free smoke/tests.
-if (process.argv.slice(2).join(' ') !== '--collect')
+const args = process.argv.slice(2);
+const flags = new Map<string, string>();
+for (const arg of args) {
+  const match = /^--(device|browser|customer)=(.+)$/.exec(arg);
+  if (arg === '--collect' && !flags.has('collect'))
+    flags.set('collect', 'true');
+  else if (match && !flags.has(match[1]!)) flags.set(match[1]!, match[2]!);
+  else
+    throw new Error(
+      'Usage: --collect [--device=ID --browser=ID | --customer=UUID]',
+    );
+}
+if (!flags.has('collect'))
   throw new Error('Use --collect only for an authorized real Clarity pilot.');
+if (flags.has('customer') && (flags.has('device') || flags.has('browser')))
+  throw new Error('A selected customer uses its saved device and browser.');
+const requestedProfile = flags.has('customer')
+  ? null
+  : clientProfileSchema.parse({
+      device: flags.get('device') ?? 'desktop',
+      browser: flags.get('browser') ?? 'chrome',
+    });
 const origin = 'https://demo.bawebtech.com';
-const browser = await chromium.launch();
-const context = await browser.newContext({
-  viewport: { width: 360, height: 800 },
-  extraHTTPHeaders: {
-    'X-Demo-Automation': process.env.AUTOMATION_SECRET!,
-    'X-Demo-Capture': process.env.AUTOMATION_SECRET!,
-  },
-});
+const control = await request.newContext({ baseURL: origin });
+let browser: Browser | undefined, context: BrowserContext | undefined;
 const evidence: Record<string, unknown>[] = [];
 const errors: string[] = [];
 let vendorRequests = 0;
 let uploads = 0;
 const vendorHosts = new Set<string>();
 try {
-  const login = await context.request.post(origin + '/api/admin/login', {
+  const login = await control.post(origin + '/api/admin/login', {
     headers: { Origin: origin },
     data: { password: process.env.DEMO_ADMIN_SECRET },
   });
   assert.equal(login.status(), 200);
   const admin = await login.json();
   const status = await (
-    await context.request.get(origin + '/api/admin/clarity')
+    await control.get(origin + '/api/admin/clarity')
   ).json();
   assert.equal(
     status.enabled,
     true,
     'Turn collection on in Admin Menu → Clarity Settings first.',
+  );
+  const selectedId = flags.get('customer');
+  const selected = selectedId
+    ? (await (await control.get('/api/admin/users')).json()).find(
+        (user: any) => user.id === selectedId,
+      )
+    : null;
+  if (
+    selectedId &&
+    (!selected || !selected.enabled || selected.actor !== 'automation')
+  )
+    throw new Error('Choose an enabled Automation customer.');
+  if (selected && !process.env.PILOT_CUSTOMER_PASSWORD)
+    throw new Error(
+      'Set PILOT_CUSTOMER_PASSWORD in the private environment for this customer.',
+    );
+  const profile = clientProfileSchema.parse(
+    selected
+      ? { device: selected.device, browser: selected.browser }
+      : requestedProfile,
+  );
+  const resolved = resolveBrowserProfile(profile);
+  browser = await resolved.launcher.launch();
+  context = await browser.newContext({
+    ...resolved.contextOptions,
+    storageState: await control.storageState(),
+  });
+  await installAutomationHeaders(
+    context,
+    origin,
+    process.env.AUTOMATION_SECRET!,
+    true,
   );
   const page = await context.newPage();
   page.on('pageerror', (error) => errors.push(error.message));
@@ -62,21 +117,31 @@ try {
       uploads++;
   });
   for (const clicked of [true, false]) {
-    const password = randomUUID();
-    const username = `test.clarity-${randomUUID().slice(0, 10)}@example.com`;
-    const created = await context.request.post(origin + '/api/admin/users', {
-      headers: { Origin: origin, 'X-CSRF-Token': admin.csrf },
-      data: {
-        username,
-        password,
-        displayName: 'Clarity Pilot',
-        profileId: 'alex',
-        variant: 'value',
-        eligible: true,
-        actor: 'automation',
-      },
-    });
-    assert.equal(created.status(), 201);
+    const password = selected
+      ? process.env.PILOT_CUSTOMER_PASSWORD!
+      : randomUUID();
+    const username =
+      selected?.username ??
+      `test.clarity-${randomUUID().slice(0, 10)}@example.com`;
+    if (!selected) {
+      const created: APIResponse = await context.request.post(
+        origin + '/api/admin/users',
+        {
+          headers: { Origin: origin, 'X-CSRF-Token': admin.csrf },
+          data: {
+            username,
+            password,
+            displayName: 'Clarity Pilot',
+            profileId: 'alex',
+            variant: 'value',
+            eligible: true,
+            actor: 'automation',
+            ...profile,
+          },
+        },
+      );
+      assert.equal(created.status(), 201);
+    }
     await page.goto(origin + '/');
     await page.getByLabel('Username', { exact: true }).fill(username);
     await page.getByLabel('Password', { exact: true }).fill(password);
@@ -109,10 +174,12 @@ try {
       .toBeGreaterThan(before);
     await page.waitForTimeout(1500);
     if (clicked) {
+      const href = await page
+        .getByTestId('promotion-banner')
+        .getAttribute('href');
+      assert.ok(href, 'Enable a banner before running the pilot.');
       await page.getByTestId('promotion-banner').click();
-      await page
-        .getByRole('heading', { name: 'Savings Goals', exact: true })
-        .waitFor();
+      await page.waitForURL(origin + href);
     }
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
@@ -147,6 +214,11 @@ try {
       runId: state.runId,
       visitId: state.visitId,
       actor: state.analytics.actor,
+      ...profile,
+      preset: resolved.preset,
+      engine: resolved.engine,
+      viewport: resolved.contextOptions.viewport,
+      screen: resolved.contextOptions.screen,
       acknowledgedUploads: uploads - baseline,
     });
     await page
@@ -205,6 +277,7 @@ try {
     `Real SDK pilot passed: ${evidence.length} labeled journeys, ${uploads} acknowledged collection uploads. Dashboard playback remains unverified. Lookup evidence: artifacts/clarity-pilot.json`,
   );
 } finally {
-  await context.close();
-  await browser.close();
+  await context?.close();
+  await browser?.close();
+  await control.dispose();
 }

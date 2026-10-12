@@ -11,6 +11,11 @@ import { HttpError } from './errors.js';
 import { passwordHash, passwordMatches } from './passwords.js';
 import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
 import { generationSchema, generateCustomers } from './customer-generation.js';
+import {
+  defaultClientFields,
+  validateClientProfile,
+  clientProfileSchema,
+} from './browser-profile.js';
 
 type Row = Record<string, any>;
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -389,7 +394,7 @@ export function registerRevision(ctx: Context) {
     await admin(req);
     res.json(
       await pool.query(
-        'SELECT u.id,u.username,u.display_name AS displayName,u.enabled,u.profile_id AS profileId,u.variant,u.eligible,u.actor,m.run_id AS runId FROM demo_users u LEFT JOIN user_current_runs m ON m.user_id=u.id ORDER BY u.created_at,u.id',
+        "SELECT u.id,u.username,u.display_name AS displayName,u.enabled,u.profile_id AS profileId,u.variant,u.eligible,u.actor,m.run_id AS runId,COALESCE(p.device,'desktop') AS device,COALESCE(p.browser,'chrome') AS browser FROM demo_users u LEFT JOIN user_current_runs m ON m.user_id=u.id LEFT JOIN customer_browser_profiles p ON p.user_id=u.id ORDER BY u.created_at,u.id",
       ),
     );
   });
@@ -404,8 +409,10 @@ export function registerRevision(ctx: Context) {
         variant: z.enum(['baseline', 'value']).default('value'),
         eligible: z.boolean(),
         actor: z.enum(['human', 'automation']).default('human'),
+        ...defaultClientFields,
       })
       .strict()
+      .superRefine(validateClientProfile)
       .safeParse(req.body);
     if (!parsed.success) {
       const messages: Record<string, string> = {
@@ -417,6 +424,8 @@ export function registerRevision(ctx: Context) {
         variant: 'Choose a campaign variant.',
         eligible: 'Choose whether this user is eligible for savings goals.',
         actor: 'Choose an activity mode.',
+        device: 'Choose a device.',
+        browser: 'Choose a browser supported by this device.',
       };
       throw new HttpError(
         400,
@@ -428,19 +437,26 @@ export function registerRevision(ctx: Context) {
     const id = randomUUID(),
       stored = await passwordHash(b.password);
     try {
-      await pool.query(
-        'INSERT INTO demo_users VALUES (?,?,?,?,TRUE,?,?,?,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))',
-        [
+      await transaction(async (c) => {
+        await c.query(
+          'INSERT INTO demo_users VALUES (?,?,?,?,TRUE,?,?,?,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))',
+          [
+            id,
+            b.username,
+            b.displayName,
+            stored,
+            b.profileId,
+            b.variant,
+            b.eligible,
+            b.actor,
+          ],
+        );
+        await c.query('INSERT INTO customer_browser_profiles VALUES (?,?,?)', [
           id,
-          b.username,
-          b.displayName,
-          stored,
-          b.profileId,
-          b.variant,
-          b.eligible,
-          b.actor,
-        ],
-      );
+          b.device,
+          b.browser,
+        ]);
+      });
     } catch (e) {
       if ((e as { code?: string }).code === 'ER_DUP_ENTRY')
         throw new HttpError(409, 'That username is already in use.');
@@ -458,6 +474,8 @@ export function registerRevision(ctx: Context) {
         prefix:
           'Username prefix must start with a letter and use 1–16 letters, numbers, dots, underscores or hyphens.',
         password: 'Shared demo password must be 8–128 characters.',
+        device: 'Choose a device.',
+        browser: 'Choose a browser supported by this device.',
         checkingMinMinor: 'Checking minimum must be between $0 and $1,000,000.',
         checkingMaxMinor:
           'Checking maximum must be between the minimum and $1,000,000.',
@@ -471,8 +489,17 @@ export function registerRevision(ctx: Context) {
       );
     }
     try {
+      // Keep the default configuration's fingerprint compatible with batches
+      // created before device/browser preferences existed.
+      const { device, browser, ...legacy } = parsed.data;
+      const fingerprintPayload =
+        device === 'desktop' && browser === 'chrome' ? legacy : parsed.data;
       const result = await transaction((c) =>
-        generateCustomers(c, parsed.data, csrf(JSON.stringify(parsed.data))),
+        generateCustomers(
+          c,
+          parsed.data,
+          csrf(JSON.stringify(fingerprintPayload)),
+        ),
       );
       res.status(201).json(result);
     } catch (error) {
@@ -509,6 +536,23 @@ export function registerRevision(ctx: Context) {
         [stored, u.id],
       );
       await c.query('DELETE FROM user_sessions WHERE user_id=?', [u.id]);
+    });
+    res.json({ ok: true });
+  });
+  app.post('/api/admin/users/:id/browser-profile', async (req, res) => {
+    await admin(req, true);
+    const parsed = clientProfileSchema.safeParse(req.body);
+    if (!parsed.success)
+      throw new HttpError(400, 'Choose a compatible device and browser.');
+    await manageUser(req, async (c, u) => {
+      await c.query(
+        'INSERT INTO customer_browser_profiles VALUES (?,?,?) ON DUPLICATE KEY UPDATE device=VALUES(device),browser=VALUES(browser)',
+        [u.id, parsed.data.device, parsed.data.browser],
+      );
+      await c.query(
+        'UPDATE demo_users SET updated_at=UTC_TIMESTAMP(6) WHERE id=?',
+        [u.id],
+      );
     });
     res.json({ ok: true });
   });

@@ -73,8 +73,8 @@ an owned probe, checking old rows/ordinals, new values and repeat no-op.
 `tests/clarity.test.ts` adds four admin/collection scenarios: authorization,
 origin/CSRF and strict settings; explicit profile/runtime readiness; revision
 conflicts and retry-safe persistence; human consent availability versus ordinary
-and specifically authorized automation. The Node runner reports **51 passing
-entries** including parent tests and two standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
+and specifically authorized automation. The Node runner reports **64 passing
+entries** including parent tests and three standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
 are also removed; browser cleanup removes only its own hashed admin cookie token. It never drops a schema.
@@ -91,7 +91,18 @@ and their batches after cascading opening rows. A full 200-user run takes ~14s.
 
 ## Browser acceptance
 
-Fourteen journeys run at **360×800, 390×844, and 1440×900**: **42 Chromium checks**.
+Plan 007 adds `tests/customer-browser-profiles.test.ts`: protected updates,
+legacy defaults, incompatible-pair rejection including MariaDB CHECK, atomic
+manual/bulk persistence, retry/conflict and unchanged banking/session/consent on
+save. `tests/browser-profiles.test.ts` launches all seven supported combinations
+with matching Chromium/Firefox/WebKit, asserting UA, viewport, screen, density
+and actual tap/click delivery. All URLs are fulfilled locally or blocked. WebKit
+does not report Android-style `maxTouchPoints`; touch is proved by delivered
+`touchstart` events rather than that browser-dependent property.
+An additional intercepted-browser check proves private automation/capture headers
+are sent only to the application origin, with neither header on vendor requests.
+
+Fifteen journeys run at **360×800, 390×844, and 1440×900**: **45 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -113,6 +124,7 @@ Fourteen journeys run at **360×800, 390×844, and 1440×900**: **42 Chromium ch
 | Feature banner and reporting | Owned uploaded feature banner, exact landing attribution across independent tabs/reload/menu, separate raw/distinct activity totals and admin destination options |
 | Feature routes and submenu | Authenticated direct entry, unavailable Savings Goals profile, unknown ID/back/forward, active child, short viewport, Enter/Space/Tab/Escape |
 | Bulk customer generation | Protected direct child route, form/count/ranges, lost-response retry with the same request UUID, three-row CSV without passwords, customer links, per-customer login amounts and no overflow/browser errors |
+| Device/browser preferences | Compatible options and automatic browser adjustment, saved choices across reload, independent update preserving run/accounts/goals; bulk CSV persists both IDs |
 | Responsive / privacy | No page overflow; no Clarity requests during complete journey; explicit masking attributes |
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and
@@ -149,6 +161,11 @@ balance bounds, customer details and login/relogin/reset at 360/1440px. It uses
 only the private automation label, without the collection override, and asserts
 no Clarity traffic. Its six test customers and password-free 0600 evidence manifest
 are retained; test-schema fixtures are cleaned by the committed suites.
+The updated check also verifies Device/Browser on bulk creation, CSV and details
+save/reload. `artifacts/check-live-browser-profiles.ts` exercises one owned
+Automation user across all seven saved pairs: actual matching engines, login,
+mouse/tap menu and feature CTA, same banking run and no vendor traffic. Its
+password-free lookup evidence is `artifacts/live-browser-profiles.json` (0600).
 
 A production multipart upload was decoded/published by the hardened service,
 disabled as a retained check fixture, and its immutable image hash verified after
@@ -181,12 +198,13 @@ These checks do not send data to Microsoft or establish real masking playback.
 ## Authorized real SDK pilot
 
 ```bash
-npm run clarity:pilot -- --collect
+npm run clarity:pilot -- --collect --device=iphone --browser=safari
+npm run clarity:pilot -- --collect --customer=YOUR_CUSTOMER_UUID
 ```
 
 Requires the already-authorized evaluation deployment and admin collection On.
 This command intentionally contacts the real project. It creates two labeled
-automation customers on `demo`, uses one mobile browser, declines then opts in,
+automation customers on `demo`, uses the requested device/browser profile, declines then opts in,
 executes banner/feature-CTA click and skip cases, returns through the menu, checks
 acknowledged `/collect` responses, first-party cookies, withdrawal, shared-browser
 logout/login and no admin collection/CSP errors. Private capture headers are read
@@ -194,6 +212,11 @@ from `.env`. Owned pilot users/history remain for lookup. Only UUIDs, timestamps
 scenario names and transport counts are saved in ignored 0600
 `artifacts/clarity-pilot.json`; credentials and collection payloads are not saved.
 Bot detection stays On and may exclude these synthetic recordings.
+The second command instead uses an enabled saved Automation customer, with its
+password in private `PILOT_CUSTOMER_PASSWORD`. It reads saved preferences, creates
+the corresponding engine/context, and preserves banking state. Neither command
+is part of the routine test suite. Profile/engine/preset/viewport/screen are added
+to the ignored evidence; no new real SDK recording is implied by preference tests.
 
 ## Remaining evaluation
 

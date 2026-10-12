@@ -3,6 +3,10 @@ import type { PoolConnection } from 'mariadb';
 import { z } from 'zod';
 import { passwordHash } from './passwords.js';
 import { HttpError } from './errors.js';
+import {
+  defaultClientFields,
+  validateClientProfile,
+} from './browser-profile.js';
 
 const amount = z.number().int().min(0).max(100_000_000);
 export const generationSchema = z
@@ -21,6 +25,7 @@ export const generationSchema = z
     variant: z.enum(['baseline', 'value']).default('value'),
     eligible: z.boolean(),
     actor: z.enum(['human', 'automation']).default('human'),
+    ...defaultClientFields,
     checkingMinMinor: amount,
     checkingMaxMinor: amount,
     savingsMinMinor: amount,
@@ -28,6 +33,7 @@ export const generationSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
+    validateClientProfile(value, ctx);
     if (value.checkingMinMinor > value.checkingMaxMinor)
       ctx.addIssue({
         code: 'custom',
@@ -89,7 +95,7 @@ const lastNames = [
 
 export async function batchResult(c: PoolConnection, id: number) {
   const customers = await c.query(
-    'SELECT u.id,u.username,u.display_name AS displayName,u.actor,u.profile_id AS profileId,u.variant,u.eligible,b.checking_minor AS checkingMinor,b.savings_minor AS savingsMinor FROM customer_starting_balances b JOIN demo_users u ON u.id=b.user_id WHERE b.batch_id=? ORDER BY b.position',
+    "SELECT u.id,u.username,u.display_name AS displayName,u.actor,u.profile_id AS profileId,u.variant,u.eligible,b.checking_minor AS checkingMinor,b.savings_minor AS savingsMinor,COALESCE(p.device,'desktop') AS device,COALESCE(p.browser,'chrome') AS browser FROM customer_starting_balances b JOIN demo_users u ON u.id=b.user_id LEFT JOIN customer_browser_profiles p ON p.user_id=u.id WHERE b.batch_id=? ORDER BY b.position",
     [id],
   );
   return { batchId: id, customers };
@@ -155,6 +161,11 @@ export async function generateCustomers(
           b.actor,
         ],
       );
+      await c.query('INSERT INTO customer_browser_profiles VALUES (?,?,?)', [
+        id,
+        b.device,
+        b.browser,
+      ]);
       await c.query(
         'INSERT INTO customer_starting_balances VALUES (?,?,?,?,?)',
         [

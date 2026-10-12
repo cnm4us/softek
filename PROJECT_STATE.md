@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-11 UTC**.
-Current focus: **[006 — Bulk customer generation](plans/006-bulk-customer-generation.md)**.
-Latest completed implementation: **Plan 006 — bulk generation with persistent individual balances**.
-Current request: **Automated customer creation implemented and verified; no further implementation authorized this turn**.
-Next task: **Owner can generate the desired customer batch in Manage Customers; wait for the next prioritized feature. Remaining Clarity dashboard acceptance and broader automation stay deferred**.
+Last updated: **2026-10-12 UTC**.
+Current focus: **[007 — Customer device and browser profiles](plans/007-customer-device-browser-profiles.md)**.
+Latest completed implementation: **Plan 007 — customer Device/Browser selectors and pilot emulation**.
+Current request: **Saved Device/Browser selectors implemented and verified; no further implementation authorized this turn**.
+Next task: **Owner can assign customer Device/Browser preferences. Await the next prioritized change; actual Clarity profile classification and broader automation remain deferred**.
 
 ## Plan status registry
 
@@ -21,6 +21,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
 | 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | Completed | GEN-01–05 verified/deployed; 200-user test and small live batches; migration 0006 applied |
+| 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | Completed | DEV-01–05 verified/deployed; schema 7; compatible selectors and matching native profiles |
 
 ## Current reality
 
@@ -33,6 +34,11 @@ Active identifies focus and does not itself authorize additional scope.
   Human is the default; no login/visit/analytics opt-in occurs during generation.
   Password-free CSV supports later automation. Saved starting amounts survive
   reset; current amounts persist across logins. Manual users retain their templates.
+- Device and Browser selectors are available in customer creation, generation and
+  details, with an independent Save action. Existing customers default to Desktop/Chrome.
+  Seven compatible pairs are enforced. Saving preserves banking/sessions/consent;
+  manual visits keep their actual browser. The explicit pilot can use saved profiles,
+  with matching engines; broader scheduling and dashboard classification stay deferred.
 - Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
   replacement/disable revoke that user's sessions. Reset retires the run and retains
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
@@ -67,16 +73,16 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0006** applied to **demo and demo_test**, version 6 with no
-  pending/checksum drift; repeat application is a no-op. 0006 adds batch metadata
-  and starting balances; committed **de1f8e1** before application. The collection
-  switch/epoch remains intact. Next migration is **0007**. Existing banking/history tables are unchanged.
-- Root-only 0600 pre-0006 schema/data/ledger backup:
-  `/var/backups/softek/demo-before-0006-20261011T230452Z.sql`.
-  Earlier pre-0002/pre-0004/pre-0005 backups remain. All ten original runs and retained
+- Migrations **0001–0007** applied to **demo and demo_test**, version 7 with no
+  pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
+  preferences; committed **7eb7290** before application. Batch/balance tables and
+  the collection switch/epoch remain intact. Next migration is **0008**. Existing banking/history tables are unchanged.
+- Root-only 0600 pre-0007 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
+  Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-11T23-07-29-587Z**. Previous authenticated release:
-  **2026-10-11T22-42-00-516Z**. Both current links point to the new release.
+- Current release: **2026-10-12T00-46-07-747Z**. Previous authenticated release:
+  **2026-10-11T23-07-29-587Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -239,25 +245,55 @@ are intentionally retained; no full 100–200 production cohort was generated.
 Ignored, 0600 `artifacts/live-generation-check.json` records only identities,
 starting amounts and checked run IDs, without passwords.
 
+## Plan 007 result and verification
+
+DEV-01–05 complete: saved Device/Browser choices in create/bulk/details, independent
+protected save, compatible pairs and CSV columns; matching Playwright resolver and
+saved-customer option for the explicit pilot. Preferences preserve banking runs,
+balances, sessions and consent. Private pilot headers are scoped to our origin.
+
+| Check actually run | Result |
+| --- | --- |
+| `npm test` | **64/64 TAP entries passed**; protected updates, legacy defaults, SQL/API pair validation, manual/bulk persistence, retry/conflict, banking/session/consent preservation and both resets |
+| Browser suite | **45 journeys covered** at 360/390/1440px: 39 initial passes; all six affected bulk/profile tests passed on focused rerun after switching test locators to accessible combobox names |
+| Native profile checks | All seven pairs launch matching Chromium/Firefox/WebKit and prove UA, screen/viewport, density and actual tap/click delivery; vendor traffic intercepted |
+| Header isolation | Intercepted browser verifies private automation/capture headers on own origin and absent on vendor requests |
+| Typecheck/build/format | Passed; evaluation build ~597 kB / 174 kB gzip; existing B-011 advisory remains |
+| Migration/repeat | 0007 committed **7eb7290** before test/production application; scoped 0600 pre-0007 backup; both ledgers version 7, no drift/pending; repeats no-op |
+| Deploy | **2026-10-12T00-46-07-747Z**, matched evaluation profile; existing database collection switch On preserved |
+| Live profile checks | All seven saved pairs on public HTTPS: login, same owned banking run, mouse/tap menu and feature CTA; no vendor requests. One owned Automation check user retained |
+| Live admin/bulk checks | 360/1440px: profile selectors/save/reload, batch pairs, retry, CSV, login/relogin/reset; six owned generated check customers retained |
+| Public smoke | Both 360/1440px existing banking/enrollment/goals/contribution, rotation, feature/report, independent sign-outs and reset passed without Clarity |
+| Host/data/credentials | Health/DB connected, loopback service, Nginx syntax and unrelated hashes/links, permissions/allowlist/gates, original ten runs/counts/upload hash intact; secret scan passed across 108 source/document/build files |
+
+Initial UI failures were test label selectors, corrected to accessible combobox
+roles. WebKit reports no Android-style maxTouchPoints; tests now prove real
+`touchstart` delivery. No unresolved application failure remains. No real SDK
+collection was run this phase. The modified pilot's actual upload/withdrawal and
+Clarity's browser/device classification still require a deliberate later recording
+check; no classification guarantee or bot-filter evasion is claimed. Ignored 0600
+`artifacts/live-browser-profiles.json` and `artifacts/live-generation-check.json`
+record only test identities/profiles/run evidence, without passwords.
+
 ## Exact resume point
 
-1. Read AGENTS/START_HERE, state, PRODUCT; inspect Git and the actual live release.
-2. Latest customer-generation request is complete. Owner can choose count, shared
-   demo password and balance ranges in Manage Customers → Generate customers.
-   Select Human for manual logins; Automation is for trusted later harnesses.
-3. Wait for the next owner-prioritized change. Plan 003's scheduler/scenario UI
-   remains deferred; customer generation does not authorize browser automation.
-4. If owner resumes Plan 002, inspect actual masks, attribution, route rendering
-   and heatmaps using UUIDs from Manage Customers, then record observed acceptance.
-   Owner has reported mouse playback; it does not establish all dashboard checks.
-   Chris remains deferred. `clarity:pilot -- --collect` is deliberate collection;
-   do not rerun it as a routine smoke test.
+1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
+2. Latest request is complete. Owner can set Device/Browser when creating or
+   generating customers, or save independently in Customer Details. Human visits
+   keep their actual browser; preferences guide automated contexts only.
+3. Await the next prioritized change. Plan 003's assignment/scheduler remains
+   deferred. Saving preferences does not start jobs or authorize new SDK collection.
+4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
+   explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
+   Verify actual dashboard classification/recordings/masks/heatmaps, not just
+   uploads. Bot Detection remains On. Owner has reported mouse playback; Chris
+   remains deferred until the owner says the demo is ready.
 
 ## Git and operational handoff
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-Plans 005/006 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007 and the current Clarity implementation/checks/docs are
 committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

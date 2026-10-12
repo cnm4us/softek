@@ -225,6 +225,18 @@ heatmaps first; Chris's project invitation is deferred until the demo is ready.
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.
 
+## Customer device and browser preferences
+
+Customer Device and Browser preferences are saved separately from banking state.
+Create Customer, Generate Customers and Customer Details provide both selectors;
+bulk CSV includes their IDs. Existing customers default to Desktop/Chrome. Choices
+are Desktop (Chrome/Edge/Firefox/Safari), Android phone (Chrome), iPhone (Safari)
+and iPad (Safari). Only compatible combinations can be saved. Manual visits use
+the real browser; automated sessions use the saved emulation profile. Saving a
+preference does not reset banking, sign in, grant analytics consent or start a job.
+Clarity remains responsible for classification and bot filtering; dashboard
+acceptance is not implied by a saved profile. See [Plan 007](plans/007-customer-device-browser-profiles.md).
+
 ## First-milestone acceptance
 
 1. At narrow mobile and desktop widths, the full flow uses the same visual theme

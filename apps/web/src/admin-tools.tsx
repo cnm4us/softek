@@ -4,7 +4,9 @@ import { Copy, Plus, Upload, ArrowRight } from 'lucide-react';
 import { useAdmin } from './admin-session';
 import { Card, Alert } from './ui';
 import { getFeature } from '../../api/src/features';
-type User = {
+import { ClientProfileFields } from './client-profile-fields';
+import type { ClientProfile } from '../../api/src/client-profiles';
+type User = ClientProfile & {
   id: string;
   username: string;
   displayName: string;
@@ -204,6 +206,8 @@ export function CreateCustomer() {
         variant: f.get('variant'),
         eligible: f.get('eligible') === 'on',
         actor: f.get('actor'),
+        device: f.get('device'),
+        browser: f.get('browser'),
       });
       form.reset();
       navigate(`/controls/customers/${created.id}`, {
@@ -294,6 +298,7 @@ export function CreateCustomer() {
           <input name="eligible" type="checkbox" defaultChecked />
           Eligible for savings goals
         </label>
+        <ClientProfileFields />
         <button className="button" disabled={busy}>
           <Plus size={16} />
           Create customer
@@ -432,6 +437,32 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
               Reset password
             </button>
           </form>
+          <section aria-label="Automation profile">
+            <h3>Device and browser</h3>
+            <form
+              className="controls-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const data = new FormData(event.currentTarget);
+                void action(
+                  () =>
+                    request(`/admin/users/${u.id}/browser-profile`, {
+                      device: data.get('device'),
+                      browser: data.get('browser'),
+                    }),
+                  'Device and browser saved.',
+                );
+              }}
+            >
+              <ClientProfileFields
+                key={`${u.id}:${u.device}:${u.browser}`}
+                initial={u}
+              />
+              <button className="button secondary" disabled={busy}>
+                Save device and browser
+              </button>
+            </form>
+          </section>
           <details>
             <summary>Reset banking state</summary>
             <p className="small-note">

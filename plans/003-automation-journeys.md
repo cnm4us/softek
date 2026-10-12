@@ -15,11 +15,14 @@ controls before capture evaluation; this does not implement a scheduler or runne
 Plan 001 prepares stable controls, user identity, observations, and trusted
 automation labeling. Plan 002 supplies a small click/skip pilot. This plan covers
 the later system for assigning and repeatedly executing many user journeys.
+[Plan 007](007-customer-device-browser-profiles.md) prepares saved device/browser
+preferences and the explicit pilot resolver. Use that shared compatibility catalog
+when this plan is activated; preference saving does not schedule execution.
 
 ## Intended capabilities
 
 - Assign dedicated demo users to named journey definitions.
-- Configure viewport, pauses, banner click/skip, destination/action click/skip,
+- Use saved compatible device/browser profiles; configure pauses, banner click/skip, destination/action click/skip,
   and menu navigation back to Account Summary or another section.
 - Run each user in an isolated browser context with credentials from private
   configuration; retain stable user identity and server-derived actor labels.

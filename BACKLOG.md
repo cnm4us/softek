@@ -19,7 +19,7 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 594 kB (173 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 597 kB (174 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 
@@ -58,3 +58,8 @@ Chris's invitation is deferred by the owner until the demo is ready. Host/databa
 Bulk creation is now owned by [Plan 006](plans/006-bulk-customer-generation.md),
 ahead of the remaining Clarity review. Creating the full 100–200 production cohort
 and assigning browser journeys remain owner-selected work, separate from the tool.
+
+[Plan 007](plans/007-customer-device-browser-profiles.md) implements saved Device/Browser
+preferences and the existing pilot resolver ahead of Plan 003. Full scheduling,
+scenario assignment, random device distribution and actual Clarity classification
+remain deferred; no automatic recording starts when a preference is saved.

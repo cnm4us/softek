@@ -59,6 +59,8 @@ actual dashboard playback and heatmaps remain to be reviewed. Plan 005 adds twel
 landing pages, internal banner destinations and separate Feature Activity reporting;
 their CTAs only confirm a demo action. Plan 006 adds Generate Customers under
 Manage Customers: 1–200 unique fictional identities per batch, saved individual
-checking/savings balances, and a password-free CSV for later automation.
+checking/savings balances, and a password-free CSV for later automation. Plan 007
+adds compatible Device/Browser preferences and matching pilot emulation. Normal
+visits keep their actual browser; saving preferences does not start automation.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

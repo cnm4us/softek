@@ -13,12 +13,13 @@ verification evidence, and the resume point live in
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | M1-R01–08; depends on 000 |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | MENU-01–07; depends on 001; sequenced ahead of remaining Clarity capture work |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | FEAT-01–08; twelve pages/submenu/confirmation CTAs/separate engagement; depends on 001/004 |
-| 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | GEN-01–05; unique identities and persistent varied balances; depends on 001/004; current owner priority |
+| 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | GEN-01–05; unique identities and persistent varied balances; depends on 001/004 |
+| 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | DEV-01–05; saved compatible choices and pilot emulation; depends on 006; current owner priority |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
 Plan numbers reflect creation order. The current execution sequence is
-**000 → 001 → 004 → 005 → 006 → remaining 002 → 003**; existing IDs and completed task evidence are
+**000 → 001 → 004 → 005 → 006 → 007 → remaining 002 → 003**; existing IDs and completed task evidence are
 preserved. Plans 004/005 implement the final menu and feature surfaces. Remaining
 Plan 002 capture acceptance follows their verified release; completed settings and
 hosting evidence is retained. See PROJECT_STATE for release/check results.

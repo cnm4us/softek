@@ -3,7 +3,9 @@ import { Link } from 'react-router';
 import { useAdmin } from './admin-session';
 import { Card, Alert } from './ui';
 import { minor, money } from './api';
-type Customer = {
+import { ClientProfileFields } from './client-profile-fields';
+import type { ClientProfile } from '../../api/src/client-profiles';
+type Customer = ClientProfile & {
   id: string;
   username: string;
   displayName: string;
@@ -49,6 +51,8 @@ export function GenerateCustomers() {
         variant: data.get('variant'),
         eligible: data.get('eligible') === 'on',
         actor: data.get('actor'),
+        device: data.get('device'),
+        browser: data.get('browser'),
         ...amounts,
       });
       setResult(batch);
@@ -77,6 +81,8 @@ export function GenerateCustomers() {
         'checking_balance_usd',
         'savings_balance_usd',
         'activity_mode',
+        'device',
+        'browser',
       ],
       ...result.customers.map((c) => [
         c.id,
@@ -85,6 +91,8 @@ export function GenerateCustomers() {
         (c.checkingMinor / 100).toFixed(2),
         (c.savingsMinor / 100).toFixed(2),
         c.actor,
+        c.device,
+        c.browser,
       ]),
     ];
     const url = URL.createObjectURL(
@@ -252,6 +260,9 @@ export function GenerateCustomers() {
                     <option value="automation">Automation</option>
                   </select>
                 </label>
+              </div>
+              <div className="controls-form">
+                <ClientProfileFields />
               </div>
               <label className="checkbox-field">
                 <input name="eligible" type="checkbox" defaultChecked />
