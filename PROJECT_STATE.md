@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-12 UTC**.
-Current focus: **[010 — Admin customer impersonation](plans/010-admin-customer-impersonation.md), complete**.
+Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Implement Plan 010 — completed and deployed**.
-Next task: **Await the next owner-prioritized change; broader automation and real Clarity classification remain deferred**.
+Current request: **Test Playwright collection before building the broader automation suite**.
+Next task: **Owner checks the two October 12 pilot recordings in Clarity; dashboard sign-in is unavailable in the agent browser. Do not scale or claim playback acceptance yet.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Deferred | Owner reports mouse-behavior playback works; masks/heatmaps remain unverified; owner prioritizes customer generation; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Owner-authorized October 12 Playwright click/skip pilot passed transport and local-event checks; actual synthetic recordings/masks/heatmaps await owner inspection; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -222,6 +222,41 @@ Clarity session tags accumulate values; sending `none` on navigation describes
 current context but does not erase earlier session tags. Compare the event timeline
 and database attribution for exact entries. Events before opt-in are not backfilled.
 The optional public `?banner=` heatmap parameter remains deferred.
+
+## October 12 authorized Playwright capture pilot
+
+Owner requested testing whether Playwright activity appears in Clarity before
+building the broader suite. The existing CLI now sets `pilot_run` and
+`pilot_scenario` tags, names new users Clarity Pilot Click/Skip, includes scrolling
+and about 55 seconds of reading pauses per journey, and correctly labels Bot
+Detection as owner-reported Off. No app deployment, migration, collection-setting
+change, existing-customer reset or broader runner was required.
+
+`npm run clarity:pilot -- --collect --device=desktop --browser=chrome` passed two
+actual Chromium journeys on public HTTPS on **2026-10-12 14:30:12–14:32:09 UTC**.
+Clarity acknowledged **19 `/collect` uploads** (click 10, skip 9). Decline made no
+vendor requests; withdrawal cleared cookies/stopped traffic; admin made no vendor
+requests; no browser/CSP errors occurred. Independent protected-API history reads
+confirmed one EasyCoin feature view each, with CTA counts **click 1 / skip 0**.
+Typecheck, focused Prettier and Git whitespace checks passed; live health is
+200/DB connected. Routine test suites were not rerun for this isolated pilot change.
+
+- Project: `yvs5hp3ivb`; lookup tag `pilot_run`:
+  `pilot-0ac80155-b681-45cf-bc70-5818483b4bdf`.
+- Clarity Pilot Click user UUID: `1755bd32-8bab-482f-bba2-82668baf7015`.
+- Clarity Pilot Skip user UUID: `55fdff84-4f23-4c24-a155-df4454ede3d0`.
+- Two new Automation users/history are retained for dashboard lookup. Generated
+  random passwords were not logged/saved. Existing users were not used or reset.
+- Ignored 0600 evidence: `artifacts/clarity-pilot.json`, plus archived
+  `artifacts/clarity-pilot-20261012T143012Z.json`. These contain no credentials or
+  collection payloads; the latest manifest replaces the prior pilot's lookup file.
+
+The agent browser opened the project recordings URL but displayed an expired
+Microsoft sign-in session. **Actual recording inclusion, device/browser
+classification, playback fidelity, masking and heatmaps remain unverified.** The
+owner has been asked to find both recordings by UUID/time or the new custom tag
+(filter values may take time to appear). Wait for this evidence before expanding
+traffic. Plan 003 and Chris access remain deferred. No push performed.
 
 ## M2-C06 consent modal follow-up
 

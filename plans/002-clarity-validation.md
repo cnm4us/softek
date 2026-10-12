@@ -117,6 +117,19 @@ admin made no requests. UUID/run/visit/time lookup is in ignored 0600
 Recordings/heatmaps and
 actual masking replay remain unchecked; transport is not dashboard acceptance.
 
+Owner-authorized follow-up on **2026-10-12 14:30:12–14:32:09 UTC**:
+`npm run clarity:pilot -- --collect --device=desktop --browser=chrome` passed two
+longer Chromium click/skip journeys with scrolling and explicit reading pauses.
+Clarity acknowledged **19 uploads** (10 click / 9 skip). Decline/withdrawal/admin
+exclusion and browser/CSP checks passed. Independent local history confirmed one
+EasyCoin view per user and CTA counts **1 / 0**. The runner now sets custom tags
+`pilot_run` and `pilot_scenario`; lookup tag and customer UUIDs are recorded in
+[PROJECT_STATE.md](../PROJECT_STATE.md#october-12-authorized-playwright-capture-pilot)
+and ignored 0600 `artifacts/clarity-pilot.json`. Bot Detection is owner-reported Off.
+The agent's project browser requires Microsoft sign-in; owner dashboard inspection
+is requested. Actual recordings, classification, masking and heatmaps remain
+unchecked. No larger suite or traffic expansion was executed.
+
 ### M2-06 — Repeatable demonstration and findings
 
 - [x] Write a short presentation runbook covering user creation, copied Clarity

@@ -37,6 +37,7 @@ const requestedProfile = flags.has('customer')
       browser: flags.get('browser') ?? 'chrome',
     });
 const origin = 'https://demo.bawebtech.com';
+const pilotId = `pilot-${randomUUID()}`;
 const control = await request.newContext({ baseURL: origin });
 let browser: Browser | undefined, context: BrowserContext | undefined;
 const evidence: Record<string, unknown>[] = [];
@@ -117,6 +118,10 @@ try {
       uploads++;
   });
   for (const clicked of [true, false]) {
+    const startedAt = new Date().toISOString();
+    const scenario = clicked
+      ? 'banner-and-feature-cta-click'
+      : 'banner-and-feature-cta-skip';
     const password = selected
       ? process.env.PILOT_CUSTOMER_PASSWORD!
       : randomUUID();
@@ -131,7 +136,7 @@ try {
           data: {
             username,
             password,
-            displayName: 'Clarity Pilot',
+            displayName: clicked ? 'Clarity Pilot Click' : 'Clarity Pilot Skip',
             profileId: 'alex',
             variant: 'value',
             eligible: true,
@@ -159,6 +164,7 @@ try {
       ).json(),
     );
     assert.equal(state.analytics.enabled, true);
+    assert.equal(state.analytics.actor, 'automation');
     const before = vendorRequests;
     await page
       .getByRole('button', { name: 'Keep analytics off', exact: true })
@@ -172,7 +178,26 @@ try {
     await expect
       .poll(() => vendorRequests, { timeout: 15000 })
       .toBeGreaterThan(before);
-    await page.waitForTimeout(1500);
+    await page.evaluate(
+      ({ pilotId, scenario }) => {
+        const clarity = (
+          window as Window & {
+            clarity?: (command: string, ...args: string[]) => void;
+          }
+        ).clarity;
+        if (!clarity) throw new Error('Clarity loader is unavailable.');
+        clarity('set', 'pilot_run', pilotId);
+        clarity('set', 'pilot_scenario', scenario);
+      },
+      { pilotId, scenario },
+    );
+    console.log(`Capturing ${scenario}: ${state.user.id}`);
+    await page.mouse.move(100, 180);
+    await page.waitForTimeout(10000);
+    await page.mouse.wheel(0, 450);
+    await page.waitForTimeout(5000);
+    await page.mouse.wheel(0, -450);
+    await page.waitForTimeout(5000);
     if (clicked) {
       const href = await page
         .getByTestId('promotion-banner')
@@ -188,17 +213,21 @@ try {
     await page
       .getByRole('link', { name: 'EasyCoin Crypto', exact: true })
       .click();
+    await page.waitForTimeout(10000);
+    await page.mouse.wheel(0, 350);
+    await page.waitForTimeout(5000);
     if (clicked) {
       await page
         .getByRole('button', { name: 'Explore Crypto Investing', exact: true })
         .click();
       await expect(page.getByRole('status')).toBeVisible();
     }
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(10000);
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
       .getByRole('link', { name: 'Account Summary', exact: true })
       .click();
+    await page.waitForTimeout(10000);
     await expect
       .poll(() => uploads, { timeout: 20000 })
       .toBeGreaterThan(baseline);
@@ -207,9 +236,9 @@ try {
     );
     evidence.push({
       at: new Date().toISOString(),
-      scenario: clicked
-        ? 'banner-and-feature-cta-click'
-        : 'banner-and-feature-cta-skip',
+      startedAt,
+      pilotId,
+      scenario,
       userId: state.user.id,
       runId: state.runId,
       visitId: state.visitId,
@@ -262,11 +291,13 @@ try {
     JSON.stringify(
       {
         projectId: status.projectId,
+        pilotId,
         evidence,
         vendorHosts: [...vendorHosts],
         uploads,
         dashboardRecordingsVerified: false,
-        botDetection: 'owner-reported On; synthetic activity may be filtered',
+        botDetection:
+          'owner-reported Off; dashboard inclusion remains unverified',
       },
       null,
       2,
@@ -274,7 +305,7 @@ try {
     { mode: 0o600 },
   );
   console.log(
-    `Real SDK pilot passed: ${evidence.length} labeled journeys, ${uploads} acknowledged collection uploads. Dashboard playback remains unverified. Lookup evidence: artifacts/clarity-pilot.json`,
+    `Real SDK pilot passed: ${evidence.length} labeled journeys, ${uploads} acknowledged collection uploads. Clarity pilot_run: ${pilotId}. Dashboard playback remains unverified. Lookup evidence: artifacts/clarity-pilot.json`,
   );
 } finally {
   await context?.close();

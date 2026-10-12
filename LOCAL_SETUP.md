@@ -236,9 +236,12 @@ does not reset banking. The first command creates two labeled pilot customers
 with that pair; default without profile flags is Desktop/Chrome. Collection still
 requires the current evaluation deployment, global switch, capture header and
 explicit consent. Never use this command as a routine test. Bot Detection is
-owner-reported Off as of 2026-10-12 UTC; update the pilot's historical On evidence
-label before another capture. Observed uploads do not establish dashboard
-classification or inclusion.
+owner-reported Off as of 2026-10-12 UTC; the manifest labels this as owner-reported.
+The pilot sets `pilot_run` and `pilot_scenario` custom tags, includes reading pauses
+and scrolling, and saves UUIDs/times/tag values in ignored 0600
+`artifacts/clarity-pilot.json`. In project `yvs5hp3ivb`, filter recordings using
+that `pilot_run` value or the customer Clarity lookup UUID. Observed uploads do
+not establish dashboard classification or inclusion.
 
 Migration 0007 is additive and preserves 0006 starting balances. Keep applied SQL
 immutable; rollback code lacking these preferences ignores them. See PROJECT_STATE

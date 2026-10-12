@@ -216,9 +216,15 @@ logout/login and no admin collection/CSP errors. Private capture headers are rea
 from `.env`. Owned pilot users/history remain for lookup. Only UUIDs, timestamps,
 scenario names and transport counts are saved in ignored 0600
 `artifacts/clarity-pilot.json`; credentials and collection payloads are not saved.
+Each execution sets `pilot_run` and `pilot_scenario` Clarity custom tags and saves
+the same values in that manifest. Journeys include about 55 seconds of reading
+pauses plus scrolling, banner/CTA choices and menu navigation. Newly created users
+are named Clarity Pilot Click and Clarity Pilot Skip. Filter the project by the
+manifest's `pilot_run` value or by each user's copied Clarity lookup UUID; new
+custom-tag filter values may take time to appear.
 Bot detection was On during the original pilot; the owner reported switching it
-Off on 2026-10-12 UTC. Update the pilot's historical On evidence label before the
-next capture and verify dashboard inclusion/classification separately.
+Off on 2026-10-12 UTC. New evidence records the owner-reported Off setting;
+verify dashboard inclusion/classification separately.
 The second command instead uses an enabled saved Automation customer, with its
 password in private `PILOT_CUSTOMER_PASSWORD`. It reads saved preferences, creates
 the corresponding engine/context, and preserves banking state. Neither command
