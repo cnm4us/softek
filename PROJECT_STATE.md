@@ -4,7 +4,7 @@ Last updated: **2026-10-12 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Owner checks diagnostic replay/completed recording and the original two pilot recordings. Owner confirms the diagnostic appears in Clarity live view; replay/masking/heatmaps remain unverified. Broader suite is not yet authorized.**
+Next task: **Owner checks focused scroll replay and completed recordings after processing. Diagnostic live navigation/click/CTA replay is owner-confirmed; scroll transport is verified, but visual scroll replay/masking/heatmaps remain pending. Broader suite is not yet authorized.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | October 12 click/skip pilot and one diagnostic passed transport; playback/identity/tag payloads verified and owner confirms diagnostic live session appears; completed recordings/replay/masks/heatmaps remain pending; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Four small capture journeys; owner confirms live page/click/CTA replay; six physical scroll movements/eight uploaded scroll events verified; visual scroll replay/completed recordings/masks/heatmaps pending; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -290,6 +290,44 @@ payloads only in memory and saves boolean/count metadata, never raw bodies.
 - Owner replay inspection is requested. The two original recordings/tag filter
   have not yet been confirmed; do not attribute their absence definitively to
   processing delay. Keep traffic small until replay is reviewed.
+
+Owner playback feedback: the diagnostic shows screen changes, clicks and the
+EasyCoin CTA confirmation; scrolling was not observed. This confirms those live
+replay elements only. A collection-free geometry check used admin impersonation
+of the owned diagnostic customer (no banking changes) and found both pages can
+scroll at 1280×720. It recorded physical movements and made **zero vendor
+requests**; ignored evidence is `artifacts/pilot-scroll-geometry.json`. The
+original capture did not measure scroll offsets, so the cause of its unseen
+scrolling is not established; joining live after an earlier scroll is a possibility.
+
+One focused follow-up, **Clarity Pilot Scroll**, ran **07:56:48–07:58:12 PDT**
+(14:56:48–14:58:12 UTC) in Chromium at 1280×600. It verifies physical document
+offsets after each wheel input and pauses eight seconds between movements:
+Summary **4→504→4→404→4 px**; EasyCoin **0→300→0 px**, followed by the CTA
+confirmation. All six movement assertions passed. **Eleven HTTP 204 uploads**
+matched the project and included **eight Scroll events** plus playback data,
+custom identity and the diagnostic tag. No browser/analyzer error or private
+headers on collection uploads occurred. Raw payloads were inspected only in
+memory and not saved.
+
+- Scroll customer UUID: `0497d1dc-dfd4-4401-b661-873a70cac906`; native Clarity user
+  ID **`91iamz`**, session `1oi305m`.
+- Ignored host-local helper: `artifacts/diagnose-clarity-scroll.ts`; 0600 evidence:
+  `artifacts/clarity-scroll-diagnostic.json`.
+- There are now **four newly created pilot customers** retained for lookup. The
+  owner's account and ten generated customers were not used/reset. Impersonation
+  geometry visits on the diagnostic are labeled/excluded from normal reports.
+- Owner has been asked to rewind and inspect the focused scroll replay. Completed
+  recording availability and the original two recordings remain unconfirmed.
+  Live visibility is not full presentation readiness. No broader traffic run,
+  deployment, application-code change or migration was required for diagnostics.
+
+The owner noted Live entries disappear when the customer stops. Microsoft
+documents inactive watched entries in that list for five minutes and a distinct
+processed-recording retention period (normally 30 days). Live has fewer supported
+filters; do not use missing live custom-tag filters as proof of upload failure.
+References: [Live recordings](https://learn.microsoft.com/en-us/clarity/session-recordings/clarity-real-time),
+[recording retention](https://learn.microsoft.com/en-us/clarity/faq#how-long-are-my-recordings-retained).
 
 ## M2-C06 consent modal follow-up
 

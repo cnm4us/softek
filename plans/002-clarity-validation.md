@@ -140,6 +140,16 @@ remain unverified; owner playback inspection is requested. See the current state
 for the ignored diagnostic evidence and exact next check. The owner's own and
 ten batch-created customers were not used/reset.
 
+Owner replay feedback confirms screen changes, clicks and EasyCoin CTA
+confirmation, but no visible scrolling. A collection-free geometry check confirms
+both pages can scroll. One focused capture on a fourth owned pilot customer at
+**07:56–07:58 PDT** verified six actual document scroll movements and **eight
+Scroll events in eleven acknowledged HTTP 204 payloads**, plus playback/identity
+tags. Native Clarity user ID `91iamz`, session `1oi305m`; ignored 0600 evidence is
+`artifacts/clarity-scroll-diagnostic.json`. Owner visual scroll replay and completed
+recording availability remain pending. Do not infer full replay/masking/heatmap
+acceptance from live CTA playback or transport counts.
+
 ### M2-06 — Repeatable demonstration and findings
 
 - [x] Write a short presentation runbook covering user creation, copied Clarity
