@@ -270,3 +270,22 @@ success removes the card while retaining the search. The local adoption and
 feature reports no longer include deleted customers' active or retired runs.
 Shared banners and other customers remain intact. Prior batch requests cannot
 recreate deleted customers. See [Plan 009](plans/009-delete-customers.md).
+
+## Admin customer impersonation — Plan 010
+
+Authenticated admins can use **Impersonate customer** on an enabled customer's
+admin details page without their password, opening Account Summary in their
+actual saved demo state. A persistent **Viewing as [display name]** indicator
+identifies the mode. Normal customer actions and resets persist; eligibility,
+activity assignment and saved device/browser preferences remain unchanged.
+
+**Exit to Admin**, immediately above Customer Menu → Sign out, appears only in
+this mode and returns to the selected customer's details. Sign out instead opens
+customer login; both preserve admin access and end impersonation. Sessions expire
+with/revoke alongside the initiating admin session and customer access changes.
+Clarity collection and its consent UI are excluded. Local visits are labeled
+Admin impersonation, retained in individual history and excluded from normal
+adoption/feature report counts. Admin-only runs enter customer cohorts after a
+customer visit, retaining original run-start dates. Business effects remain, but
+admin enrollment does not imply customer adoption. See
+[Plan 010](plans/010-admin-customer-impersonation.md) for verified acceptance.

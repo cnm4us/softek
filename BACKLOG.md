@@ -73,8 +73,8 @@ Savings Goals eligibility.
 customer deletion. Local report history is removed; external Clarity recording
 management and bulk retention/cleanup remain separate later work.
 
-[Plan 010](plans/010-admin-customer-impersonation.md) scopes admin entry into a
+[Plan 010](plans/010-admin-customer-impersonation.md) implements admin entry into a
 customer's real demo state and conditional Exit to Admin, with Clarity excluded
-and local impersonation provenance. Implementation awaits the owner's instruction.
+and local impersonation provenance. IMP-01–06 are verified/deployed.
 Recording impersonation visits is separate later scope. The owner declined an
 independent OS selector; retain existing device/browser presets.

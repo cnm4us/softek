@@ -4,10 +4,9 @@ Lifecycle: [PROJECT_STATE.md](../PROJECT_STATE.md#plan-status-registry).
 Depends on Plans 001/004 (independent sessions and customer navigation), 002
 (collection boundaries), and 006–009 (customer state and administration).
 
-The owner requested this implementation plan. Application changes, migrations,
-deployment and new recordings have not been performed or authorized by the
-planning request. The following design incorporates the preceding discussion;
-technical choices below are proposed implementation decisions.
+The owner approved implementation after reviewing this plan. IMP-01–06 are
+implemented, verified and deployed; release/evidence is in PROJECT_STATE.
+No real Clarity recording was started during this phase.
 
 ## Intended experience
 
@@ -95,7 +94,7 @@ Label local activity using a server-derived visit source:
 `customer` or `admin_impersonation`. Preserve the customer's existing run-level
 Human/Automation actor and campaign variant. The two concepts remain separate.
 
-- Backfill existing visits as `customer`; every new visit is assigned its source
+- Classify existing visits as `customer` without rewriting rows; every new visit is assigned its source
   by authentication, not client input. Visit reuse includes source/session context,
   so ordinary and impersonated activity cannot share one visit.
 - Adoption and Feature Activity reports exclude impersonated observations from
@@ -116,9 +115,10 @@ Human/Automation actor and campaign variant. The two concepts remain separate.
 
 ## Planned schema migration
 
-Reserve the next available migration, currently **0008**, for additive
-impersonation session storage and visit-source metadata/indexes. Finalize its name
-and columns after inspecting the actual ledger at implementation time.
+Committed migration **0008_admin_impersonation.sql** adds impersonation sessions
+and `visit_contexts`, preserving existing table layouts and historical rows.
+Missing historical context classifies as customer activity. Both ledgers are
+version 8 with no pending work/checksum drift; repeated application was a no-op.
 
 Use explicit foreign-key/revocation behavior for admin and customer deletion.
 Retain visit provenance after session removal so historical classification does
@@ -134,21 +134,21 @@ Applied SQL remains immutable; partial failure follows the migration runbook.
 
 ## Implementation tasks
 
-- [ ] IMP-01 — Finalize authentication context, schema, retry semantics, revocation
+- [x] IMP-01 — Finalize authentication context, schema, retry semantics, revocation
   and report attribution. Record design in ARCHITECTURE; commit the additive SQL
   and verify migration contracts before production application.
-- [ ] IMP-02 — Implement protected entry/exit, shared session resolution and CSRF;
+- [x] IMP-02 — Implement protected entry/exit, shared session resolution and CSRF;
   integrate normal logout, admin revocation, password replacement, disable and
   deletion. Reuse locked run creation and ordered banner selection.
-- [ ] IMP-03 — Add the details-page button, pending/error behavior, persistent
+- [x] IMP-03 — Add the details-page button, pending/error behavior, persistent
   viewing indicator and conditional menu action. Clear stale context, handle
   cross-tab transitions and expired/missing customers. Reuse shared mobile theme.
-- [ ] IMP-04 — Enforce collection exclusion, visit provenance and source-aware
+- [x] IMP-04 — Enforce collection exclusion, visit provenance and source-aware
   events/report denominators. Label customer history; preserve ordinary actor,
   consent, feature and banking behavior.
-- [ ] IMP-05 — Complete API/browser acceptance below, typecheck/build/format and
+- [x] IMP-05 — Complete API/browser acceptance below, typecheck/build/format and
   migration checks. Record actual results and limitations; no vendor collection.
-- [ ] IMP-06 — Once implementation is authorized, apply/deploy using the existing
+- [x] IMP-06 — Once implementation is authorized, apply/deploy using the existing
   evaluation profile without changing the global collection switch or project
   settings. Verify public HTTPS with newly owned fixtures only; remove those
   fixtures through the protected delete API. Update state/runbooks/testing.
@@ -176,3 +176,15 @@ Routine tests and the live impersonation smoke collect no real Clarity data.
 
 Completion requires deployed entry/navigation/exit and verified session/report/
 collection boundaries. A written plan or successful redirect alone is insufficient.
+
+Verified: 76 API/native/migration TAP entries, 48 banking browser checks and
+18 Clarity-stub privacy checks, including nine new impersonation checks across
+360/390/1440px. Typecheck, evaluation build and format passed. Public 360/1440px
+checks used two temporary Automation customers, verified actual persistent goals
+and ordinary login, and deleted them afterward. No vendor requests occurred;
+original customer/state fingerprints and shared host/assets/settings matched.
+The scoped schema/data backup and tested schema-8 build recovery archive are
+root-only 0600. No rollback or real SDK recording was performed.
+
+Final refinement: failed Exit broadcasts recovery to other tabs. Three focused
+error/expiry checks passed; the final rebuild/deployment and public checks passed.

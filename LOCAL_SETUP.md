@@ -176,6 +176,40 @@ customers (possibly none). Use Start new batch to create new customers. Previous
 collected Clarity recordings are not removed by this local operation. There is no
 schema migration or automatic deletion of existing customers during deployment.
 
+## Impersonate a customer
+
+Open **Admin Menu → Manage Customers → customer details**, then **Impersonate
+customer**. Enabled Human and Automation customers both work without their
+password. Account Summary uses their actual saved state; a **Viewing as [name]**
+indicator remains visible while navigating. Actions and resets persist for that
+customer. This uses your actual browser/device, not their automation preference.
+
+In the Customer Menu, **Exit to Admin** is immediately above Sign out and returns
+to that customer's details. Sign out instead opens customer login. Both end
+impersonation while preserving admin access; neither restores an earlier customer
+login. Entry ends this browser's previous ordinary customer session, leaving
+other browsers unaffected. Other open customer tabs stop collection and return
+to Admin during entry. Refresh retains mode in the initiating tab.
+
+Impersonation expires with its initiating admin session (at most one hour).
+Admin logout/expiry, customer password replacement, disable and deletion end
+access. Expired access returns to Admin; a deleted target returns to the list.
+Clarity is always off during impersonation, with no analytics opt-in shown.
+Local customer history labels **Admin impersonation**; default Adoption and
+Feature Activity counts exclude those observations. Admin-only runs join cohorts
+only after a customer visit, using their original run-start dates. Persisted
+admin enrollment is not counted as a customer enrollment.
+
+Migration 0008 adds tables without changing existing table layouts. The pre-0008
+backup is `/var/backups/softek/demo-before-0008-20261012T061846Z.sql`; tested API/web
+build recovery bundle is `/var/backups/softek/schema8-tested-build-20261012-final.tar.gz`
+with workspace package manifests, both root-only 0600. Recovery requires installing
+matching API dependencies and the existing private runtime environment; no secrets
+are in the build bundle. Prefer the tested schema-8 code for recovery. Earlier
+releases ignore visit provenance and would mix impersonation observations into
+reports; do not use them as public rollback targets after impersonation activity.
+No rollback was executed. Applied migrations remain immutable.
+
 ## Customer device and browser
 
 Create Customer and Generate Customers include Device/Browser selectors. For an

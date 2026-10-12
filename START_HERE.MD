@@ -66,5 +66,7 @@ Plan 008 removes redundant starting-account template selectors and keeps Savings
 Goals eligibility independent; generated balances still vary per customer.
 Plan 009 adds permanent Delete on each customer card, removing local banking and
 report history after confirmation; original batch retries cannot recreate them.
+Plan 010 adds admin impersonation from customer details, conditional Exit to Admin,
+admin-bound sessions and labeled local activity with Clarity excluded.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

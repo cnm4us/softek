@@ -96,7 +96,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **7**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. The actual applied version is **8**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 

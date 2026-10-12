@@ -1,6 +1,6 @@
 # Testing
 
-M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation and Plans 008/009 starting-account/deletion controls are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation and Plans 008/009/010 starting-account/deletion/impersonation controls are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -76,7 +76,7 @@ an owned probe, checking old rows/ordinals, new values and repeat no-op.
 `tests/clarity.test.ts` adds four admin/collection scenarios: authorization,
 origin/CSRF and strict settings; explicit profile/runtime readiness; revision
 conflicts and retry-safe persistence; human consent availability versus ordinary
-and specifically authorized automation. The Node runner reports **66 passing
+and specifically authorized automation. The Node runner reports **76 passing
 entries** including parent tests and three standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
@@ -253,3 +253,40 @@ confirmation cancellation, rejected-request feedback/retry, pending disabled
 state, successful filtered-list refresh, invalidated customer session and missing
 details. Existing card navigation journeys use the dedicated link. Public checks
 delete only newly created owned test customers with vendor collection excluded.
+
+## Plan 010 — admin customer impersonation
+
+`tests/impersonation.test.ts` covers protected entry/CSRF/origin/strict inputs,
+retry cookie reissue and one run/banner, Human/Automation access, preserved
+banking, context mismatch, Clarity exclusion even with capture headers, labeled
+history, default report exclusion and customer milestones after admin first use.
+It checks repeated exit, session replacement, customer sign-out, reset, revocation
+by password/disable/expiry/logout/deletion and concurrent entry. Fixture users,
+admin sessions and collection settings are cleaned/restored afterward.
+
+`tests/impersonation-migration.test.ts` applies the exact committed 0008 SQL to
+owned probe tables through the test contract runner, verifies creation, repeat
+no-op, FK rejection and unchanged retained visits/table layout, then removes only
+its probes/contract ledger. Historical missing visit context means customer.
+
+Three new Clarity-stub browser journeys cover entry/rotation/CTA/history/exit,
+prior opted-in activity stopping across tabs, independent sign-out, pending/error
+recovery and admin expiry. Combined privacy coverage is **18 checks** across
+360/390/1440px; all vendor URLs are fulfilled locally or blocked. Existing banking
+coverage remains **48 checks**. API/native/migration coverage is **76 TAP entries**.
+
+Public checks at 360/1440px created two owned Automation customers, used actual
+impersonation, feature/menu navigation, enrollment/goal writes, ordinary login and
+independent sign-outs, and removed the fixtures through protected Delete. Original
+customer/state fingerprints, collection settings and shared assets/host configs
+were unchanged; zero vendor requests and page errors. Password-free evidence is
+ignored 0600 `artifacts/plan010-live.json`. Initial live harness issues were BigInt
+snapshot serialization and checking health before API readiness; corrected and
+rerun successfully without failed customer fixtures. No real recording or rollback
+was performed. Tests run sequentially; no Clarity pilot is a routine acceptance step.
+
+A final failed-exit recovery fix was checked with three focused browser reruns:
+another authenticated customer tab returns to Admin instead of remaining paused
+when Exit receives an error; the initiating page shows the error and stays usable.
+Typecheck/format/evaluation build and public smoke were repeated for the final
+release. Broader suites were not repeated after this isolated error-path change.

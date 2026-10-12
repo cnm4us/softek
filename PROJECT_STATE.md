@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-12 UTC**.
-Current focus: **[010 — Admin customer impersonation](plans/010-admin-customer-impersonation.md), planning only**.
-Latest completed implementation: **Plan 009 — permanent customer-card deletion and generation retry protection**.
-Current request: **Draft the impersonation implementation plan; no application implementation requested yet**.
-Next task: **Owner review of Plan 010; begin IMP-01 only after implementation is requested**.
+Current focus: **[010 — Admin customer impersonation](plans/010-admin-customer-impersonation.md), complete**.
+Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
+Current request: **Implement Plan 010 — completed and deployed**.
+Next task: **Await the next owner-prioritized change; broader automation and real Clarity classification remain deferred**.
 
 ## Plan status registry
 
@@ -24,7 +24,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | Completed | DEV-01–05 verified/deployed; schema 7; compatible selectors and matching native profiles |
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
-| 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Active (planning) | Detailed IMP-01–06 plan drafted; no application changes, SQL application, deployment or new collection |
+| 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 
 ## Current reality
 
@@ -56,6 +56,13 @@ Active identifies focus and does not itself authorize additional scope.
   Deletion revokes sessions. Batch retries return surviving customers, including
   an empty batch, without recreating deleted identities. Existing Clarity recordings
   are outside the local deletion operation.
+- Customer details now offer **Impersonate customer** for enabled Human/Automation
+  users. Account Summary and customer actions use their saved state, with a
+  **Viewing as** indicator and conditional **Exit to Admin** above Sign out. Admin
+  sessions bound to impersonation are checked on every customer request; expiry,
+  logout, password replacement, disable and deletion revoke access. Clarity is
+  always excluded, local visits retain provenance, and default reports exclude
+  impersonated activity/admin-only cohorts. Other tabs return to Admin on entry.
 - Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
   replacement/disable revoke that user's sessions. Reset retires the run and retains
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
@@ -91,16 +98,21 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0007** applied to **demo and demo_test**, version 7 with no
+- Migrations **0001–0008** applied to **demo and demo_test**, version 8 with no
   pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
   preferences; committed **7eb7290** before application. Batch/balance tables and
-  the collection switch/epoch remain intact. Next migration is **0008**. Existing banking/history tables are unchanged.
+  the collection switch/epoch remain intact. Next migration is **0009**. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application.
+- Root-only 0600 pre-0008 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0008-20261012T061846Z.sql`; tested schema-8
+  API/web recovery build `/var/backups/softek/schema8-tested-build-20261012-final.tar.gz`.
+  Earlier code ignores provenance and is unsuitable for report rollback after
+  impersonation activity. No rollback performed.
 - Root-only 0600 pre-0007 schema/data/ledger backup:
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-12T04-47-42-220Z**. Previous authenticated release:
-  **2026-10-12T01-14-03-090Z**. Both current links point to the new release.
+- Current release: **2026-10-12T06-30-44-829Z**. Previous authenticated release:
+  **2026-10-12T06-18-47-850Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -369,28 +381,62 @@ external to the local operation. Public smoke creates customers; it was not run
 for this cleanup. The owner has since generated batch 21; inspect the current
 cohort rather than relying on earlier test-cohort manifests.
 
-## Plan 010 — planning handoff
+## Plan 010 — admin customer impersonation
 
-Drafted the detailed plan for an Impersonate customer action on the admin details
-page, actual saved customer banking, a viewing indicator and Exit to Admin just
-above customer Sign out. Proposed sessions are bound to the initiating admin;
-revocation and stale-tab safeguards apply to every customer request. Clarity is
-excluded throughout impersonation; server-derived visit provenance separates
-local history/reporting from genuine customer activity. An additive migration is
-planned, currently next number 0008; no SQL file or application code was changed.
+Owner approved implementation after reviewing the plan. IMP-01–06 are complete.
+Customer details have password-free admin entry; the shared customer shell shows
+Viewing as and Exit to Admin immediately above Sign out. Entry ends this browser's
+previous customer session; other browsers remain independent. Refresh preserves
+mode. Exit returns to the selected admin details, or list for a deleted target;
+customer Sign out opens login, preserving admin access. Cross-tab transitions
+stop prior collection, clear stale state and direct other customer tabs to Admin.
+A context ID plus separate cookie/CSRF prevents stale pages acting on another user.
 
-The plan includes source-aware milestone deduplication/cohort treatment, banner
-rotation, entry/exit/retry semantics, migration/rollback and focused acceptance.
-Verified changed-document links and Git whitespace only; no application tests,
-DB writes, live impersonation or vendor capture. OS selector changes were declined.
+Hashed sessions bind to initiating admin/target/expiry, with user → admin → session
+locks and per-request checks. Customer disable/password/deletion and admin expiry/
+logout revoke access. Retry uses an HMAC-derived token to reissue the same cookie,
+run and banner after a lost response; ended requests cannot resurrect a session.
+Actual banking changes persist. Actor/profile preferences remain unchanged.
+
+Migration 0008 adds two tables, preserving original layouts/data and historical
+source interpretation. New visit provenance survives session termination. Default
+Adoption/Feature Activity counts exclude impersonation; admin-only runs enter
+cohorts after a customer visit using original run-start dates. Source-aware event
+keys/first-use checks and context-bound receipts separate real observations.
+Customer history labels Admin impersonation. Clarity is server/client excluded,
+even with prior consent/capture headers; no analytics prompt appears in this mode.
+
+| Check actually run | Result |
+| --- | --- |
+| API/native/migration suite | **76/76 TAP entries passed**, including eight impersonation cases and exact committed migration probes; retained visits/layout and repeat/FK checks |
+| Banking browser suite | **48/48** at 360/390/1440px; existing state/features/reports/admin/delete/generation behavior |
+| Clarity-stub privacy suite | **18/18** at the same widths; nine new impersonation checks, prior-consent cross-tab stop, error/retry and expiry recovery; no real SDK |
+| Typecheck/build/format | Passed; matched evaluation bundle 599.45 kB / 174.57 kB gzip; existing B-011 advisory |
+| Migration/deploy | 0008 committed **c758cc4**, scoped root-only backup, both ledgers version 8 with no pending/drift, repeats no-op; final release **2026-10-12T06-30-44-829Z** |
+| Public HTTPS | 360/1440px entry, CTA/menu/refresh, actual enrollment/goal, correct exit, ordinary login preserving goal and independent sign-outs; two owned fixtures deleted afterward |
+| Preservation | Original customer/banking/history/session/settings fingerprints unchanged; shared assets and unrelated Nginx hashes/links intact; active loopback 3100, HTTPS/DB health and release links matched |
+| Collection | Zero vendor requests/page errors in live checks; current evaluation flags and global toggle On preserved; no new actual Clarity recording |
+| Credentials/docs | Secret scan and local links/Git whitespace checked; runtime allowlist/permissions and root-only recovery files verified |
+
+Initial new tests used an incorrect feature ID/CTA selector and a Human fixture
+under the automation-only harness header; corrected. One run was disrupted by an
+API hot reload during edits; final complete suites passed. A final exit-error fix
+prevents other tabs remaining paused after a failed request; three focused
+mobile/desktop recovery checks passed, followed by a rebuilt deployment and
+repeated public verification. The live harness first
+needed BigInt-safe snapshot serialization and a readiness wait after API restart;
+no customer fixture existed in those failed setup attempts. Successful public
+fixtures were removed; ignored 0600 `artifacts/plan010-live.json` contains only
+password-free results. No unresolved failure, public rollback or real SDK capture
+remains. The owner declined an independent OS selector; existing presets remain.
 
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Review Plan 010. This turn authorized a plan only; when implementation is
-   requested, begin IMP-01 against the actual session/event/report code and ledger.
-   Plan 009 remains complete; deletion/retry protection must remain intact.
-3. Plan 003's assignment/scheduler and new Clarity profile classification remain
+2. Plan 010 is complete and deployed; verify actual Git/release before new work.
+   Entry/exit, source attribution and collection exclusion are implemented.
+   Plans 008/009 account/deletion/retry protection remain intact.
+3. Await the next owner-prioritized change. Plan 003's assignment/scheduler and new Clarity profile classification remain
    deferred. Keep existing device/browser presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
@@ -406,8 +452,8 @@ DB writes, live impersonation or vendor capture. OS selector changes were declin
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009 and the current Clarity implementation/checks/docs are
-committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010 and the current Clarity implementation/checks/docs are
+committed locally on `main`; Plan 010 application commit **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.
