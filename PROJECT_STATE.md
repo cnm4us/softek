@@ -43,7 +43,8 @@ Active identifies focus and does not itself authorize additional scope.
   Seven compatible pairs are enforced. Saving preserves banking/sessions/consent;
   manual visits keep their actual browser. The explicit pilot can use saved profiles,
   with matching engines; broader scheduling and dashboard classification stay deferred.
-- Production now has **one customer**, the owner-designated preserved account.
+- The owner-requested cleanup left one preserved customer; the owner has since
+  created another batch (batch 21). The current customer count is not rechecked.
   The authorized cleanup deleted 37 other customers through the protected API.
   Preserved identity/credentials, runs, accounts, goals and configuration matched
   their pre-cleanup snapshot; banners, assets, collection settings and anonymous
@@ -169,7 +170,8 @@ owner-observed capture/playback, not reviewed masks, attribution or heatmaps. Th
 owner emphasized the demo is still far from ready for Chris.
 
 Project **`yvs5hp3ivb`** and settings are owner-confirmed: **Balanced masking,
-cookies On, bot detection On, consent Required**. These are reported settings,
+cookies On, bot detection Off, consent Required**. The owner reported switching
+Bot Detection Off on 2026-10-12 UTC (initially On). These are reported settings,
 not dashboard inspection. The owner authorized enabling collection and the admin
 control. **Chris is deferred until the owner says the demo is ready.**
 
@@ -378,7 +380,11 @@ earlier test-cohort manifests.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just
-   uploads. Bot Detection remains On. Owner has reported mouse playback; Chris
+   uploads. Bot Detection is owner-reported Off as of 2026-10-12 UTC; update the
+   pilot's hardcoded `botDetection` evidence label before the next capture.
+   OS identities are preset-derived; no independent OS selector is implemented.
+   Verify user agent/platform consistency and actual Clarity classification before
+   claiming OS emulation acceptance. Owner has reported mouse playback; Chris
    remains deferred until the owner says the demo is ready.
 
 ## Git and operational handoff

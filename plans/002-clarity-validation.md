@@ -20,6 +20,8 @@ scenario-builder UI remain [Plan 003](003-automation-journeys.md) scope.
 - [x] Record owner-reported settings for project `yvs5hp3ivb` on
   `demo.bawebtech.com`: Balanced masking, cookies on, bot detection on, and cookie
   consent required (2026-10-11 UTC). Owner authorized collection and the admin switch in the current phase.
+  The owner subsequently reported switching Bot Detection Off on 2026-10-12 UTC;
+  no independent dashboard inspection or new capture was performed for this change.
   Real capture/consent/masking behavior still requires M2-04 verification.
 - Chris invitation/access is deferred by the owner: evaluation is owner-only until
   the demo is ready. Team access is separate from banking login; no Microsoft
@@ -98,10 +100,10 @@ continue but the real-recording checks remain incomplete.
   click versus skip, action versus skip, explicit waits, and menu returns.
 - [ ] Start with a small number of journeys; verify actual recordings before
   expanding traffic. Keep timestamps/user IDs/scenario labels for lookup.
-- [ ] Review bot detection with the project owner. Clarity excludes detected bot
+- [x] Review bot detection with the project owner. Clarity excludes detected bot
   traffic from analytics by default and provides an advanced-setting toggle.
-  If adjusted for the pilot, document the change, label synthetic data, and
-  restore the agreed project setting afterward.
+  The owner chose Off and reported changing it on 2026-10-12 UTC. Keep synthetic
+  data labeled; any subsequent setting change requires owner direction.
 - [ ] Record the difference between harness success, database observations, and
   what Clarity actually captured. Do not promise every synthetic run is recorded.
 
@@ -111,7 +113,8 @@ Transport evidence: `npm run clarity:pilot -- --collect` passed two labeled
 click/skip journeys at 360px on 2026-10-11 UTC; ten `/collect` responses acknowledged.
 Decline made no vendor requests; withdrawal removed cookies and stopped traffic;
 admin made no requests. UUID/run/visit/time lookup is in ignored 0600
-`artifacts/clarity-pilot.json`. Bot detection remains On. Recordings/heatmaps and
+`artifacts/clarity-pilot.json`. Bot detection was On for that pilot (now owner-reported Off).
+Recordings/heatmaps and
 actual masking replay remain unchecked; transport is not dashboard acceptance.
 
 ### M2-06 — Repeatable demonstration and findings

@@ -216,7 +216,9 @@ logout/login and no admin collection/CSP errors. Private capture headers are rea
 from `.env`. Owned pilot users/history remain for lookup. Only UUIDs, timestamps,
 scenario names and transport counts are saved in ignored 0600
 `artifacts/clarity-pilot.json`; credentials and collection payloads are not saved.
-Bot detection stays On and may exclude these synthetic recordings.
+Bot detection was On during the original pilot; the owner reported switching it
+Off on 2026-10-12 UTC. Update the pilot's historical On evidence label before the
+next capture and verify dashboard inclusion/classification separately.
 The second command instead uses an enabled saved Automation customer, with its
 password in private `PILOT_CUSTOMER_PASSWORD`. It reads saved preferences, creates
 the corresponding engine/context, and preserves banking state. Neither command
