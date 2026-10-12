@@ -354,10 +354,11 @@ playback remains valid evidence, but post-session searchable recording availabil
 is still unverified. The cause of the unavailable recordings is unknown; do not
 infer deletion, bot filtering, or completed processing from this observation.
 
-Latest owner observation: **two sessions labeled Headless Chrome are visible**.
-These may be pilot captures, but their identities and whether they are playable
-from the regular Recordings list after the session ends are not yet confirmed.
-Owner has been asked whether both open/play there or are only visible in Live users.
+Latest owner observation: **two sessions labeled Headless Chrome appear in the
+Dashboard, not in Recordings**. This confirms owner-observed dashboard session
+counts for that browser label, not saved-recording availability or a match to
+specific pilot customers. Live replay was observed earlier; post-session recording
+availability remains unresolved. No additional capture was run for this update.
 
 ## M2-C06 consent modal follow-up
 
