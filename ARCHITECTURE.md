@@ -1,5 +1,32 @@
 # Architecture
 
+## Admin impersonation — Plan 010
+
+Owner authorized implementation after reviewing Plan 010. Dedicated hashed
+impersonation sessions bind a customer to an initiating admin session; every
+customer request validates both under user → admin → impersonation locks.
+An independent HttpOnly cookie and nonsecret browser context ID prevent stale
+pages from acting under a switched identity. Entry ends only this browser's
+ordinary customer session; admin access and other browsers remain independent.
+Exit/sign-out/revocation never restore a prior customer login.
+
+Migration 0008 adds session and visit-context tables without altering existing
+table layouts. Missing historical visit context means customer activity. New
+visits carry server-derived provenance, which survives session termination.
+Impersonated actions persist in the customer's actual banking run but are
+excluded from Clarity and customer report counts/cohorts. Run actor remains the
+customer's Human/Automation assignment. Source-aware keys isolate milestones;
+request receipts bind impersonation context. New ordinary visits seed eligibility
+when a run was first created by an admin. No customer enrollment is inferred from
+an admin enrollment. Admin-only runs enter cohort counts only after a customer
+visit, retaining their original run-start dates.
+
+Retry entry tokens are derived with the session-secret HMAC from admin identity,
+target and request UUID, allowing the same cookie to be reissued after a lost
+response without storing raw tokens. Ended/expired requests cannot be resumed;
+a new entry requires a new request ID. Recordings of impersonation are out of
+scope. The owner declined additional OS selectors.
+
 Status: M1 and Plans 001/004/005 implemented. MariaDB remains authoritative for banking
 state and adoption reporting; live Clarity evaluation is pending in M2.
 
