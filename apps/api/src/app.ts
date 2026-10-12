@@ -15,6 +15,7 @@ import { databaseConfig } from './config.js';
 import { clarityStatus, customerAnalytics } from './clarity.js';
 import { HttpError } from './errors.js';
 import { authenticatedRun, registerRevision } from './revision.js';
+import { customerToken, customerContext } from './customer-context.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
@@ -75,7 +76,7 @@ export function createApp(test = false) {
   };
   const csrf = (token: string) =>
     createHmac('sha256', secret).update(token).digest('hex');
-  const token = (req: Request) => String(req.cookies[cookieName] ?? '');
+  const token = customerToken;
   function checkOrigin(req: Request, multipart = false) {
     if (
       req.get('origin') !== origin ||
@@ -136,9 +137,10 @@ export function createApp(test = false) {
     force = false,
   ): Promise<string> {
     const browser = uuid.parse(req.get('x-browser-session'));
+    const context = customerContext(req);
     const rows = await c.query(
-      'SELECT id FROM visits WHERE run_id=? AND browser_session=? AND last_seen_at>DATE_SUB(UTC_TIMESTAMP(6),INTERVAL 30 MINUTE) ORDER BY created_at DESC LIMIT 1',
-      [run.id, browser],
+      "SELECT v.id FROM visits v LEFT JOIN visit_contexts vc ON vc.visit_id=v.id WHERE v.run_id=? AND v.browser_session=? AND COALESCE(vc.activity_source,'customer')=? AND COALESCE(vc.session_context,'')=? AND v.last_seen_at>DATE_SUB(UTC_TIMESTAMP(6),INTERVAL 30 MINUTE) ORDER BY v.created_at DESC LIMIT 1",
+      [run.id, browser, context.source, context.id],
     );
     if (rows.length && !force) {
       await c.query(
@@ -152,6 +154,13 @@ export function createApp(test = false) {
       'INSERT INTO visits VALUES (?,?,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))',
       [id, run.id, browser],
     );
+    await c.query('INSERT INTO visit_contexts VALUES (?,?,?)', [
+      id,
+      context.source,
+      context.id,
+    ]);
+    if (context.source === 'customer' && run.eligible)
+      await event(c, run, id, 'eligible', 'eligible');
     return id;
   }
   async function event(
@@ -165,6 +174,12 @@ export function createApp(test = false) {
     observed: Date | null = null,
   ) {
     const id = randomUUID();
+    const [context] = await c.query(
+      'SELECT activity_source FROM visit_contexts WHERE visit_id=?',
+      [visitId],
+    );
+    if (context?.activity_source === 'admin_impersonation')
+      key = `admin:${key}`;
     const result = await c.query(
       'INSERT IGNORE INTO adoption_events VALUES (?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
       [
@@ -271,7 +286,14 @@ export function createApp(test = false) {
     execute: (visitId: string) => Promise<Row>,
   ) {
     const requestId = uuid.parse(req.body.requestId);
-    const digest = hash(JSON.stringify(payload));
+    const context = customerContext(req);
+    const digest = hash(
+      JSON.stringify(
+        context.source === 'customer'
+          ? payload
+          : { context: context.id, payload },
+      ),
+    );
     const prior = await c.query(
       'SELECT * FROM request_receipts WHERE run_id=? AND request_id=?',
       [run.id, requestId],
@@ -304,8 +326,8 @@ export function createApp(test = false) {
     const events: string[] = [];
     await event(c, run, visitId, 'service_use', `use:${requestId}`);
     const first = await c.query(
-      "SELECT visit_id FROM adoption_events WHERE run_id=? AND name='first_use'",
-      [run.id],
+      "SELECT e.visit_id FROM adoption_events e LEFT JOIN visit_contexts vc ON vc.visit_id=e.visit_id WHERE e.run_id=? AND e.name='first_use' AND COALESCE(vc.activity_source,'customer')=COALESCE((SELECT activity_source FROM visit_contexts WHERE visit_id=?),'customer')",
+      [run.id, visitId],
     );
     if (!first.length) {
       const name = await event(c, run, visitId, 'first_use', 'first_use');
@@ -386,6 +408,13 @@ export function createApp(test = false) {
           username: r.username,
           displayName: r.display_name,
         },
+        impersonation:
+          customerContext(req).source === 'admin_impersonation'
+            ? {
+                contextId: customerContext(req).id,
+                returnTo: `/controls/customers/${r.user_id}`,
+              }
+            : null,
         variant: r.variant,
         eligible: Boolean(r.eligible),
         enrolled: enrollment.length > 0,
@@ -399,6 +428,7 @@ export function createApp(test = false) {
             req.get('x-demo-capture') ?? '',
             process.env.AUTOMATION_SECRET ?? randomUUID(),
           ),
+          customerContext(req).source === 'admin_impersonation',
         ),
       };
     });
@@ -415,6 +445,7 @@ export function createApp(test = false) {
             req.get('x-demo-capture') ?? '',
             process.env.AUTOMATION_SECRET ?? randomUUID(),
           ),
+          customerContext(req).source === 'admin_impersonation',
         );
       }),
     );
@@ -710,7 +741,7 @@ export function createApp(test = false) {
     // One consistent snapshot: report stages and denominators cannot race business commits.
     const result = await transaction(async (c) => {
       const runs: Row[] = await c.query(
-        "SELECT * FROM participant_runs WHERE created_at>=? AND created_at<=? AND created_at<=? AND (?='all' OR actor=?) AND (?='all' OR variant=?) ORDER BY created_at",
+        "SELECT * FROM participant_runs r WHERE created_at>=? AND created_at<=? AND created_at<=? AND (?='all' OR actor=?) AND (?='all' OR variant=?) AND EXISTS (SELECT 1 FROM visits v LEFT JOIN visit_contexts vc ON vc.visit_id=v.id WHERE v.run_id=r.id AND COALESCE(vc.activity_source,'customer')='customer' AND v.created_at<=?) ORDER BY created_at",
         [
           new Date(start),
           new Date(end),
@@ -719,10 +750,11 @@ export function createApp(test = false) {
           f.actor,
           f.variant,
           f.variant,
+          new Date(cutoff),
         ],
       );
       const events: Row[] = await c.query(
-        `SELECT e.* FROM adoption_events e JOIN participant_runs r ON r.id=e.run_id WHERE r.created_at>=? AND r.created_at<=? AND e.created_at<=? AND (?='all' OR r.actor=?) AND (?='all' OR r.variant=?) ORDER BY e.created_at,e.id`,
+        `SELECT e.* FROM adoption_events e JOIN participant_runs r ON r.id=e.run_id LEFT JOIN visit_contexts vc ON vc.visit_id=e.visit_id WHERE COALESCE(vc.activity_source,'customer')='customer' AND r.created_at>=? AND r.created_at<=? AND e.created_at<=? AND (?='all' OR r.actor=?) AND (?='all' OR r.variant=?) ORDER BY e.created_at,e.id`,
         [
           new Date(start),
           new Date(end),

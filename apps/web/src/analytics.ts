@@ -83,6 +83,7 @@ export function syncCollectionPolicy(next: Policy) {
 }
 export function collectionAvailable(state: State) {
   return (
+    !state.impersonation &&
     !isAdminRoute(location.pathname) &&
     state.analytics.enabled &&
     (policy === null ||

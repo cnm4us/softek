@@ -54,6 +54,12 @@ import {
 import { Card, Alert, Heading } from './ui';
 import { AppShell } from './shell';
 import { AdminApp } from './admin';
+import {
+  beginCustomerTransition,
+  finishCustomerTransition,
+  exitImpersonation,
+  impersonationStorage,
+} from './customer-session';
 import { isAdminRoute } from './routes';
 import { features, featureAtPath } from '../../api/src/features';
 import { FeaturePage } from './feature-page';
@@ -828,12 +834,21 @@ function AnalyticsChoice() {
 }
 const initialSummaryDocument = location.pathname === '/';
 let summaryDocumentInitialized = false;
+async function handleImpersonationExpiry() {
+  try {
+    await exitImpersonation();
+  } catch {
+    stopCollection();
+    window.location.assign('/controls/customers');
+  }
+}
 function CustomerApp() {
   const [state, setState] = useState<State | null>(null),
     [banner, setBanner] = useState<Banner | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
-    [resetting, setResetting] = useState(false);
+    [resetting, setResetting] = useState(false),
+    [exiting, setExiting] = useState(false);
   const navigate = useNavigate(),
     location = useLocation();
   const bootstrap = useRef<Promise<{
@@ -849,6 +864,10 @@ function CustomerApp() {
       setError('');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
+        if (sessionStorage.getItem(impersonationStorage)) {
+          void handleImpersonationExpiry();
+          return;
+        }
         if (window.clarity) {
           stopCollection();
           window.location.assign('/login');
@@ -863,8 +882,11 @@ function CustomerApp() {
     }
   }, []);
   useEffect(() => {
+    const entry =
+      sessionStorage.getItem('softek_impersonation_entry') === 'true';
+    sessionStorage.removeItem('softek_impersonation_entry');
     const refreshDocument =
-      initialSummaryDocument && !summaryDocumentInitialized;
+      initialSummaryDocument && !summaryDocumentInitialized && !entry;
     summaryDocumentInitialized = true;
     bootstrap.current ??= (async () => {
       const next = await api<State>('/state');
@@ -879,9 +901,27 @@ function CustomerApp() {
         setBanner(result.banner);
       })
       .catch((e) => {
+        if (
+          e instanceof ApiError &&
+          e.status === 401 &&
+          sessionStorage.getItem(impersonationStorage)
+        ) {
+          void handleImpersonationExpiry();
+          return;
+        }
         if (!(e instanceof ApiError && e.status === 401)) setError(e.message);
       })
       .finally(() => setLoading(false));
+  }, []);
+  useEffect(() => {
+    const changed = () => {
+      setState(null);
+      setBanner(null);
+      setLoading(true);
+    };
+    window.addEventListener('customer-session-changing', changed);
+    return () =>
+      window.removeEventListener('customer-session-changing', changed);
   }, []);
   useEffect(() => {
     if (!state) return;
@@ -906,8 +946,11 @@ function CustomerApp() {
         setState((current) =>
           current ? { ...current, analytics: closed } : current,
         );
-        if (e instanceof ApiError && e.status === 401)
-          window.location.assign('/login');
+        if (e instanceof ApiError && e.status === 401) {
+          if (sessionStorage.getItem(impersonationStorage))
+            void handleImpersonationExpiry();
+          else window.location.assign('/login');
+        }
       } finally {
         running = false;
       }
@@ -940,16 +983,23 @@ function CustomerApp() {
     if (!state) return;
     try {
       await api('/auth/logout', {}, state.csrf);
-      stopCollection();
-      sessionStorage.removeItem('softek_banner');
-      sessionStorage.removeItem('softek_analytics_consent');
-      locationAssignLogin();
+      beginCustomerTransition();
+      sessionStorage.removeItem(impersonationStorage);
+      finishCustomerTransition('/login');
     } catch (e) {
       setError((e as Error).message);
     }
   }
-  function locationAssignLogin() {
-    window.location.assign('/login');
+  async function exitToAdmin() {
+    if (!state || exiting) return;
+    setExiting(true);
+    setError('');
+    try {
+      await exitImpersonation(state.csrf);
+    } catch (e) {
+      setError((e as Error).message);
+      setExiting(false);
+    }
   }
   async function reset() {
     if (
@@ -1014,6 +1064,7 @@ function CustomerApp() {
           href: f.href,
         }))}
         greeting={state?.profile.firstName}
+        viewingAs={state?.impersonation ? state.user.displayName : undefined}
         onMenuOpen={() => {
           if (state) void interaction(state, 'menu_open').catch(() => {});
         }}
@@ -1035,7 +1086,20 @@ function CustomerApp() {
                 >
                   {resetting ? 'Resetting…' : 'Reset my demo'}
                 </button>
-                <button className="text-button" onClick={() => void logout()}>
+                {state.impersonation && (
+                  <button
+                    className="text-button"
+                    disabled={exiting}
+                    onClick={() => void exitToAdmin()}
+                  >
+                    {exiting ? 'Exiting…' : 'Exit to Admin'}
+                  </button>
+                )}
+                <button
+                  className="text-button"
+                  disabled={exiting}
+                  onClick={() => void logout()}
+                >
                   <LogOut size={17} />
                   Sign out
                 </button>

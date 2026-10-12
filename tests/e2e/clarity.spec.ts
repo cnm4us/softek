@@ -343,3 +343,217 @@ test('admin switch stops open pages and a re-enable requires fresh consent', asy
   await expect(page.getByText('Collection: On', { exact: true })).toBeVisible();
   expect(scripts).toBe(1);
 });
+
+test('impersonation enters saved customer, preserves menu banners and exits to admin without collection', async ({
+  page,
+}) => {
+  const user = await fixtureUser(pool);
+  ids.push(user.id);
+  let vendor = 0;
+  page.on('request', (r) => {
+    if (/clarity\.ms|bing\.com/.test(r.url())) vendor++;
+  });
+  await page.goto(`/controls/customers/${user.id}`);
+  await expect(
+    page.getByRole('button', { name: 'Impersonate customer', exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole('button', { name: 'Impersonate customer', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Viewing as Test Harbor User', { exact: true }),
+  ).toBeVisible();
+  const data = await page.evaluate(async () =>
+    (
+      await fetch('/api/state', {
+        headers: {
+          'X-Browser-Session': sessionStorage.getItem('softek_browser')!,
+          'X-Customer-Context': JSON.parse(
+            sessionStorage.getItem('softek_impersonation_context')!,
+          ).contextId,
+        },
+      })
+    ).json(),
+  );
+  expect(data.analytics.enabled).toBe(false);
+  expect(data.analytics.actor).toBe('automation');
+  const presentations = await pool.query(
+    'SELECT * FROM banner_presentations WHERE user_id=?',
+    [user.id],
+  );
+  expect(presentations.length).toBe(1);
+  const banner = page.locator('.image-banner');
+  const initial = await banner.getAttribute('href');
+  await feature(page);
+  await page
+    .getByRole('button', { name: 'Explore Crypto Investing', exact: true })
+    .click();
+  await expect(page.locator('.feature-confirmation')).toBeVisible();
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page
+    .getByRole('link', { name: 'Account Summary', exact: true })
+    .click();
+  await expect(banner).toHaveAttribute('href', initial!);
+  await page.reload();
+  await expect(
+    page.getByText('Viewing as Test Harbor User', { exact: true }),
+  ).toBeVisible();
+  const after = await pool.query(
+    'SELECT * FROM banner_presentations WHERE user_id=?',
+    [user.id],
+  );
+  expect(after.length).toBe(2);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await expect(
+    page.getByRole('button', { name: 'Allow analytics', exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  const actions = page.locator('.menu-secondary button');
+  expect((await actions.allTextContents()).slice(-2)).toEqual([
+    'Exit to Admin',
+    'Sign out',
+  ]);
+  await page
+    .getByRole('button', { name: 'Exit to Admin', exact: true })
+    .focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(new RegExp(`/controls/customers/${user.id}$`));
+  await expect(
+    page.getByRole('button', { name: 'Impersonate customer', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'View activity', exact: true })
+    .click();
+  await expect(page.getByText(/Admin impersonation/).first()).toBeVisible();
+  expect(vendor).toBe(0);
+});
+
+test('impersonation stops prior consent across tabs and customer sign out keeps admin', async ({
+  page,
+  context,
+}) => {
+  const human = await fixtureUser(pool),
+    target = await fixtureUser(pool);
+  ids.push(human.id, target.id);
+  await login(page, human);
+  await page
+    .getByRole('button', { name: 'Allow analytics', exact: true })
+    .click();
+  await expect
+    .poll(async () =>
+      (await calls(page)).some((a: any[]) => a[0] === 'identify'),
+    )
+    .toBe(true);
+  const control = await context.newPage();
+  await control.goto(`/controls/customers/${target.id}`);
+  await control
+    .getByRole('button', { name: 'Impersonate customer', exact: true })
+    .click();
+  await expect(
+    control.getByText('Viewing as Test Harbor User', { exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/controls\/customers$/);
+  let requests = 0;
+  control.on('request', (r) => {
+    if (/clarity\.ms|bing\.com/.test(r.url())) requests++;
+  });
+  await control.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await control.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(control.getByLabel('Username', { exact: true })).toBeVisible();
+  await expect(
+    control.getByRole('button', { name: 'Exit to Admin', exact: true }),
+  ).toHaveCount(0);
+  expect((await control.request.get('/api/admin/status')).ok()).toBe(true);
+  expect(
+    (await (await control.request.get('/api/admin/status')).json())
+      .authenticated,
+  ).toBe(true);
+  expect(requests).toBe(0);
+  await control.close();
+});
+
+test('impersonation errors keep admin details usable and expiry returns to admin sign in', async ({
+  page,
+  context,
+}) => {
+  const user = await fixtureUser(pool);
+  ids.push(user.id);
+  await page.goto(`/controls/customers/${user.id}`);
+  await page.route('**/api/admin/users/*/impersonate', (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Try again shortly.' }),
+    }),
+  );
+  await page
+    .getByRole('button', { name: 'Impersonate customer', exact: true })
+    .click();
+  await expect(page.getByRole('alert')).toContainText('Try again shortly.');
+  await expect(
+    page.getByRole('button', { name: 'Impersonate customer', exact: true }),
+  ).toBeEnabled();
+  await page.unroute('**/api/admin/users/*/impersonate');
+  await page
+    .getByRole('button', { name: 'Impersonate customer', exact: true })
+    .click();
+  await expect(
+    page.getByText('Viewing as Test Harbor User', { exact: true }),
+  ).toBeVisible();
+  const raw = (await context.cookies()).find(
+    (c) => c.name === 'softek_admin',
+  )!.value;
+  const metadata = await page.evaluate(() => ({
+    context: sessionStorage.getItem('softek_impersonation_context')!,
+    browser: sessionStorage.getItem('softek_browser')!,
+  }));
+  const other = await context.newPage();
+  await other.goto('/controls');
+  await other.evaluate((saved) => {
+    sessionStorage.setItem('softek_impersonation_context', saved.context);
+    sessionStorage.setItem('softek_browser', saved.browser);
+  }, metadata);
+  await other.goto('/');
+  await expect(
+    other.getByText('Viewing as Test Harbor User', { exact: true }),
+  ).toBeVisible();
+  await page.route('**/api/auth/impersonation/exit', (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Exit temporarily unavailable.' }),
+    }),
+  );
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Exit to Admin', exact: true })
+    .click();
+  await expect(page.getByRole('alert')).toContainText(
+    'Exit temporarily unavailable.',
+  );
+  await expect(other).toHaveURL(/\/controls\/customers$/);
+  await expect(
+    other.getByRole('heading', { name: 'Manage Customers', exact: true }),
+  ).toBeVisible();
+  await page.unroute('**/api/auth/impersonation/exit');
+  await other.close();
+  await pool.query(
+    'UPDATE admin_sessions SET expires_at=DATE_SUB(UTC_TIMESTAMP(6),INTERVAL 1 SECOND) WHERE token_hash=?',
+    [createHash('sha256').update(raw).digest('hex')],
+  );
+  await page.reload();
+  await expect(page).toHaveURL(new RegExp(`/controls/customers/${user.id}$`));
+  await expect(
+    page.getByRole('heading', { name: 'Admin Sign In', exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).some((c) => c.name === 'softek_impersonation'),
+  ).toBe(false);
+});

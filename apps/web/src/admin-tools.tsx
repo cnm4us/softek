@@ -1,7 +1,20 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Copy, Plus, Upload, ArrowRight } from 'lucide-react';
 import { useAdmin } from './admin-session';
+import {
+  beginCustomerTransition,
+  finishCustomerTransition,
+  cancelCustomerTransition,
+  impersonationStorage,
+} from './customer-session';
+import { rememberBanner, type Banner } from './revision';
 import { Card, Alert } from './ui';
 import { getFeature } from '../../api/src/features';
 import { ClientProfileFields } from './client-profile-fields';
@@ -348,11 +361,15 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
         createdAt: string;
         actor: string;
         bannerId: string | null;
+        activitySource: string;
       }[]
     | null
   >(null);
   const [activityLoading, setActivityLoading] = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
+  const impersonationRequest = useRef(crypto.randomUUID());
   useEffect(() => {
+    impersonationRequest.current = crypto.randomUUID();
     setActivity(null);
     setError('');
     setNotice('');
@@ -383,6 +400,42 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
             <code className="lookup-id">{u.id}</code>
           </div>
           <div className="form-actions">
+            <button
+              className="button"
+              disabled={busy || impersonating || !u.enabled}
+              onClick={async () => {
+                setImpersonating(true);
+                setError('');
+                beginCustomerTransition();
+                try {
+                  const result = await request<{
+                    contextId: string;
+                    csrf: string;
+                    userId: string;
+                    banner: Banner | null;
+                  }>(`/admin/users/${u.id}/impersonate`, {
+                    requestId: impersonationRequest.current,
+                  });
+                  sessionStorage.setItem(
+                    impersonationStorage,
+                    JSON.stringify({
+                      contextId: result.contextId,
+                      csrf: result.csrf,
+                    }),
+                  );
+                  sessionStorage.setItem('softek_impersonation_entry', 'true');
+                  rememberBanner(result.userId, result.banner);
+                  finishCustomerTransition('/');
+                } catch (e) {
+                  setError((e as Error).message);
+                  setImpersonating(false);
+                  // Resume other tabs after a failed transition.
+                  cancelCustomerTransition();
+                }
+              }}
+            >
+              {impersonating ? 'Opening customer…' : 'Impersonate customer'}
+            </button>
             <button
               className="text-button"
               onClick={() => {
@@ -429,6 +482,10 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
               View activity
             </button>
           </div>
+          <p className="small-note">
+            Actions while impersonating change this customer's saved demo state.
+            Clarity recording is off.
+          </p>
           <form
             className="password-reset"
             onSubmit={(e) => {
@@ -551,6 +608,8 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
                     : a.name}{' '}
                 · {getFeature(a.routeKey)?.label ?? a.routeKey} ·{' '}
                 {a.bannerId ?? a.actor}
+                {a.activitySource === 'admin_impersonation' &&
+                  ' · Admin impersonation'}
               </li>
             ))}
           </ul>

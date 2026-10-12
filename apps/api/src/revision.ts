@@ -9,6 +9,12 @@ import { z } from 'zod';
 import { features, getFeature } from './features.js';
 import { HttpError } from './errors.js';
 import { passwordHash, passwordMatches } from './passwords.js';
+import {
+  impersonationCookie,
+  impersonationUser,
+  customerContext,
+  setCustomerContext,
+} from './customer-context.js';
 import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
 import { generationSchema, generateCustomers } from './customer-generation.js';
 import {
@@ -50,6 +56,20 @@ export async function authenticatedRun(
   c: PoolConnection,
   req: Request,
 ): Promise<Row> {
+  if (req.cookies[impersonationCookie]) {
+    const user = await impersonationUser(c, req);
+    const [run] = await c.query(
+      "SELECT r.* FROM participant_runs r JOIN user_current_runs u ON u.run_id=r.id AND u.user_id=r.user_id WHERE u.user_id=? AND r.status='active' FOR UPDATE",
+      [user.id],
+    );
+    if (!run) throw new HttpError(401, 'Your impersonation session ended.');
+    return { ...run, username: user.username, display_name: user.display_name };
+  }
+  if (req.get('x-customer-context'))
+    throw new HttpError(
+      401,
+      'Your impersonation session ended. Return to Admin.',
+    );
   const [session] = await c.query(
     'SELECT user_id FROM user_sessions WHERE token_hash=? AND expires_at>UTC_TIMESTAMP(6)',
     [hash(String(req.cookies.softek_user ?? ''))],
@@ -258,6 +278,8 @@ export function registerRevision(ctx: Context) {
   });
   app.post('/api/auth/login', loginLimiter, async (req, res) => {
     checkOrigin(req);
+    if (req.cookies[impersonationCookie])
+      throw new HttpError(409, 'Exit impersonation before signing in.');
     const b = z
       .object({ username, password, requestId: uuid })
       .strict()
@@ -305,6 +327,7 @@ export function registerRevision(ctx: Context) {
         ]);
         visitId = fresh.visitId;
       } else visitId = await visit(c, run, req, true);
+      if (run.eligible) await event(c, run, visitId, 'eligible', 'eligible');
       await c.query(
         'DELETE FROM user_sessions WHERE user_id=? AND expires_at<=UTC_TIMESTAMP(6)',
         [user.id],
@@ -336,11 +359,126 @@ export function registerRevision(ctx: Context) {
     z.object({}).strict().parse(req.body);
     await transaction(async (c) => {
       await active(c, req);
-      await c.query('DELETE FROM user_sessions WHERE token_hash=?', [
-        hash(token(req)),
-      ]);
+      if (req.cookies[impersonationCookie])
+        await c.query(
+          'UPDATE impersonation_sessions SET ended_at=UTC_TIMESTAMP(6) WHERE token_hash=?',
+          [hash(token(req))],
+        );
+      else
+        await c.query('DELETE FROM user_sessions WHERE token_hash=?', [
+          hash(token(req)),
+        ]);
     });
-    res.clearCookie('softek_user', cookieOptions).json({ ok: true });
+    res
+      .clearCookie('softek_user', cookieOptions)
+      .clearCookie(impersonationCookie, cookieOptions)
+      .json({ ok: true });
+  });
+  app.post('/api/admin/users/:id/impersonate', async (req, res) => {
+    await admin(req, true);
+    const id = uuid.parse(req.params.id);
+    const b = z.object({ requestId: uuid }).strict().parse(req.body);
+    const adminHash = hash(String(req.cookies.softek_admin));
+    const raw = csrf(`impersonation:${adminHash}:${id}:${b.requestId}`);
+    const result = await transaction(async (c) => {
+      const [user] = await c.query(
+        'SELECT * FROM demo_users WHERE id=? FOR UPDATE',
+        [id],
+      );
+      if (!user) throw new HttpError(404, 'Customer not found.');
+      if (!user.enabled)
+        throw new HttpError(403, 'Enable this customer before impersonating.');
+      const [owner] = await c.query(
+        'SELECT * FROM admin_sessions WHERE token_hash=? AND expires_at>UTC_TIMESTAMP(6) FOR UPDATE',
+        [adminHash],
+      );
+      if (!owner) throw new HttpError(401, 'Sign in to demo controls.');
+      const [prior] = await c.query(
+        'SELECT *,expires_at>UTC_TIMESTAMP(6) AS current FROM impersonation_sessions WHERE admin_token_hash=? AND request_id=? FOR UPDATE',
+        [adminHash, b.requestId],
+      );
+      if (prior && (prior.user_id !== id || prior.ended_at || !prior.current))
+        throw new HttpError(
+          409,
+          'This impersonation request ended. Start a new visit.',
+        );
+      const contextId = prior?.id ?? randomUUID();
+      setCustomerContext(req, { source: 'admin_impersonation', id: contextId });
+      if (!prior) {
+        if (req.cookies[impersonationCookie])
+          await c.query(
+            'UPDATE impersonation_sessions SET ended_at=UTC_TIMESTAMP(6) WHERE token_hash=? AND admin_token_hash=?',
+            [hash(req.cookies[impersonationCookie]), adminHash],
+          );
+        await c.query(
+          'INSERT INTO impersonation_sessions VALUES (?,?,?,?,?,UTC_TIMESTAMP(6),?,NULL)',
+          [hash(raw), contextId, adminHash, id, b.requestId, owner.expires_at],
+        );
+      }
+      if (req.cookies.softek_user)
+        await c.query('DELETE FROM user_sessions WHERE token_hash=?', [
+          hash(req.cookies.softek_user),
+        ]);
+      let [run] = await c.query(
+        "SELECT r.* FROM user_current_runs u JOIN participant_runs r ON r.id=u.run_id WHERE u.user_id=? AND r.status='active' FOR UPDATE",
+        [id],
+      );
+      let visitId: string;
+      if (!run) {
+        const fresh = await bindRun(c, user, req, res);
+        [run] = await c.query('SELECT * FROM participant_runs WHERE id=?', [
+          fresh.runId,
+        ]);
+        visitId = fresh.visitId;
+      } else visitId = await visit(c, run, req, !prior);
+      return {
+        userId: id,
+        contextId,
+        csrf: csrf(raw),
+        banner: await selection(
+          c,
+          run,
+          visitId,
+          `impersonate:${contextId}`,
+          'login',
+        ),
+        expiresAt: owner.expires_at,
+      };
+    });
+    res
+      .clearCookie('softek_user', cookieOptions)
+      .cookie(impersonationCookie, raw, {
+        ...cookieOptions,
+        expires: result.expiresAt,
+        maxAge: Math.max(0, new Date(result.expiresAt).getTime() - Date.now()),
+      })
+      .json(result);
+  });
+  app.post('/api/auth/impersonation/exit', async (req, res) => {
+    checkOrigin(req);
+    z.object({}).strict().parse(req.body);
+    const raw = String(req.cookies[impersonationCookie] ?? '');
+    let destination = '/controls/customers';
+    if (raw) {
+      checkCsrf(req, raw);
+      const [session] = await pool.query(
+        'SELECT s.*,u.id AS existing_user FROM impersonation_sessions s LEFT JOIN demo_users u ON u.id=s.user_id WHERE token_hash=?',
+        [hash(raw)],
+      );
+      if (session) {
+        if (req.get('x-customer-context') !== session.id)
+          throw new HttpError(
+            409,
+            'Your session changed. Refresh before exiting.',
+          );
+        await pool.query(
+          'UPDATE impersonation_sessions SET ended_at=UTC_TIMESTAMP(6) WHERE token_hash=?',
+          [hash(raw)],
+        );
+        if (session.existing_user) destination += `/${session.user_id}`;
+      }
+    }
+    res.clearCookie(impersonationCookie, cookieOptions).json({ destination });
   });
   app.post('/api/entry', (_req, res) =>
     res
@@ -563,6 +701,10 @@ export function registerRevision(ctx: Context) {
         [stored, u.id],
       );
       await c.query('DELETE FROM user_sessions WHERE user_id=?', [u.id]);
+      await c.query(
+        'UPDATE impersonation_sessions SET ended_at=UTC_TIMESTAMP(6) WHERE user_id=?',
+        [u.id],
+      );
     });
     res.json({ ok: true });
   });
@@ -590,8 +732,13 @@ export function registerRevision(ctx: Context) {
         'UPDATE demo_users SET enabled=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
         [b.enabled, u.id],
       );
-      if (!b.enabled)
+      if (!b.enabled) {
         await c.query('DELETE FROM user_sessions WHERE user_id=?', [u.id]);
+        await c.query(
+          'UPDATE impersonation_sessions SET ended_at=UTC_TIMESTAMP(6) WHERE user_id=?',
+          [u.id],
+        );
+      }
     });
     res.json({ ok: true });
   });
@@ -616,6 +763,10 @@ export function registerRevision(ctx: Context) {
         [profileId, b.variant, b.eligible, u.id],
       );
       // Configuring state must not grant the admin a customer session.
+      setCustomerContext(req, {
+        source: 'admin_impersonation',
+        id: `admin:${hash(String(req.cookies.softek_admin))}`,
+      });
       const fresh = await bindRun(
         c,
         {
@@ -867,13 +1018,15 @@ export function registerRevision(ctx: Context) {
         )
       )
         throw new HttpError(400, 'Invalid demo action.');
-      const dedupe = featureEvent
+      let dedupe = featureEvent
         ? `feature:${b.name}:${b.pageId}:${b.routeKey}`
         : b.name === 'banner_visible'
           ? `visible:${b.pageId}:${b.selectionId}`
           : b.name === 'page_view'
             ? `page:${b.pageId}`
             : `event:${b.requestId}`;
+      if (customerContext(req).source === 'admin_impersonation')
+        dedupe = `admin:${dedupe}`;
       if (featureEvent) {
         const [previous] = await c.query(
           'SELECT selection_id FROM interaction_events WHERE run_id=? AND dedupe_key=?',
@@ -963,7 +1116,9 @@ export function registerRevision(ctx: Context) {
       SUM(e.name='feature_viewed' AND e.selection_id IS NOT NULL) AS bannerViews,
       SUM(e.name='feature_cta_clicked' AND e.selection_id IS NOT NULL) AS bannerClicks
       FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id
+      LEFT JOIN visit_contexts vc ON vc.visit_id=e.visit_id
       WHERE e.name IN ('feature_viewed','feature_cta_clicked')
+      AND COALESCE(vc.activity_source,'customer')='customer'
       AND r.created_at>=? AND r.created_at<=? AND r.created_at<=?
       AND e.created_at<=? AND e.observed_at<=?
       AND (?='all' OR r.actor=?) AND (?='all' OR r.variant=?) GROUP BY e.route_key`,
@@ -1007,7 +1162,7 @@ export function registerRevision(ctx: Context) {
     const userId = uuid.parse(req.query.userId);
     res.json(
       await pool.query(
-        'SELECT e.name,e.route_key AS routeKey,e.target_key AS targetKey,e.created_at AS createdAt,r.id AS runId,r.actor,p.banner_id AS bannerId FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id LEFT JOIN banner_presentations p ON p.id=e.selection_id WHERE r.user_id=? ORDER BY e.created_at DESC,e.id DESC LIMIT 100',
+        "SELECT e.name,e.route_key AS routeKey,e.target_key AS targetKey,e.created_at AS createdAt,r.id AS runId,r.actor,p.banner_id AS bannerId,COALESCE(vc.activity_source,'customer') AS activitySource FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id LEFT JOIN visit_contexts vc ON vc.visit_id=e.visit_id LEFT JOIN banner_presentations p ON p.id=e.selection_id WHERE r.user_id=? ORDER BY e.created_at DESC,e.id DESC LIMIT 100",
         [userId],
       ),
     );

@@ -473,6 +473,11 @@ function AdoptionReport() {
       </Card>
       {activity && (
         <Card title="Feature Activity">
+          <p className="small-note">
+            Admin impersonation activity is excluded. Runs entered only by an
+            admin join customer counts after a customer visit; original
+            run-start dates still apply.
+          </p>
           <p>
             Landing views and CTA clicks are demo engagement observations. They
             do not represent enrollment or service adoption. Counts include

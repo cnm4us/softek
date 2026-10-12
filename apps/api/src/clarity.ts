@@ -23,9 +23,11 @@ export async function customerAnalytics(
   db: Pool | PoolConnection,
   actor: string,
   capture: boolean,
+  impersonating = false,
 ) {
   const status = await clarityStatus(db);
-  const enabled = status.enabled && (actor === 'human' || capture);
+  const enabled =
+    !impersonating && status.enabled && (actor === 'human' || capture);
   return {
     enabled,
     projectId: enabled ? status.projectId : null,

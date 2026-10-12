@@ -14,6 +14,7 @@ export type Goal = {
 };
 export type State = {
   user: { id: string; username: string; displayName: string };
+  impersonation: { contextId: string; returnTo: string } | null;
   runId: string;
   visitId: string;
   csrf: string;
@@ -56,6 +57,14 @@ export async function api<T>(
   body?: unknown,
   csrf?: string,
 ): Promise<T> {
+  let contextId: string | undefined;
+  try {
+    contextId = JSON.parse(
+      sessionStorage.getItem('softek_impersonation_context') ?? 'null',
+    )?.contextId;
+  } catch {
+    /* Invalid saved context is not authentication. */
+  }
   const response = await fetch(`/api${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     credentials: 'same-origin',
@@ -64,6 +73,7 @@ export async function api<T>(
         ? {}
         : { 'Content-Type': 'application/json' }),
       'X-Browser-Session': browser!,
+      ...(contextId ? { 'X-Customer-Context': contextId } : {}),
       ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
     },
     ...(body === undefined

@@ -23,7 +23,10 @@ export async function impersonationUser(c: PoolConnection, req: Request) {
     [tokenHash(String(req.cookies[impersonationCookie]))],
   );
   if (!session || req.get('x-customer-context') !== session.id)
-    throw new HttpError(401, 'Your impersonation session ended. Return to Admin.');
+    throw new HttpError(
+      401,
+      'Your impersonation session ended. Return to Admin.',
+    );
   const [user] = await c.query(
     'SELECT * FROM demo_users WHERE id=? AND enabled=TRUE FOR UPDATE',
     [session.user_id],
@@ -37,7 +40,10 @@ export async function impersonationUser(c: PoolConnection, req: Request) {
     [session.token_hash, admin?.token_hash ?? ''],
   );
   if (!user || !admin || !valid)
-    throw new HttpError(401, 'Your impersonation session ended. Return to Admin.');
+    throw new HttpError(
+      401,
+      'Your impersonation session ended. Return to Admin.',
+    );
   setCustomerContext(req, { source: 'admin_impersonation', id: session.id });
   return user;
 }

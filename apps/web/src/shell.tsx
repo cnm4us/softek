@@ -12,6 +12,7 @@ export function AppShell({
   actions,
   footer,
   greeting,
+  viewingAs,
   onMenuOpen,
   onSelect,
 }: {
@@ -24,6 +25,7 @@ export function AppShell({
   actions?: ReactNode;
   footer?: ReactNode;
   greeting?: string;
+  viewingAs?: string;
   onMenuOpen?: () => void;
   onSelect?: (key: string) => void;
 }) {
@@ -102,6 +104,11 @@ export function AppShell({
                 HARBOR COMMUNITY BANK{area === 'Admin' && ' · ADMIN'}
               </p>
               <h1>{title}</h1>
+              {viewingAs && (
+                <p className="impersonation-indicator" role="status">
+                  Viewing as {viewingAs}
+                </p>
+              )}
             </div>
           ) : (
             <Link

@@ -1404,3 +1404,11 @@ summary {
   display: block;
   margin-top: 4px;
 }
+
+.impersonation-indicator {
+  margin: 0.45rem 0 0;
+  color: var(--green-700, #176b50);
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
