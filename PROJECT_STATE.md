@@ -4,7 +4,7 @@ Last updated: **2026-10-12 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Investigate scroll replay using the completed full recording at Normal speed and its More details → Events. Owner confirms live navigation/click/CTA replay but sees no scrolling in either diagnostic. Scroll transport is verified; do not claim visual scroll acceptance or generate more captures yet.**
+Next task: **Confirm completed recordings and custom-tag lookup after processing, then review masking/heatmaps. Owner now sees scrolling in mobile view, plus page/click/CTA replay; desktop scroll display remains unexplained. Broader suite implementation is not yet authorized.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Four small capture journeys; owner confirms live page/click/CTA replay; six physical scroll movements/eight uploaded scroll events verified; visual scroll replay/completed recordings/masks/heatmaps pending; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Four small capture journeys; owner confirms page/click/CTA replay and scrolling in mobile view; six physical movements/eight uploaded scroll events verified; desktop display/completed recordings/masks/heatmaps pending; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -317,14 +317,15 @@ memory and not saved.
 - There are now **four newly created pilot customers** retained for lookup. The
   owner's account and ten generated customers were not used/reset. Impersonation
   geometry visits on the diagnostic are labeled/excluded from normal reports.
-- Owner confirms the focused session appears but **still sees no scrolling**.
-  Actual document movement and uploaded Scroll events are proven; visual scroll
-  replay is not. Next distinguish full recording versus Highlights/Go Live and
-  inspect Normal-speed playback with Skip inactivity off and More details →
-  Events → Scroll. The owner confirms **full recording from the beginning**,
-  ruling out Highlights or joining after the scrolling. Playback speed and Skip
-  inactivity settings are not independently verified. Next ask whether Scroll
-  entries appear in the recording's More details → Events list.
+- The owner initially saw no scrolling in the focused full recording from the
+  beginning, then reported **“in mobile view I'm seeing scrolling.”** This adds
+  owner-observed visible scrolling to the confirmed page/click/CTA replay. The
+  earlier desktop display discrepancy remains unexplained; speed/Skip inactivity
+  settings, the precise mobile-view control and recording identity for that
+  observation were not independently verified. All four captures used Desktop
+  Chrome; this observation does **not** establish a new mobile-profile capture or
+  Clarity's native mobile classification. No further capture is needed merely to
+  repeat the already verified physical scroll movements.
   Completed recording availability and the original two recordings remain
   unconfirmed. Live visibility is not full presentation readiness. No broader traffic run,
   deployment, application-code change or migration was required for diagnostics.
@@ -338,8 +339,9 @@ References: [Live recordings](https://learn.microsoft.com/en-us/clarity/session-
 Microsoft's [inline player guide](https://learn.microsoft.com/en-us/clarity/session-recordings/inline-player)
 documents Highlights, full playback, speed/Skip inactivity controls and Scroll
 events under More details. Raw payload bodies were discarded, so prior decoded
-scroll coordinates cannot be recovered from the count-only manifests. No further
-captures are planned until the existing playback discrepancy is inspected.
+scroll coordinates cannot be recovered from the count-only manifests. Owner
+mobile-view scrolling is now confirmed; completed-recording lookup, desktop
+display, masking and heatmaps remain separate acceptance checks.
 
 ## M2-C06 consent modal follow-up
 

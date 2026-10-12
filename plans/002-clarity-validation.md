@@ -161,6 +161,14 @@ Do not create more capture sessions or mark replay acceptance on count-only
 transport evidence. Previous raw payloads were discarded; manifests retain only
 safe metadata/counts and actual measured document offsets.
 
+The owner subsequently reports **scrolling visible in mobile view**, adding
+visual scroll confirmation to page changes/clicks/CTA replay. The earlier desktop
+display discrepancy is unresolved; the exact player control/session was not
+independently inspected. All four captures used Desktop Chrome, so this report
+does not establish mobile-profile capture or browser/device classification.
+Next confirm completed recording/custom-tag lookup and review masking/heatmaps;
+broader automation remains deferred until separately authorized.
+
 ### M2-06 — Repeatable demonstration and findings
 
 - [x] Write a short presentation runbook covering user creation, copied Clarity
