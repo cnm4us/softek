@@ -321,7 +321,10 @@ memory and not saved.
   Actual document movement and uploaded Scroll events are proven; visual scroll
   replay is not. Next distinguish full recording versus Highlights/Go Live and
   inspect Normal-speed playback with Skip inactivity off and More details →
-  Events → Scroll. The owner has been asked which player mode is in use.
+  Events → Scroll. The owner confirms **full recording from the beginning**,
+  ruling out Highlights or joining after the scrolling. Playback speed and Skip
+  inactivity settings are not independently verified. Next ask whether Scroll
+  entries appear in the recording's More details → Events list.
   Completed recording availability and the original two recordings remain
   unconfirmed. Live visibility is not full presentation readiness. No broader traffic run,
   deployment, application-code change or migration was required for diagnostics.

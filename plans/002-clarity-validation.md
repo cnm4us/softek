@@ -154,6 +154,9 @@ Owner confirms the focused session is visible but still sees no scrolling.
 Visual scroll acceptance remains unresolved. Next inspect full completed playback
 (Normal speed, Skip inactivity off) and More details → Events → Scroll; first
 confirm the owner is not watching Highlights or joining Go Live after the scroll.
+The owner now confirms **full recording from the beginning**; next check whether
+Scroll entries appear under More details → Events. Speed/Skip inactivity settings
+have not been independently verified.
 Do not create more capture sessions or mark replay acceptance on count-only
 transport evidence. Previous raw payloads were discarded; manifests retain only
 safe metadata/counts and actual measured document offsets.
