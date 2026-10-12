@@ -3,7 +3,7 @@
 Last updated: **2026-10-12 UTC**.
 Current focus: **[009 — Permanent customer deletion](plans/009-delete-customers.md)**.
 Latest completed implementation: **Plan 009 — permanent customer-card deletion and generation retry protection**.
-Current request: **Permanent Delete implemented, verified and deployed on each customer card**.
+Current request: **Owner-requested customer cleanup complete: 37 deleted, designated customer preserved**.
 Next task: **Await the next owner-prioritized change; actual Clarity profile classification and broader automation remain deferred**.
 
 ## Plan status registry
@@ -43,6 +43,11 @@ Active identifies focus and does not itself authorize additional scope.
   Seven compatible pairs are enforced. Saving preserves banking/sessions/consent;
   manual visits keep their actual browser. The explicit pilot can use saved profiles,
   with matching engines; broader scheduling and dashboard classification stay deferred.
+- Production now has **one customer**, the owner-designated preserved account.
+  The authorized cleanup deleted 37 other customers through the protected API.
+  Preserved identity/credentials, runs, accounts, goals and configuration matched
+  their pre-cleanup snapshot; banners, assets, collection settings and anonymous
+  runs were unchanged. Batch retry metadata remains.
 - Every Manage Customers card has a separate details link and **Delete** button.
   Confirmation permanently removes the selected login, all owned active/retired
   runs and local report history; other customers and shared banners remain intact.
@@ -340,6 +345,26 @@ were removed through the protected endpoint. Successful deletion fixtures are al
 removed; retry-protection batch metadata remains. Password-free evidence is ignored
 0600 `artifacts/live-delete-check.json`. Public smoke history is intentionally
 retained. No unresolved check failure or new real SDK collection remains.
+
+## Owner-requested customer cleanup — Plan 009 follow-up
+
+Deleted **37 of 38 production customers** through the existing protected delete
+endpoint, preserving the exact owner-designated username and its stable UUID.
+Checked the live admin list against the DB before mutation and verified exactly
+one customer remained afterward. Before/after snapshots confirmed the preserved
+identity/credentials, all runs, accounts, transactions, enrollments, goals, receipts,
+current mapping, saved amounts and preferences were unchanged. Shared banners/
+assets, collection settings and anonymous historical runs were also unchanged.
+Deleted user ownership/session/preference rows are absent. The temporary admin
+session was signed out. No migration, deployment, customer login or analytics
+collection was performed. Private password-free evidence: ignored 0600
+`artifacts/customer-cleanup.json`; no snapshot contents or credentials were saved.
+
+Earlier owned production smoke/pilot histories for deleted customers have now
+been removed by this explicit owner cleanup. Clarity's prior recordings remain
+external to the local operation. Public smoke creates customers; it was not run
+for this cleanup. Resume from the current one-customer cohort rather than the
+earlier test-cohort manifests.
 
 ## Exact resume point
 

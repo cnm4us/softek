@@ -31,3 +31,9 @@ evaluation deployment passed live mobile/desktop cancellation/deletion and
 partial/empty retry checks using owned fixtures only. Existing public banking
 smoke, retained original data/assets and host checks passed. No migration or
 real Clarity collection was performed. Exact release/evidence is in PROJECT_STATE.
+
+- [x] DEL-05: subsequent explicit owner cleanup deleted all 37 other production
+  customers while preserving the exact designated account. Live API/DB lists
+  agree that one remains; preserved banking/identity and shared resources matched
+  in-memory snapshots. No schema/application change or new collection occurred.
+  See PROJECT_STATE for the current cohort and private evidence location.
