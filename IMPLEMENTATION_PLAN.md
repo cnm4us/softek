@@ -16,11 +16,12 @@ verification evidence, and the resume point live in
 | 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | GEN-01–05; unique identities and persistent varied balances; depends on 001/004 |
 | 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | DEV-01–05; saved compatible choices and pilot emulation; depends on 006 |
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | ACCT-01–04; shared account setup and independent eligibility; depends on 006/007 |
+| 009 | [Permanent customer deletion](plans/009-delete-customers.md) | DEL-01–04; card controls, linked-data removal and retry protection; depends on 006–008 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
 Plan numbers reflect creation order. The current execution sequence is
-**000 → 001 → 004 → 005 → 006 → 007 → 008 → remaining 002 → 003**; existing IDs and completed task evidence are
+**000 → 001 → 004 → 005 → 006 → 007 → 008 → 009 → remaining 002 → 003**; existing IDs and completed task evidence are
 preserved. Plans 004/005 implement the final menu and feature surfaces. Remaining
 Plan 002 capture acceptance follows their verified release; completed settings and
 hosting evidence is retained. See PROJECT_STATE for release/check results.

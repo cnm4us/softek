@@ -487,3 +487,21 @@ to the locked user's existing profile. Legacy explicit overrides remain valid.
 No schema migration, user rewrite or fixture deletion is required, preserving
 foreign keys, historical runs and existing API clients. Generated opening amounts
 remain keyed by user UUID and are restored through the existing bindRun path.
+
+## Permanent customer deletion — Plan 009
+
+Owner explicitly requested hard deletion. `POST /api/admin/users/:id/delete` uses
+admin authentication, origin/CSRF checks, a UUID parameter and strict empty body.
+It locks the selected user in a transaction, removes owned interactions and banner
+presentations before visit cascades, then deletes every owned active/retired run
+and the user. Run/user FK cascades remove banking, receipts, events, sessions,
+rotation, saved amounts and device/browser preferences. Missing users are a safe
+no-op for concurrent/repeated deletion; a login that loses the user before its
+lock returns 401. Shared templates, banners/assets and anonymous runs are untouched.
+
+Generation batches retain request metadata for idempotency. The existing MariaDB
+no-op upsert returns insertId=0 for a previously committed batch; generation returns
+its surviving customers even if the list is empty. A committed empty batch is
+not re-generated. Integration tests cover concurrent first generation and partial/
+all deletion retries. No migration is needed. Deleted local events cease to appear
+in reports; this endpoint does not remove Microsoft Clarity's existing recordings.

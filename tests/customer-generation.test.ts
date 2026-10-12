@@ -278,6 +278,51 @@ test('bulk customer generation is protected, atomic, retry-safe and persistent',
       },
     );
     await t.test(
+      'deleted generated customers stay deleted on partial and empty batch replay',
+      async () => {
+        const payload = { ...body, requestId: randomUUID(), count: 2 };
+        const created = await req('/admin/users/generate', payload);
+        assert.equal(created.status, 201);
+        const result = created.data;
+        batches.push(result.batchId);
+        ids.push(...result.customers.map((u: any) => u.id));
+        assert.equal(
+          (await req(`/admin/users/${result.customers[0].id}/delete`, {}))
+            .status,
+          200,
+        );
+        const partial = await req('/admin/users/generate', payload);
+        assert.equal(partial.status, 201);
+        assert.deepEqual(partial.data.customers, [result.customers[1]]);
+        assert.equal(
+          (await req(`/admin/users/${result.customers[1].id}/delete`, {}))
+            .status,
+          200,
+        );
+        const empty = await req('/admin/users/generate', payload);
+        assert.equal(empty.status, 201);
+        assert.equal(empty.data.batchId, result.batchId);
+        assert.deepEqual(empty.data.customers, []);
+        const [removed] = await pool.query(
+          'SELECT COUNT(*) AS n FROM demo_users WHERE id IN (?) OR username IN (?)',
+          [
+            result.customers.map((u: any) => u.id),
+            result.customers.map((u: any) => u.username),
+          ],
+        );
+        assert.equal(Number(removed.n), 0);
+        const [opening] = await pool.query(
+          'SELECT COUNT(*) AS n FROM customer_starting_balances WHERE batch_id=?',
+          [result.batchId],
+        );
+        assert.equal(Number(opening.n), 0);
+        assert.equal(
+          (await req('/admin/users/generate', { ...payload, count: 3 })).status,
+          409,
+        );
+      },
+    );
+    await t.test(
       'late username collision rolls back the entire batch',
       async () => {
         const [next] = await pool.query(

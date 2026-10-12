@@ -104,6 +104,10 @@ export function Customers() {
     error,
     load,
     setError,
+    notice,
+    busy,
+    action,
+    request,
   } = useResource<User[]>('/admin/users');
   const [search, setSearch] = useState('');
   const matching =
@@ -126,7 +130,7 @@ export function Customers() {
           Generate customers
         </Link>
       </div>
-      <Alert message={error} />
+      <Feedback error={error} notice={notice} />
       {error && (
         <button
           className="button secondary"
@@ -161,21 +165,47 @@ export function Customers() {
             ) : (
               <div className="customer-list">
                 {matching.map((user) => (
-                  <Link
-                    className="customer-row"
-                    key={user.id}
-                    to={`/controls/customers/${user.id}`}
-                  >
-                    <span>
-                      <strong>{user.displayName}</strong>
-                      <span className="customer-username">{user.username}</span>
-                      <span className="small-note">
-                        {user.enabled ? 'Enabled' : 'Disabled'} · {user.actor} ·{' '}
-                        {user.runId ? 'Has banking state' : 'Not yet signed in'}
+                  <div className="customer-row" key={user.id}>
+                    <Link
+                      className="customer-details-link"
+                      to={`/controls/customers/${user.id}`}
+                    >
+                      <span>
+                        <strong>{user.displayName}</strong>
+                        <span className="customer-username">
+                          {user.username}
+                        </span>
+                        <span className="small-note">
+                          {user.enabled ? 'Enabled' : 'Disabled'} · {user.actor}{' '}
+                          ·{' '}
+                          {user.runId
+                            ? 'Has banking state'
+                            : 'Not yet signed in'}
+                        </span>
                       </span>
-                    </span>
-                    <ArrowRight size={18} />
-                  </Link>
+                      <ArrowRight size={18} />
+                    </Link>
+                    <button
+                      type="button"
+                      className="button danger"
+                      aria-label={`Delete ${user.username}`}
+                      disabled={busy}
+                      onClick={() => {
+                        if (
+                          !window.confirm(
+                            `Permanently delete ${user.displayName} (${user.username})? This removes their login, banking state and demo activity history. This cannot be undone.`,
+                          )
+                        )
+                          return;
+                        void action(
+                          () => request(`/admin/users/${user.id}/delete`, {}),
+                          'Customer deleted.',
+                        );
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-12 UTC**.
-Current focus: **[008 — Simplify starting accounts](plans/008-simplify-starting-accounts.md)**.
-Latest completed implementation: **Plan 008 — shared starting-account controls with independent Savings Goals eligibility**.
-Current request: **Starting-account selector simplification implemented, verified and deployed**.
+Current focus: **[009 — Permanent customer deletion](plans/009-delete-customers.md)**.
+Latest completed implementation: **Plan 009 — permanent customer-card deletion and generation retry protection**.
+Current request: **Permanent Delete implemented, verified and deployed on each customer card**.
 Next task: **Await the next owner-prioritized change; actual Clarity profile classification and broader automation remain deferred**.
 
 ## Plan status registry
@@ -23,6 +23,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | Completed | GEN-01–05 verified/deployed; 200-user test and small live batches; migration 0006 applied |
 | 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | Completed | DEV-01–05 verified/deployed; schema 7; compatible selectors and matching native profiles |
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
+| 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
 
 ## Current reality
 
@@ -42,6 +43,12 @@ Active identifies focus and does not itself authorize additional scope.
   Seven compatible pairs are enforced. Saving preserves banking/sessions/consent;
   manual visits keep their actual browser. The explicit pilot can use saved profiles,
   with matching engines; broader scheduling and dashboard classification stay deferred.
+- Every Manage Customers card has a separate details link and **Delete** button.
+  Confirmation permanently removes the selected login, all owned active/retired
+  runs and local report history; other customers and shared banners remain intact.
+  Deletion revokes sessions. Batch retries return surviving customers, including
+  an empty batch, without recreating deleted identities. Existing Clarity recordings
+  are outside the local deletion operation.
 - Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
   replacement/disable revoke that user's sessions. Reset retires the run and retains
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
@@ -85,8 +92,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-12T01-14-03-090Z**. Previous authenticated release:
-  **2026-10-12T00-46-07-747Z**. Both current links point to the new release.
+- Current release: **2026-10-12T04-47-42-220Z**. Previous authenticated release:
+  **2026-10-12T01-14-03-090Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -306,13 +313,41 @@ remains. Six owned generation-check users and public-smoke fixtures are retained
 with password-free evidence in ignored `artifacts/plan008-live-generation-check.json`
 (0600). Real SDK collection and dashboard classification were not run this phase.
 
+## Plan 009 — permanent customer deletion
+
+Owner requested plain Delete on each `/controls/customers` card. DEL-01–04 are
+complete: protected strict endpoint, user-locked transaction and FK-ordered removal
+of all local user/run data, safe repeated deletion, independent link/button,
+identified confirmation, cancel/error/pending behavior and filtered-list refresh.
+MariaDB's no-op batch upsert is distinguished from first insert, so replay cannot
+recreate deleted customers even when the whole batch is gone. No migration needed.
+
+| Check actually run | Result |
+| --- | --- |
+| `npm test` | **66/66 TAP entries passed**, including deletion auth/CSRF/origin/body/UUID, linked tables, retired/active runs, sessions/login, concurrent repeats/isolation and partial/empty generation retry |
+| Focused browser checks | **12/12** at 360/390/1440px: deletion/cancel/error/keyboard, original creation/navigation/reset/independent sessions; deletion rerun **3/3** after adding pending-button assertions |
+| Typecheck/build/format | Passed; matched evaluation build 596.13 kB / 173.73 kB gzip; B-011 advisory remains |
+| Migration status | Both schemas version 7 without pending changes or drift; no SQL applied |
+| Deploy | **2026-10-12T04-47-42-220Z**; matching links, existing evaluation flags and database switch On preserved |
+| Public deletion check | 360/1440px cancel/confirm, active/retired run removal, revoked session, surviving customer navigation and partial/empty batch retry; only newly owned fixtures deleted, no Clarity requests |
+| Public smoke | Both 360/1440px complete existing banking/features/report/session/reset journeys passed |
+| Host/data | Service active/DB healthy/loopback 3100; Nginx syntax and unrelated files/links intact; private runtime permissions/allowlist; original ten runs/counts and uploaded asset hash retained |
+| Credentials/docs | Secret scan passed across 110 source/document/build files; changed local links and Git whitespace verified |
+
+An initial live harness reset omitted X-Browser-Session and was rejected with 400.
+Corrected the harness and reran successfully; four identified failed-setup fixtures
+were removed through the protected endpoint. Successful deletion fixtures are also
+removed; retry-protection batch metadata remains. Password-free evidence is ignored
+0600 `artifacts/live-delete-check.json`. Public smoke history is intentionally
+retained. No unresolved check failure or new real SDK collection remains.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 008 is complete. Customer creation/generation/reset now use one account
-   setup with an independent Savings Goals eligibility checkbox. Saved amount
-   ranges and Device/Browser preferences remain available; manual visits use
-   the actual browser.
+2. Plan 009 is complete. Manage Customers cards now have permanent Delete with
+   confirmation, including local report history. Original generation requests
+   cannot recreate deleted users. Creation retains independent eligibility,
+   saved amount ranges and Device/Browser preferences.
 3. Await the next prioritized change. Plan 003's assignment/scheduler remains
    deferred. Saving preferences does not start jobs or authorize new SDK collection.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
@@ -325,7 +360,7 @@ with password-free evidence in ignored `artifacts/plan008-live-generation-check.
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008/009 and the current Clarity implementation/checks/docs are
 committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

@@ -260,3 +260,13 @@ Everyday checking, Harbor savings, Harbor credit card and sample recent activity
 bulk generation still samples and saves individual checking/savings amounts.
 Existing balances, names and report history remain intact.
 See [Plan 008](plans/008-simplify-starting-accounts.md).
+
+## Permanent customer deletion — Plan 009
+
+Every card on Manage Customers has a Delete button separate from its details
+link. Confirmation identifies the customer and states that deletion permanently
+removes their login, banking state and demo activity history. Cancel keeps them;
+success removes the card while retaining the search. The local adoption and
+feature reports no longer include deleted customers' active or retired runs.
+Shared banners and other customers remain intact. Prior batch requests cannot
+recreate deleted customers. See [Plan 009](plans/009-delete-customers.md).

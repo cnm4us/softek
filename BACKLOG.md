@@ -17,7 +17,7 @@ its backlog ID.
 | B-005 | Next | Two or three configurable institutions | Same components/theme system; purchase/eligibility/branding differ through config |
 | B-006 | Next | Full service center and extra optional services | [Plan 005](plans/005-feature-campaign-landing-pages.md) covers twelve engagement-only feature pages; actual purchase/eligibility/enrollment/use models remain later scope |
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
-| B-008 | Later | Retention/cleanup of archived demo runs | Explicit retention policy and scoped cleanup preserving chosen report data |
+| B-008 | Later | Retention/cleanup of archived demo runs | Bulk retention policy remains later; Plan 009 now provides explicit per-customer permanent deletion, including archived runs |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
 | B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 597 kB (174 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
@@ -68,3 +68,7 @@ remain deferred; no automatic recording starts when a preference is saved.
 selectors. Distinct financial account sets remain later scope if a concrete
 experiment needs them; current variation is saved balances and independent
 Savings Goals eligibility.
+
+[Plan 009](plans/009-delete-customers.md) implements owner-requested permanent
+customer deletion. Local report history is removed; external Clarity recording
+management and bulk retention/cleanup remain separate later work.

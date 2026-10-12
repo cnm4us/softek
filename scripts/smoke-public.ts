@@ -209,7 +209,7 @@ try {
       .waitFor();
     await menu('Manage Customers');
     await page.getByLabel('Search customers').fill(username);
-    await page.locator('.customer-row').click();
+    await page.locator('.customer-details-link').click();
     await page
       .getByRole('heading', { name: 'Customer Details', exact: true })
       .waitFor();

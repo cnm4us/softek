@@ -162,6 +162,19 @@ Before application inspect both ledgers and back up production schema/data/ledge
 Old APIs ignore generated opening amounts during resets; choose a compatible
 rollback release and follow the collection-off boundaries above.
 
+## Delete a customer
+
+In **Admin Menu → Manage Customers** (`/controls/customers`), use the selected
+card's Delete button and confirm its username. Deletion removes that customer's
+login, all active/retired banking runs and local activity permanently. Their
+sessions become invalid and local reports lose their history. Cancel retains them.
+Shared templates, banners/assets and other customers remain intact.
+
+Batch retry metadata remains; replaying its original request returns only surviving
+customers (possibly none). Use Start new batch to create new customers. Previously
+collected Clarity recordings are not removed by this local operation. There is no
+schema migration or automatic deletion of existing customers during deployment.
+
 ## Customer device and browser
 
 Create Customer and Generate Customers include Device/Browser selectors. For an

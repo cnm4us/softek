@@ -8,6 +8,7 @@
   --color-ink: #19372f;
   --color-muted: #66736b;
   --color-primary: #205747;
+  --color-danger: #923d26;
   --color-border: #dce3db;
   --color-surface: #fff;
   --radius-card: 20px;
@@ -329,6 +330,14 @@ h3 {
 }
 .button.secondary:hover {
   background: #dae6d8;
+}
+.button.danger {
+  color: var(--color-danger);
+  background: #fff0e9;
+  border: 1px solid #f0cdbd;
+}
+.button.danger:hover {
+  background: #fbe1d5;
 }
 .text-button {
   min-height: 44px;
@@ -1245,6 +1254,7 @@ summary {
 }
 .customer-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -1252,12 +1262,25 @@ summary {
   border: 1px solid var(--color-border);
   border-radius: 12px;
 }
-.customer-row > span {
+.customer-details-link {
+  display: flex;
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.customer-details-link > span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.customer-row > svg {
+.customer-details-link > svg {
   flex-shrink: 0;
+}
+.customer-row .button {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 .customer-username,
 .customer-row .small-note {

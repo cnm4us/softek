@@ -603,6 +603,140 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
         assert.equal((await a.login()).status, 401);
       },
     );
+    await t.test(
+      'permanent deletion is protected, removes every owned run and revokes login',
+      async () => {
+        const before = await b.state();
+        assert.equal(
+          (
+            await b.request('/goals', {
+              requestId: randomUUID(),
+              title: 'Delete my demo goal',
+              targetMinor: 10000,
+            })
+          ).status,
+          201,
+        );
+        assert.equal(
+          (
+            await b.request('/interactions', {
+              requestId: randomUUID(),
+              pageId: randomUUID(),
+              name: 'feature_viewed',
+              routeKey: 'easycoin',
+              observedAt: new Date().toISOString(),
+            })
+          ).status,
+          200,
+        );
+        assert.equal(
+          (
+            await admin.request(`/admin/users/${b.user.id}/browser-profile`, {
+              device: 'iphone',
+              browser: 'safari',
+            })
+          ).status,
+          200,
+        );
+        const path = `/admin/users/${b.user.id}/delete`;
+        assert.equal((await b.request(path, {})).status, 403);
+        assert.equal(
+          (await admin.request(path, {}, { csrf: 'bad' })).status,
+          403,
+        );
+        assert.equal(
+          (
+            await admin.request(
+              path,
+              {},
+              { origin: 'https://elsewhere.example' },
+            )
+          ).status,
+          403,
+        );
+        assert.equal(
+          (await admin.request('/admin/users/invalid/delete', {})).status,
+          400,
+        );
+        assert.equal(
+          (await admin.request(path, { unexpected: true })).status,
+          400,
+        );
+        assert.equal((await b.state()).runId, before.runId);
+        const runs = await pool.query(
+          'SELECT id FROM participant_runs WHERE user_id=?',
+          [b.user.id],
+        );
+        assert.ok(runs.length >= 2);
+        const survivor = await pool.query(
+          'SELECT a.* FROM accounts a JOIN participant_runs r ON r.id=a.run_id WHERE r.user_id=? ORDER BY a.id',
+          [a.user.id],
+        );
+        const otherRuns = await pool.query(
+          'SELECT * FROM participant_runs WHERE user_id=? ORDER BY id',
+          [a.user.id],
+        );
+        const replies = await Promise.all([
+          admin.request(path, {}),
+          admin.request(path, {}),
+        ]);
+        assert.ok(replies.every((r) => r.status === 200));
+        const runIds = runs.map((r: any) => r.id);
+        for (const table of [
+          'visits',
+          'accounts',
+          'transactions',
+          'enrollments',
+          'savings_goals',
+          'request_receipts',
+          'adoption_events',
+          'interaction_events',
+          'banner_presentations',
+        ]) {
+          const [row] = await pool.query(
+            `SELECT COUNT(*) AS n FROM ${table} WHERE run_id IN (?)`,
+            [runIds],
+          );
+          assert.equal(Number(row.n), 0, table);
+        }
+        for (const table of [
+          'user_sessions',
+          'user_current_runs',
+          'banner_rotation',
+          'customer_browser_profiles',
+          'customer_starting_balances',
+          'participant_runs',
+        ]) {
+          const [row] = await pool.query(
+            `SELECT COUNT(*) AS n FROM ${table} WHERE user_id=?`,
+            [b.user.id],
+          );
+          assert.equal(Number(row.n), 0, table);
+        }
+        assert.ok(
+          !(await admin.request('/admin/users')).data.some(
+            (u: any) => u.id === b.user.id,
+          ),
+        );
+        assert.equal((await b.request('/state')).status, 401);
+        assert.equal((await b.login()).status, 401);
+        assert.deepEqual(
+          await pool.query(
+            'SELECT * FROM participant_runs WHERE user_id=? ORDER BY id',
+            [a.user.id],
+          ),
+          otherRuns,
+        );
+        assert.deepEqual(
+          await pool.query(
+            'SELECT a.* FROM accounts a JOIN participant_runs r ON r.id=a.run_id WHERE r.user_id=? ORDER BY a.id',
+            [a.user.id],
+          ),
+          survivor,
+        );
+        assert.equal((await admin.request('/admin/users')).status, 200);
+      },
+    );
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await cleanUsers(pool, users);

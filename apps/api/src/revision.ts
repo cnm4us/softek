@@ -282,7 +282,11 @@ export function registerRevision(ctx: Context) {
         'SELECT * FROM demo_users WHERE id=? FOR UPDATE',
         [candidate.id],
       );
-      if (!user.enabled || user.password_hash !== candidate.password_hash)
+      if (
+        !user ||
+        !user.enabled ||
+        user.password_hash !== candidate.password_hash
+      )
         throw new HttpError(401, 'Username or password is incorrect.');
       if ((user.actor === 'automation') !== automated)
         throw new HttpError(
@@ -526,6 +530,29 @@ export function registerRevision(ctx: Context) {
       await action(c, u);
     });
   }
+  app.post('/api/admin/users/:id/delete', async (req, res) => {
+    await admin(req, true);
+    z.object({}).strict().parse(req.body);
+    const id = uuid.parse(req.params.id);
+    await transaction(async (c) => {
+      const [user] = await c.query(
+        'SELECT id FROM demo_users WHERE id=? FOR UPDATE',
+        [id],
+      );
+      // A repeated deletion succeeds without touching another customer.
+      if (!user) return;
+      // These rows reference visits without cascading; remove them before runs.
+      await c.query(
+        'DELETE e FROM interaction_events e JOIN participant_runs r ON r.id=e.run_id WHERE r.user_id=?',
+        [id],
+      );
+      await c.query('DELETE FROM banner_presentations WHERE user_id=?', [id]);
+      await c.query('DELETE FROM participant_runs WHERE user_id=?', [id]);
+      // FK cascades remove sessions, rotation, opening amounts and preferences.
+      await c.query('DELETE FROM demo_users WHERE id=?', [id]);
+    });
+    res.json({ ok: true });
+  });
   app.post('/api/admin/users/:id/password', async (req, res) => {
     await admin(req, true);
     const b = z.object({ password }).strict().parse(req.body);

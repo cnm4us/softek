@@ -107,7 +107,7 @@ export async function generateCustomers(
 ) {
   // The upsert takes an exclusive row lock, avoiding lock-upgrade deadlocks on
   // concurrent retries. A batch and all its customers commit in one transaction.
-  await c.query(
+  const inserted = await c.query(
     'INSERT INTO customer_generation_batches (request_id,request_fingerprint,customer_count,created_at) VALUES (?,?,?,UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE id=id',
     [b.requestId, fingerprint, b.count],
   );
@@ -122,7 +122,9 @@ export async function generateCustomers(
     );
   const batchId = Number(batch.id);
   const existing = await batchResult(c, batchId);
-  if (existing.customers.length) return existing;
+  // MariaDB returns insertId=0 for the no-op duplicate update. A committed batch
+  // is complete even when all its customers have since been permanently deleted.
+  if (Number(inserted.insertId) === 0) return existing;
   // Two scrypt jobs at a time keep memory bounded and 200-customer batches fast.
   for (let start = 0; start < b.count; start += 2) {
     const hashes = await Promise.all(

@@ -258,7 +258,7 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
   await expect(page.getByText('No customers match your search.')).toBeVisible();
   await page.getByLabel('Search customers').fill(username);
   await expect(page.locator('.customer-row')).toHaveCount(1);
-  await page.locator('.customer-row').click();
+  await page.locator('.customer-details-link').click();
   await expect(
     page.getByRole('heading', { name: 'Customer Details', exact: true }),
   ).toBeVisible();
@@ -522,7 +522,7 @@ test('protected controls show explicit funnel denominators and start a new varia
   });
   await menu(page, 'Manage Customers');
   await page.getByLabel('Search customers').fill(original.user.username);
-  await page.locator('.customer-row').click();
+  await page.locator('.customer-details-link').click();
   const userCard = page
     .locator('.admin-user')
     .filter({ hasText: original.user.username });
@@ -747,7 +747,7 @@ test('customer-only protection and independent sign-out with both sessions', asy
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByLabel('Search customers')).toBeVisible();
   await page.getByLabel('Search customers').fill(original.user.username);
-  await page.locator('.customer-row').click();
+  await page.locator('.customer-details-link').click();
   await page
     .getByRole('button', { name: 'View activity', exact: true })
     .click();
@@ -1273,4 +1273,95 @@ test('saved device and browser selectors create compatible profiles without rese
   expect(after.runId).toBe(original.runId);
   expect(after.accounts).toEqual(original.accounts);
   expect(after.goals).toEqual(original.goals);
+});
+
+test('customer card Delete cancels, handles failure and permanently removes only the selected customer', async ({
+  page,
+  context,
+}) => {
+  const user = await entry(page);
+  const original = await state(page);
+  const survivor = await fixtureUser(pool);
+  userIds.push(survivor.id);
+  const login = await context.request.post('/api/admin/login', {
+    headers: { Origin: 'http://127.0.0.1:5173' },
+    data: { password: process.env.DEMO_ADMIN_SECRET! },
+  });
+  expect(login.status()).toBe(200);
+  await page.goto('/controls/customers');
+  await page.getByLabel('Search customers').fill(user.username);
+  const card = page.locator('.customer-row');
+  const button = card.getByRole('button', {
+    name: `Delete ${user.username}`,
+    exact: true,
+  });
+  await expect(card).toHaveCount(1);
+  await expect(card.getByRole('link')).toHaveAttribute(
+    'href',
+    `/controls/customers/${user.id}`,
+  );
+  await expect(button).toHaveText('Delete');
+  await noOverflow(page);
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+  });
+  await page.screenshot({
+    path: `artifacts/customer-delete-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  page.removeAllListeners('dialog');
+  let confirmation = '';
+  page.once('dialog', async (dialog) => {
+    confirmation = dialog.message();
+    await dialog.dismiss();
+  });
+  await button.focus();
+  await page.keyboard.press('Enter');
+  expect(confirmation).toContain(user.username);
+  expect(confirmation).toContain('cannot be undone');
+  await expect(card).toHaveCount(1);
+  expect((await state(page)).runId).toBe(original.runId);
+  page.on('dialog', (dialog) => void dialog.accept());
+  await page.route('**/api/admin/users/*/delete', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { error: 'Deletion temporarily unavailable.' },
+    }),
+  );
+  await button.click();
+  await expect(page.getByRole('alert')).toHaveText(
+    'Deletion temporarily unavailable.',
+  );
+  await expect(card).toHaveCount(1);
+  await expect(button).toBeEnabled();
+  await page.unroute('**/api/admin/users/*/delete');
+  let releaseDelete!: () => void;
+  const pendingDelete = new Promise<void>((resolve) => {
+    releaseDelete = resolve;
+  });
+  await page.route('**/api/admin/users/*/delete', async (route) => {
+    await pendingDelete;
+    await route.continue();
+  });
+  await button.focus();
+  await page.keyboard.press('Enter');
+  await expect(button).toBeDisabled();
+  releaseDelete();
+  await expect(page.getByRole('status')).toHaveText('Customer deleted.');
+  await expect(card).toHaveCount(0);
+  await expect(page.getByLabel('Search customers')).toHaveValue(user.username);
+  const deleted = await pool.query('SELECT id FROM demo_users WHERE id=?', [
+    user.id,
+  ]);
+  expect(deleted).toHaveLength(0);
+  expect((await context.request.get('/api/state')).status()).toBe(401);
+  await page.getByLabel('Search customers').fill(survivor.username);
+  await expect(page.locator('.customer-row')).toHaveCount(1);
+  await page.locator('.customer-details-link').click();
+  await expect(
+    page.getByRole('heading', { name: 'Customer Details', exact: true }),
+  ).toBeVisible();
+  await page.goto(`/controls/customers/${user.id}`);
+  await expect(page.getByText('Customer not found.')).toBeVisible();
+  await noOverflow(page);
 });

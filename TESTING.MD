@@ -1,6 +1,6 @@
 # Testing
 
-M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation and Plan 008 starting-account controls are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation and Plans 008/009 starting-account/deletion controls are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -76,7 +76,7 @@ an owned probe, checking old rows/ordinals, new values and repeat no-op.
 `tests/clarity.test.ts` adds four admin/collection scenarios: authorization,
 origin/CSRF and strict settings; explicit profile/runtime readiness; revision
 conflicts and retry-safe persistence; human consent availability versus ordinary
-and specifically authorized automation. The Node runner reports **64 passing
+and specifically authorized automation. The Node runner reports **66 passing
 entries** including parent tests and three standalone checks. Test files run serially. Cleanup deletes only fixture-owned users/runs
 and uploads, removing their interaction/presentation references before run
 cleanup and restoring temporarily changed banner settings. Admin-session tokens
@@ -106,7 +106,7 @@ does not report Android-style `maxTouchPoints`; touch is proved by delivered
 An additional intercepted-browser check proves private automation/capture headers
 are sent only to the application origin, with neither header on vendor requests.
 
-Fifteen journeys run at **360×800, 390×844, and 1440×900**: **45 Chromium checks**.
+Sixteen journeys run at **360×800, 390×844, and 1440×900**: **48 Chromium checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -236,3 +236,18 @@ Historical user-creation fix: all 32 API/migration entries passed; the admin
 creation/upload/login browser journey was rerun at 360/390/1440px to verify email
 usernames and native rejection of spaces. Plan 004 subsequently passed the final full 30-journey suite, including these
 email validation regressions, history navigation, and banner replacement.
+
+## Customer deletion checks — Plan 009
+
+The revision suite covers admin authentication, strict UUID/body, CSRF/origin,
+concurrent/repeated deletion, all active/retired owned runs and dependent tables,
+revoked session/login, and another customer's unchanged runs/accounts. The
+generation suite verifies partial and fully deleted batches return their survivors
+on replay without recreating identities or opening rows, with conflict detection
+retained. All deletion fixtures belong to demo_test and are cleaned.
+
+The responsive card journey checks a distinct details link, keyboard activation,
+confirmation cancellation, rejected-request feedback/retry, pending disabled
+state, successful filtered-list refresh, invalidated customer session and missing
+details. Existing card navigation journeys use the dedicated link. Public checks
+delete only newly created owned test customers with vendor collection excluded.
