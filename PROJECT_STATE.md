@@ -343,6 +343,14 @@ scroll coordinates cannot be recovered from the count-only manifests. Owner
 mobile-view scrolling is now confirmed; completed-recording lookup, desktop
 display, masking and heatmaps remain separate acceptance checks.
 
+Latest owner dashboard observation: **Today shows one unique user**, native
+Clarity user ID **`1fwxlgf`**. This is a user-count observation, not yet a matched
+pilot/completed recording. It differs from known diagnostic IDs `owexj9` and
+`91iamz`; native IDs were not retained for the original click/skip users. Owner
+has been asked for this user's recording start time and `actor` custom tag (or
+whether no recording is available). Do not infer all four captures are processed
+or that this user belongs to the pilot from the count alone.
+
 ## M2-C06 consent modal follow-up
 
 The initial unanswered customer consent now uses a centered native modal over a
