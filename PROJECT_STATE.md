@@ -4,7 +4,7 @@ Last updated: **2026-10-12 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Confirm completed recordings and custom-tag lookup after processing, then review masking/heatmaps. Owner now sees scrolling in mobile view, plus page/click/CTA replay; desktop scroll display remains unexplained. Broader suite implementation is not yet authorized.**
+Next task: **Investigate post-session recording availability before scaling the pilot, then confirm custom-tag lookup and review masking/heatmaps. Owner observed live page/click/CTA replay and scrolling in mobile view, but now reports those recordings are no longer found. Desktop scroll display remains unexplained. Broader suite implementation is not yet authorized.**
 
 ## Plan status registry
 
@@ -347,9 +347,12 @@ Latest owner dashboard observation: **Today shows one unique user**, native
 Clarity user ID **`1fwxlgf`**. This is a user-count observation, not yet a matched
 pilot/completed recording. It differs from known diagnostic IDs `owexj9` and
 `91iamz`; native IDs were not retained for the original click/skip users. Owner
-has been asked for this user's recording start time and `actor` custom tag (or
-whether no recording is available). Do not infer all four captures are processed
-or that this user belongs to the pilot from the count alone.
+replied that **“Those recordings are no longer found”** when asked to open a
+recording and check its start time and `actor` tag. No recording start time or
+tag was obtained; this native user remains unmatched. Earlier observed live
+playback remains valid evidence, but post-session searchable recording availability
+is still unverified. The cause of the unavailable recordings is unknown; do not
+infer deletion, bot filtering, or completed processing from this observation.
 
 ## M2-C06 consent modal follow-up
 
