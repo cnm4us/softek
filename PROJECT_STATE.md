@@ -258,6 +258,14 @@ owner has been asked to find both recordings by UUID/time or the new custom tag
 (filter values may take time to appear). Wait for this evidence before expanding
 traffic. Plan 003 and Chris access remain deferred. No push performed.
 
+At approximately **14:39 UTC**, the owner reported neither recording visible and
+no `pilot_run` custom-tag filter. This is about seven minutes after the last
+journey; inclusion remains unconfirmed. Microsoft documents **30 minutes to two
+hours** for new custom tags to appear in project filters:
+[custom tags](https://learn.microsoft.com/en-us/clarity/filters/custom-tags).
+Recheck today's recordings without restrictive filters after processing; do not
+treat the missing early filter as proof of either capture failure or success.
+
 ## M2-C06 consent modal follow-up
 
 The initial unanswered customer consent now uses a centered native modal over a
