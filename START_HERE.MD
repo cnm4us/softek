@@ -62,5 +62,7 @@ Manage Customers: 1–200 unique fictional identities per batch, saved individua
 checking/savings balances, and a password-free CSV for later automation. Plan 007
 adds compatible Device/Browser preferences and matching pilot emulation. Normal
 visits keep their actual browser; saving preferences does not start automation.
+Plan 008 removes redundant starting-account template selectors and keeps Savings
+Goals eligibility independent; generated balances still vary per customer.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

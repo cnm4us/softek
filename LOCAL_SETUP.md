@@ -139,11 +139,14 @@ Chris's invitation is deferred until the owner is ready to involve him.
 
 Open **Admin Menu → Manage Customers → Generate customers**
 (`/controls/customers/generate`). Choose 1–200, a prefix and shared demo password,
-then adjust checking/savings ranges and existing account/activity settings.
-Default count is 10, Human activity, eligible/value Alex template, checking
+then adjust checking/savings ranges, eligibility, campaign and activity settings.
+Default count is 10, Human activity, Savings Goals eligible, Value variant, checking
 $100–$10,000 and savings $0–$50,000. Amounts permit two decimal places and $0–$1M.
 The generated balance is saved per customer and restored on explicit reset;
 normal relogin resumes the current balance. Existing manual users stay unchanged.
+Manual creation, bulk generation and banking reset share one starting-account
+setup; no template dropdown is shown. Use the separate Savings Goals eligibility
+checkbox. No migration or reset of retained users is needed for this simplification.
 
 Download the customer list after success. CSV includes stable UUID, username,
 display name, opening amounts and activity mode; passwords are omitted. Customers

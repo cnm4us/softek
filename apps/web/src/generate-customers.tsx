@@ -47,7 +47,6 @@ export function GenerateCustomers() {
         count: Number(data.get('count')),
         prefix: data.get('prefix'),
         password: data.get('password'),
-        profileId: data.get('profileId'),
         variant: data.get('variant'),
         eligible: data.get('eligible') === 'on',
         actor: data.get('actor'),
@@ -192,13 +191,6 @@ export function GenerateCustomers() {
                   />
                 </label>
                 <label>
-                  Starting accounts template
-                  <select name="profileId" defaultValue="alex">
-                    <option value="alex">Eligible account</option>
-                    <option value="jamie">Standard template</option>
-                  </select>
-                </label>
-                <label>
                   Checking minimum ($)
                   <input
                     name="checkingMinMinor"
@@ -272,8 +264,8 @@ export function GenerateCustomers() {
                 Use Human for manual logins. Automation is for the trusted
                 journey runner. Creation does not sign customers in or allow
                 analytics for them. Credit accounts and recent activity use the
-                selected template; resets restore each customer's saved starting
-                amounts.
+                shared starting accounts; resets restore each customer's saved
+                starting amounts.
               </p>
               <button className="button" type="submit">
                 {busy ? 'Creating customers…' : 'Generate customers'}

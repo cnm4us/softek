@@ -258,13 +258,14 @@ test('bulk customer generation is protected, atomic, retry-safe and persistent',
         assert.equal(checking(state), customer.checkingMinor - 100);
         assert.equal(savings(state), customer.savingsMinor + 100);
         const reset = await req('/admin/users/' + customer.id + '/reset', {
-          profileId: 'jamie',
           variant: 'baseline',
           eligible: false,
         });
         assert.equal(reset.status, 200);
         state = (await req('/state')).data;
         assert.notEqual(state.runId, run);
+        assert.equal(state.profileId, customer.profileId);
+        assert.equal(state.eligible, false);
         assert.equal(checking(state), customer.checkingMinor);
         assert.equal(savings(state), customer.savingsMinor);
         assert.equal(

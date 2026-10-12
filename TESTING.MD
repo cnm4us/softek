@@ -1,6 +1,6 @@
 # Testing
 
-M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation are covered by MariaDB/API integration and Chromium journeys. Routine
+M1, the login/banner revision, and Plans 004/005/006 menus/features/customer generation and Plan 008 starting-account controls are covered by MariaDB/API integration and Chromium journeys. Routine
 tests use `demo_test`, trusted automated actor labels, and disabled Clarity.
 Human Clarity evaluation remains M2 work.
 
@@ -59,7 +59,10 @@ creation and salted hashes, email username normalization/login and field-specifi
 validation errors, concurrent first login producing one run, expiry and
 relogin preserving state, serialized retry-safe rotation, observation ownership,
 actual raster decoding/limits/internal destinations/immutable replacement URLs,
-zero/one-enabled fallback, and reset/password/disable behavior.
+zero/one-enabled fallback, and reset/password/disable behavior. Plan 008 adapts
+creation to omit the profile and verifies an ineligible customer uses the shared
+fixture but cannot enroll. A legacy Jamie reset omits the profile, preserves the
+internal assignment/history and permits enrollment when eligibility is enabled.
 
 `tests/features.test.ts` adds five API scenarios for all twelve feature IDs,
 strict auth/action/time/ownership, concurrent/retried observations, exact immutable
@@ -85,7 +88,8 @@ expect their own isolated execution window.
 count/amount bounds; simultaneous 200-user creation with distinct identities,
 varied cent amounts, unique salted password hashes and no premature runs;
 concurrent replay/configuration conflicts and cross-batch uniqueness;
-contribution/relogin/customer-reset/admin-reset persistence; and late collision
+contribution/relogin/customer-reset/admin-reset persistence with the admin reset
+omitting the template; and late collision
 rolling back earlier inserted users. Cleanup removes only owned `test.*` users
 and their batches after cascading opening rows. A full 200-user run takes ~14s.
 
@@ -125,6 +129,7 @@ Fifteen journeys run at **360×800, 390×844, and 1440×900**: **45 Chromium che
 | Feature routes and submenu | Authenticated direct entry, unavailable Savings Goals profile, unknown ID/back/forward, active child, short viewport, Enter/Space/Tab/Escape |
 | Bulk customer generation | Protected direct child route, form/count/ranges, lost-response retry with the same request UUID, three-row CSV without passwords, customer links, per-customer login amounts and no overflow/browser errors |
 | Device/browser preferences | Compatible options and automatic browser adjustment, saved choices across reload, independent update preserving run/accounts/goals; bulk CSV persists both IDs |
+| Shared starting accounts | No template selectors on manual/bulk/reset forms; independent eligibility works; default-profile creation and omitted-profile resets preserve saved amounts/history |
 | Responsive / privacy | No page overflow; no Clarity requests during complete journey; explicit masking attributes |
 
 Screenshots are written to ignored `artifacts/`; mobile/desktop dashboards and

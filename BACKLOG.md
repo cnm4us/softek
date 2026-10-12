@@ -63,3 +63,8 @@ and assigning browser journeys remain owner-selected work, separate from the too
 preferences and the existing pilot resolver ahead of Plan 003. Full scheduling,
 scenario assignment, random device distribution and actual Clarity classification
 remain deferred; no automatic recording starts when a preference is saved.
+
+[Plan 008](plans/008-simplify-starting-accounts.md) removes redundant starting-account
+selectors. Distinct financial account sets remain later scope if a concrete
+experiment needs them; current variation is saved balances and independent
+Savings Goals eligibility.

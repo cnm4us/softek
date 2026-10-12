@@ -473,3 +473,17 @@ fingerprints preserve the pre-007 normalized payload for compatible retries.
 Sources: [Playwright emulation](https://playwright.dev/docs/emulation),
 [engine fidelity](https://playwright.dev/docs/browsers), and
 [Clarity bot filtering](https://clarity.microsoft.com/blog/bots-vs-real-users-who-is-really-visiting-your-site/).
+
+## Shared starting-account controls — Plan 008
+
+User-requested simplification removes the Alex/Jamie selectors from creation,
+generation and admin reset. Both seeded profiles use the same accounts and activity.
+The independent `demo_users.eligible` value supplies the new-run eligibility
+override; the template's eligibility does not determine a customer's assignment.
+
+New manual/bulk requests omit `profileId` and default to the internal Alex fixture.
+Admin reset accepts an optional legacy profile field; when omitted it resolves
+to the locked user's existing profile. Legacy explicit overrides remain valid.
+No schema migration, user rewrite or fixture deletion is required, preserving
+foreign keys, historical runs and existing API clients. Generated opening amounts
+remain keyed by user UUID and are restored through the existing bindRun path.

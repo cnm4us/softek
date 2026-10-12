@@ -205,6 +205,7 @@ test('admin can create a login, upload a banner, and persist its settings', asyn
     .click();
   const username = `test.ui-${Date.now()}@example.com`;
   const form = page.locator('form');
+  await expect(form.locator('select[name="profileId"]')).toHaveCount(0);
   const usernameInput = form.getByLabel('Username', { exact: true });
   await usernameInput.fill('invalid username');
   expect(
@@ -530,6 +531,8 @@ test('protected controls show explicit funnel denominators and start a new varia
     .filter({ hasText: 'Reset banking state' })
     .click();
   await userCard.getByLabel('Campaign variant').selectOption('baseline');
+  await expect(userCard.locator('select[name="profileId"]')).toHaveCount(0);
+  await userCard.getByLabel('Eligible for savings goals').uncheck();
   await userCard
     .getByRole('button', { name: 'Reset banking state', exact: true })
     .click();
@@ -537,6 +540,11 @@ test('protected controls show explicit funnel denominators and start a new varia
   const configured = await state(page);
   ids.push(configured.runId);
   expect(configured.variant).toBe('baseline');
+  expect(configured.profileId).toBe(original.profileId);
+  expect(configured.eligible).toBe(false);
+  expect(configured.accounts.map(({ id, ...account }: any) => account)).toEqual(
+    original.accounts.map(({ id, ...account }: any) => account),
+  );
   expect(configured.runId).not.toBe(original.runId);
   await menu(page, 'Adoption Report');
   await expect(
@@ -1100,6 +1108,8 @@ test('bulk customer creation retries once, exports identities and uses individua
     page.getByRole('heading', { name: 'Generate Customers', exact: true }),
   ).toBeVisible();
   const password = 'shared-generation-password';
+  await expect(page.locator('select[name="profileId"]')).toHaveCount(0);
+  await page.getByLabel('Eligible for Savings Goals').uncheck();
   await page.getByLabel('Number of customers').fill('3');
   const prefix = page.getByLabel('Username prefix');
   await prefix.fill('test.ui-bulk');
@@ -1180,6 +1190,8 @@ test('bulk customer creation retries once, exports identities and uses individua
     page.getByRole('heading', { name: 'Account Summary', exact: true }),
   ).toBeVisible();
   const current = await state(page);
+  expect(current.profileId).toBe('alex');
+  expect(current.eligible).toBe(false);
   expect(current.user.displayName).toBe(customer.displayName);
   expect(
     current.accounts.find((a: any) => a.kind === 'checking').balanceMinor,

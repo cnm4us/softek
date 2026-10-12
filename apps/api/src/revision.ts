@@ -405,7 +405,7 @@ export function registerRevision(ctx: Context) {
         username,
         password,
         displayName: z.string().trim().min(1).max(100),
-        profileId: z.enum(['alex', 'jamie']),
+        profileId: z.enum(['alex', 'jamie']).default('alex'),
         variant: z.enum(['baseline', 'value']).default('value'),
         eligible: z.boolean(),
         actor: z.enum(['human', 'automation']).default('human'),
@@ -420,7 +420,7 @@ export function registerRevision(ctx: Context) {
           'Username must be 3–40 characters and use letters, numbers, dots, underscores, hyphens, @ or +.',
         password: 'Initial password must be 8–128 characters.',
         displayName: 'Display name must be 1–100 characters.',
-        profileId: 'Choose a starting accounts template.',
+        profileId: 'Invalid starting accounts profile.',
         variant: 'Choose a campaign variant.',
         eligible: 'Choose whether this user is eligible for savings goals.',
         actor: 'Choose an activity mode.',
@@ -571,7 +571,7 @@ export function registerRevision(ctx: Context) {
   app.post('/api/admin/users/:id/reset', async (req, res) => {
     const b = z
       .object({
-        profileId: z.enum(['alex', 'jamie']),
+        profileId: z.enum(['alex', 'jamie']).optional(),
         variant: z.enum(['baseline', 'value']),
         eligible: z.boolean(),
       })
@@ -579,20 +579,21 @@ export function registerRevision(ctx: Context) {
       .parse(req.body);
     let runId = '';
     await manageUser(req, async (c, u) => {
+      const profileId = b.profileId ?? u.profile_id;
       await c.query(
         "UPDATE participant_runs r JOIN user_current_runs m ON m.run_id=r.id SET r.status='retired',r.retired_at=UTC_TIMESTAMP(6) WHERE m.user_id=?",
         [u.id],
       );
       await c.query(
         'UPDATE demo_users SET profile_id=?,variant=?,eligible=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?',
-        [b.profileId, b.variant, b.eligible, u.id],
+        [profileId, b.variant, b.eligible, u.id],
       );
       // Configuring state must not grant the admin a customer session.
       const fresh = await bindRun(
         c,
         {
           ...u,
-          profile_id: b.profileId,
+          profile_id: profileId,
           variant: b.variant,
           eligible: b.eligible,
         },

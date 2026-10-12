@@ -90,7 +90,7 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
     assert.equal(adminLogin.status, 200);
     admin.csrf = adminLogin.data.csrf;
     a.user = await fixtureUser(pool);
-    b.user = await fixtureUser(pool);
+    b.user = await fixtureUser(pool, 'jamie');
     users.push(a.user.id, b.user.id);
     await t.test(
       'admin creates users; credential errors and runtime sessions do not disclose passwords',
@@ -101,9 +101,8 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
           username: name.toUpperCase(),
           password: 'fictional-test-password',
           displayName: 'Fictional Test',
-          profileId: 'alex',
           variant: 'value',
-          eligible: true,
+          eligible: false,
           actor: 'human',
         });
         assert.equal(created.status, 201);
@@ -126,6 +125,23 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
           { automated: false },
         );
         assert.equal(logged.status, 200);
+        const humanState = await human.state();
+        assert.equal(humanState.profileId, 'alex');
+        assert.equal(humanState.eligible, false);
+        assert.equal(humanState.user.displayName, 'Fictional Test');
+        assert.equal(
+          (
+            await human.request(
+              '/enroll',
+              {
+                requestId: randomUUID(),
+                accepted: true,
+              },
+              { automated: false },
+            )
+          ).status,
+          403,
+        );
         assert.equal(
           (
             await admin.request('/admin/users', {
@@ -527,6 +543,41 @@ test('authenticated users, banner rotation, uploads, and observations', async (t
           [original.runId],
         );
         assert.equal(history.status, 'retired');
+        const legacy = await b.state();
+        assert.equal(legacy.profileId, 'jamie');
+        assert.equal(legacy.eligible, false);
+        const configured = await admin.request(
+          `/admin/users/${b.user.id}/reset`,
+          {
+            variant: 'baseline',
+            eligible: true,
+          },
+        );
+        assert.equal(configured.status, 200);
+        const eligible = await b.state();
+        assert.equal(eligible.profileId, 'jamie');
+        assert.equal(eligible.eligible, true);
+        assert.equal(eligible.variant, 'baseline');
+        assert.notEqual(eligible.runId, legacy.runId);
+        assert.equal(eligible.user.id, legacy.user.id);
+        assert.deepEqual(
+          eligible.accounts.map(({ id, ...account }: any) => account),
+          legacy.accounts.map(({ id, ...account }: any) => account),
+        );
+        const [retired] = await pool.query(
+          'SELECT status FROM participant_runs WHERE id=?',
+          [legacy.runId],
+        );
+        assert.equal(retired.status, 'retired');
+        assert.equal(
+          (
+            await b.request('/enroll', {
+              requestId: randomUUID(),
+              accepted: true,
+            })
+          ).status,
+          200,
+        );
         assert.equal(
           (
             await admin.request(`/admin/users/${a.user.id}/password`, {

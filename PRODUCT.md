@@ -105,11 +105,11 @@ the owner-authorized Plan 002 phase now provides the collection control.
 
 Manage Customers → Generate customers creates 1–200 fictional customers in a
 chosen batch. The owner can set a username prefix, shared demo password, checking
-and savings amount ranges, template, eligibility, variant and activity mode.
+and savings amount ranges, eligibility, variant and activity mode.
 Generated usernames and display names carry a unique batch/position marker.
 Each customer's sampled starting amounts are saved separately from the templates;
 login resumes current amounts and reset restores those saved starting amounts.
-Credit balance and recent activity retain the selected fictional template.
+Credit balance and recent activity use the shared fictional starting accounts.
 
 A successful batch offers a downloadable CSV of IDs, usernames, display names,
 starting checking/savings amounts and activity mode. Passwords are not exported.
@@ -250,3 +250,13 @@ acceptance is not implied by a saved profile. See [Plan 007](plans/007-customer-
 7. The report displays explicit denominators and separates automated activity.
 8. Automated tests make no Clarity network requests. A separately configured
    evaluation verifies collection and masking before presentation.
+
+## Shared starting accounts — Plan 008
+
+Manual creation, bulk generation and banking reset use one account setup without
+Alex/Jamie or Eligible/Standard template selectors. Eligibility for Savings Goals
+is controlled solely by its independent checkbox. All customers start with
+Everyday checking, Harbor savings, Harbor credit card and sample recent activity;
+bulk generation still samples and saves individual checking/savings amounts.
+Existing balances, names and report history remain intact.
+See [Plan 008](plans/008-simplify-starting-accounts.md).

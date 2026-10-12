@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-12 UTC**.
-Current focus: **[007 — Customer device and browser profiles](plans/007-customer-device-browser-profiles.md)**.
-Latest completed implementation: **Plan 007 — customer Device/Browser selectors and pilot emulation**.
-Current request: **Saved Device/Browser selectors implemented and verified; no further implementation authorized this turn**.
-Next task: **Owner can assign customer Device/Browser preferences. Await the next prioritized change; actual Clarity profile classification and broader automation remain deferred**.
+Current focus: **[008 — Simplify starting accounts](plans/008-simplify-starting-accounts.md)**.
+Latest completed implementation: **Plan 008 — shared starting-account controls with independent Savings Goals eligibility**.
+Current request: **Starting-account selector simplification implemented, verified and deployed**.
+Next task: **Await the next owner-prioritized change; actual Clarity profile classification and broader automation remain deferred**.
 
 ## Plan status registry
 
@@ -22,6 +22,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
 | 006 | [Bulk customer generation](plans/006-bulk-customer-generation.md) | Completed | GEN-01–05 verified/deployed; 200-user test and small live batches; migration 0006 applied |
 | 007 | [Customer device and browser profiles](plans/007-customer-device-browser-profiles.md) | Completed | DEV-01–05 verified/deployed; schema 7; compatible selectors and matching native profiles |
+| 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
 
 ## Current reality
 
@@ -33,7 +34,9 @@ Active identifies focus and does not itself authorize additional scope.
   chooses count, prefix, shared password, ranges and existing assignment choices.
   Human is the default; no login/visit/analytics opt-in occurs during generation.
   Password-free CSV supports later automation. Saved starting amounts survive
-  reset; current amounts persist across logins. Manual users retain their templates.
+  reset; current amounts persist across logins. Starting-account template selectors
+  are removed from manual creation, generation and reset; Savings Goals eligibility
+  is independent. Internal legacy fixtures remain for history/API compatibility.
 - Device and Browser selectors are available in customer creation, generation and
   details, with an independent Save action. Existing customers default to Desktop/Chrome.
   Seven compatible pairs are enforced. Saving preserves banking/sessions/consent;
@@ -42,7 +45,8 @@ Active identifies focus and does not itself authorize additional scope.
 - Customer sessions last 24 hours. Sign-out/expiry preserve banking state; password
   replacement/disable revoke that user's sessions. Reset retires the run and retains
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
-  independent. Existing Alex/Jamie template choices remain unchanged.
+  independent. New users use the common starting accounts; omitted-profile resets
+  preserve existing internal assignments and restore saved starting amounts.
 - Account Summary retains accounts/activity/goals and its padded rotating banner.
   Login and full Summary refresh advance once; menu returns/data reads/feature CTAs
   do not. Independent tabs retain their exact selection. Savings Goals enrollment,
@@ -81,8 +85,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-12T00-46-07-747Z**. Previous authenticated release:
-  **2026-10-11T23-07-29-587Z**. Both current links point to the new release.
+- Current release: **2026-10-12T01-14-03-090Z**. Previous authenticated release:
+  **2026-10-12T00-46-07-747Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -275,12 +279,40 @@ check; no classification guarantee or bot-filter evasion is claimed. Ignored 060
 `artifacts/live-browser-profiles.json` and `artifacts/live-generation-check.json`
 record only test identities/profiles/run evidence, without passwords.
 
+## Plan 008 — shared starting-account controls
+
+Removed redundant Alex/Jamie and Eligible/Standard selectors from manual creation,
+bulk generation and banking reset. Fixtures share identical accounts/activity.
+New requests default to the internal Alex fixture; resets preserve the locked
+user's internal profile when omitted. Eligibility is independent, including an
+ineligible Alex customer and an eligible legacy Jamie customer. Generated amounts,
+user identity and archived history remain intact. No migration was required.
+
+| Check actually run | Result |
+| --- | --- |
+| API/native suite | 64 entries covered: 54 outside the revision suite passed initially; after fixing a comparison of regenerated account IDs, all 10 revision entries passed on focused rerun |
+| Focused browser suite | 9/9 at 360/390/1440px: manual creation, omitted-profile reset/eligibility, bulk retry/CSV and individual amounts; no template selectors or Clarity requests |
+| Typecheck/build/format | Passed; matched evaluation build 595.53 kB / 173.57 kB gzip, existing B-011 advisory |
+| Migration status | Both schemas version 7, no pending/checksum drift; no SQL applied |
+| Deploy | Release **2026-10-12T01-14-03-090Z**, existing evaluation flags/switch preserved |
+| Live focused check | 360/1440px: bulk retry/CSV, ineligible default profile, login/relogin, customer reset and admin reset to eligible; saved starting amounts preserved, no Clarity traffic |
+| Public HTTPS smoke | 360/1440px banking, features/report, independent sessions and reset passed |
+| Host/data | Active service, DB health, loopback 3100, matching release links, Nginx syntax/unrelated hashes/links, runtime permissions/allowlist/gates; ten original runs/counts and immutable image hash intact |
+| Credentials/docs | Secret scan passed; changed-document local links and Git whitespace checks passed |
+
+The failed reset assertion was a test-only issue: fresh account IDs are expected
+on a new run; financial fields are compared independently. No unresolved failure
+remains. Six owned generation-check users and public-smoke fixtures are retained
+with password-free evidence in ignored `artifacts/plan008-live-generation-check.json`
+(0600). Real SDK collection and dashboard classification were not run this phase.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Latest request is complete. Owner can set Device/Browser when creating or
-   generating customers, or save independently in Customer Details. Human visits
-   keep their actual browser; preferences guide automated contexts only.
+2. Plan 008 is complete. Customer creation/generation/reset now use one account
+   setup with an independent Savings Goals eligibility checkbox. Saved amount
+   ranges and Device/Browser preferences remain available; manual visits use
+   the actual browser.
 3. Await the next prioritized change. Plan 003's assignment/scheduler remains
    deferred. Saving preferences does not start jobs or authorize new SDK collection.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
@@ -293,7 +325,7 @@ record only test identities/profiles/run evidence, without passwords.
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008 and the current Clarity implementation/checks/docs are
 committed locally on `main`; inspect `git log -1` for the implementation hash. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

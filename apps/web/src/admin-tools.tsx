@@ -11,7 +11,6 @@ type User = ClientProfile & {
   username: string;
   displayName: string;
   enabled: boolean;
-  profileId: string;
   variant: string;
   eligible: boolean;
   actor: string;
@@ -202,7 +201,6 @@ export function CreateCustomer() {
         username: f.get('username'),
         password: f.get('password'),
         displayName: f.get('displayName'),
-        profileId: f.get('profileId'),
         variant: f.get('variant'),
         eligible: f.get('eligible') === 'on',
         actor: f.get('actor'),
@@ -273,13 +271,6 @@ export function CreateCustomer() {
         >
           Choose an initial password with 8–128 characters.
         </p>
-        <label>
-          Starting accounts
-          <select name="profileId">
-            <option value="alex">Alex · eligible template</option>
-            <option value="jamie">Jamie · standard template</option>
-          </select>
-        </label>
         <label>
           Campaign variant
           <select name="variant">
@@ -483,7 +474,6 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
                 void action(
                   () =>
                     request(`/admin/users/${u.id}/reset`, {
-                      profileId: f.get('profileId'),
                       variant: f.get('variant'),
                       eligible: f.get('eligible') === 'on',
                     }),
@@ -491,13 +481,6 @@ export function CustomerDetails({ created = false }: { created?: boolean }) {
                 );
               }}
             >
-              <label>
-                Starting accounts
-                <select name="profileId" defaultValue={u.profileId}>
-                  <option value="alex">Alex</option>
-                  <option value="jamie">Jamie</option>
-                </select>
-              </label>
               <label>
                 Campaign variant
                 <select name="variant" defaultValue={u.variant}>
