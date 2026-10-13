@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[015 — Feature Explorer controls](plans/015-feature-explorer-controls.md), admin-only controls delivered; customer activation deferred**.
+Current focus: **[015 — Feature Explorer controls](plans/015-feature-explorer-controls.md), confirmed widget deletion delivered; customer activation deferred**.
 Latest completed implementation: **Plan 015 — Feature Explorer administration**.
-Current request: **Admin Feature Explorer is deployed: four banner spaces, catalog-selected widgets, mobile image configuration and automatic URLs. Owner explicitly chose admin controls only; customer placeholders stay inactive.**
+Current request: **Confirmed widget Delete is deployed on rows and configuration pages. It removes only the chosen placement/settings and allows re-adding; customer activation remains deferred.**
 Next task: **Await the next owner-selected enhancement. Customer rotation/attribution (B-016) and further contextual placements (B-015) remain deferred; recording investigation remains stopped.**
 
 ## Plan status registry
@@ -29,7 +29,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
 | 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–08 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 | 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | Completed | STRIP-01–03 verified/deployed; 54 distinct account/banking cases, eight privacy checks, live HTTPS 360/1440px; schema 9 unchanged |
-| 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–05 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
+| 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–06 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
 
 ## Current reality
 
@@ -125,7 +125,9 @@ Active identifies focus and does not itself authorize additional scope.
   automatically derived URL and save accessible text/order/future inclusion.
   Recommend 960×315 for the compact mobile slot. One widget per feature per space;
   repeat features across spaces are allowed. Image-less inclusion is rejected.
-  Owner explicitly selected admin controls only; no customer reader, rotation,
+  Widget rows/configuration also have confirmed Delete; only the chosen placement
+  and settings are removed. Its feature is available again; other spaces/catalog
+  and immutable artwork remain. Owner selected admin controls only; no customer reader, rotation,
   impressions/clicks or new discovery is activated. Customer placeholders remain.
 - MariaDB is authoritative. Business writes use user/run locks and READ COMMITTED;
   savings reports use consistent snapshots; feature aggregates use one SQL statement.
@@ -148,8 +150,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T20-55-23-121Z**. Previous authenticated release:
-  **2026-10-13T20-28-58-806Z**. Both current links point to the new release.
+- Current release: **2026-10-13T21-16-17-030Z**. Previous authenticated release:
+  **2026-10-13T20-55-23-121Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -980,6 +982,29 @@ DB health verified. Evidence: ignored 0600 `artifacts/explorer-live.json`; helpe
 logs/screenshots remain ignored. New runtime-table data remains independent of
 legacy banner history and account state. Customer rotation is still explicitly
 owner-deferred (B-016), with further contextual placements separate (B-015).
+
+### EXP-06 widget deletion — 2026-10-13 UTC
+
+Source **01f082a**, release **2026-10-13T21-16-17-030Z**. Confirmed Delete appears
+on each feature widget row and its configuration page. The private admin endpoint
+locks and permanently deletes only the selected row/settings; repeated deletion
+succeeds. Shared catalog pages, other spaces and immutable artwork remain; the
+feature may be re-added with fresh settings. Configuration deletion returns to
+Feature Explorer; errors preserve the current UI for retry.
+
+Focused API **6/6 TAP entries** and browser **6/6 journeys** at 360/390/1440px
+passed: access/CSRF, scoped deletion, immutable images, repeat requests, cancellation,
+failure/retry, persistence and re-adding. Initial API assertion expected 401 for an
+unauthenticated POST; existing CSRF middleware correctly returns 403, so the test
+was corrected and passed. Typecheck, format and evaluation build passed; screenshots
+reviewed. No full API or privacy-suite rerun was needed for this admin-only follow-up.
+Live HTTPS 360/1440px verified row/configuration cancellation/deletion, correct
+return, unaffected other space, restored catalog choice and idempotent retry.
+Only four newly created fixtures were deleted; original configuration/global Clarity
+settings matched before/after. No external requests/errors or test listeners; API/DB
+health, active service and matched release links verified. Schema stays **10**;
+no migration/customer activation. Ignored 0600 evidence:
+`artifacts/explorer-delete-live.json`; checks/logs/screenshots remain ignored.
 
 ## Exact resume point
 

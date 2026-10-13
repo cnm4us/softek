@@ -482,3 +482,7 @@ Scoped root-only 0600 prechange backup:
 The prior Plan 014 application can ignore this additive table during a code-only
 rollback; keep the schema and configuration data rather than dropping the table.
 No rollback was performed. Next migration number is 0011.
+
+Feature Explorer rows and widget configuration also provide confirmed Delete.
+This removes only that banner space's widget/settings and makes its feature
+available to add again; the shared landing page and immutable images remain.

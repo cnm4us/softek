@@ -410,3 +410,8 @@ The owner selected **admin controls only for now**. Adding/uploading/saving a wi
 does not activate customer artwork, impressions, clicks, rotation or discovery.
 The four customer pages retain Plan 014's inactive placeholders. Future section
 rotation, attribution and desktop artwork behavior remain B-016.
+
+Feature Explorer widget rows and configuration pages have confirmed Delete actions.
+Deletion permanently removes only that space's widget and settings; the catalog
+feature/landing page, matching widgets in other spaces and immutable artwork remain.
+The feature becomes available to add again in that space, with fresh settings.

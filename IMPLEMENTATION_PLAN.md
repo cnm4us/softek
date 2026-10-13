@@ -22,7 +22,7 @@ verification evidence, and the resume point live in
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | CAT-01–04; grouped customer catalog/menu/search; depends on 005/011 |
 | 013 | [Account detail pages](plans/013-account-detail-pages.md) | DETAIL-01–08; linked checking/savings/credit widgets and read-only detail pages; depends on 001/011/012 |
 | 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | STRIP-01–03; shared half-height strip on Summary and account pages; depends on 013 |
-| 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | EXP-01–05; catalog widgets/mobile banners by section; depends on 005/013/014 |
+| 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | EXP-01–06; catalog widgets/mobile banners by section; depends on 005/013/014 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 

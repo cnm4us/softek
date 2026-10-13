@@ -361,3 +361,8 @@ URL display, upload/preview/replacement, persisted settings, independent spaces,
 menu and Admin Home links, overflow and errors. Collection is disabled and external
 requests are blocked. Existing account checks prove customer placeholders remain;
 the consent/masking SDK-stub journey crosses into the new admin route.
+
+EXP-06 extends the Feature Explorer API/browser checks with protected and
+idempotent deletion, cancelled confirmation, failure/retry, independent spaces,
+configuration return navigation and fresh re-adds. Existing image references
+remain readable; routine checks use only owned `demo_test` fixtures.

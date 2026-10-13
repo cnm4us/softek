@@ -48,6 +48,11 @@ separate feature/CTA observations and accurate section/banner Clarity tags.
 - [x] EXP-05: scoped backup/migration/status checks, evaluation build/deploy, live
   HTTPS checks without vendor capture, remove only owned fixtures and update handoff.
 
+- [x] EXP-06 follow-up: confirmed deletion on widget rows and configuration;
+  permanently remove only that widget/settings, allow re-adding its catalog feature,
+  retain other spaces/catalog/artwork and inactive customer pages; verify access,
+  cancel/error/retry behavior, mobile/desktop and deploy. No migration needed.
+
 ## Boundaries
 
 Retain existing Manage Banners/assets/history and customer banking state. No demo

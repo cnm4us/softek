@@ -619,3 +619,11 @@ shell. `feature_explorer_widgets` is deliberately independent of legacy
 rotation cursor, presentation table or analytics events for the new configuration.
 Owner-selected future activation must add owned attribution and per-space rotation
 without treating a configuration inclusion flag as consent or a recorded exposure.
+
+Plan 015 EXP-06 adds an admin/Origin/CSRF-protected widget deletion endpoint. It
+locks the selected widget and deletes only its configuration row. Missing IDs
+return success for a repeated deletion; immutable assets are retained. Existing
+upload/settings locks serialize against deletion. UI confirmation names the feature
+and banner space; row deletion reloads the list, configuration deletion returns to
+Feature Explorer, and failures retain the current UI for retry. No migration or
+customer activation is needed.
