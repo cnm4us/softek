@@ -104,6 +104,11 @@ test('Summary widgets open masked read-only account details with stable sample h
     await expect(
       page.getByTestId('account-detail-balance').locator('..'),
     ).toHaveAttribute('data-clarity-mask', 'true');
+    if (kind === 'savings')
+      await expect(page.locator('.account-detail-number')).toHaveAttribute(
+        'data-clarity-mask',
+        'true',
+      );
     const saved = original.transactions.filter(
       (t: any) => t.accountId === account.id,
     );

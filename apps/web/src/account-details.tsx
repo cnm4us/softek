@@ -75,28 +75,34 @@ export function AccountDetails({
         <ArrowLeft size={17} />
         Back to Account Summary
       </Link>
-      <Card className="account-detail-balance">
-        <div className="account-detail-heading">
-          <span className="icon-circle">
-            {kind === 'credit' ? (
-              <CreditCard size={24} />
-            ) : (
-              <Wallet size={24} />
-            )}
-          </span>
-          <div>
-            <h2>{kind === 'credit' ? 'Your credit card' : 'Your account'}</h2>
-            <p className="small-note">
-              {kind === 'checking'
-                ? 'Everyday spending, in one place.'
-                : kind === 'savings'
-                  ? 'A closer look at your savings.'
+      <Card
+        className={`account-detail-balance ${kind === 'savings' ? 'savings-detail-balance' : ''}`}
+      >
+        {kind === 'savings' ? (
+          <p className="account-detail-number" data-clarity-mask="true">
+            •••• {account.lastFour}
+          </p>
+        ) : (
+          <div className="account-detail-heading">
+            <span className="icon-circle">
+              {kind === 'credit' ? (
+                <CreditCard size={24} />
+              ) : (
+                <Wallet size={24} />
+              )}
+            </span>
+            <div>
+              <h2>{kind === 'credit' ? 'Your credit card' : 'Your account'}</h2>
+              <p className="small-note">
+                {kind === 'checking'
+                  ? 'Everyday spending, in one place.'
                   : 'Your balance, payments and recent purchases.'}
-            </p>
+              </p>
+            </div>
           </div>
-        </div>
+        )}
         <div className="banking-balance" data-clarity-mask="true">
-          <p>•••• {account.lastFour}</p>
+          {kind !== 'savings' && <p>•••• {account.lastFour}</p>}
           <strong data-testid="account-detail-balance">
             {money(
               kind === 'credit' ? -account.balanceMinor : account.balanceMinor,
