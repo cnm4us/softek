@@ -13,8 +13,8 @@ per feature per section initially. Blank widgets remain inactive until artwork
 is uploaded. Reuse secure image decoding/publication and private admin sessions.
 
 Owner selected **admin controls only for now**. Customer placeholders remain
-inactive; rotation and attribution activation are later scope. Header clarification
-is optional/pending; use the normal title with spacing beneath it unless refined.
+inactive; rotation and attribution activation are later scope. Each page name is a **banner space header**, with its widgets underneath;
+Spacer was corrected by the owner to space, not blank layout spacing.
 The intended rotation recommendation is independent ordered selection per section,
 advancing on refresh and preserving selection on menu returns. No automatic
 contextual eligibility targeting, timing/scheduling or new landing pages.
@@ -36,13 +36,13 @@ separate feature/CTA observations and accurate section/banner Clarity tags.
 
 ## Tasks and acceptance
 
-- [ ] EXP-01: resolve scope/header clarification, shared section identities,
+- [x] EXP-01: confirmed admin-only scope and space headers, shared section identities,
   committed additive migration and private admin APIs for widgets/settings/upload.
-- [ ] EXP-02: Admin Menu/list/configuration routes, catalog title selector, auto URL,
+- [x] EXP-02: Admin Menu/list/configuration routes, catalog title selector, auto URL,
   upload/replacement and accurate mobile preview, responsive errors and save feedback.
-- [ ] EXP-03: preserve inactive customer placeholders; saved configuration and
+- [x] EXP-03: preserve inactive customer placeholders; saved configuration and
   future-rotation inclusion flags do not activate them. Rotation/attribution remains B-016.
-- [ ] EXP-04: API/database and responsive browser checks for access, invalid uploads,
+- [x] EXP-04: API/database and responsive browser checks for access, invalid uploads,
   duplicate widgets, configuration persistence, replacement and selected rotation scope;
   verify existing data/reporting/privacy boundaries.
 - [ ] EXP-05: scoped backup/migration/status checks, evaluation build/deploy, live

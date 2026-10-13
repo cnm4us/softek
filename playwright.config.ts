@@ -7,6 +7,7 @@ export default defineConfig({
     'discovery.spec.ts',
     'catalog.spec.ts',
     'accounts.spec.ts',
+    'feature-explorer.spec.ts',
   ],
   workers: 1,
   reporter: 'list',

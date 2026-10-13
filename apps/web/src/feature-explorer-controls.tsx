@@ -29,10 +29,9 @@ export function FeatureExplorerControls() {
   }
   return (
     <div className="feature-explorer-controls">
-      <div className="explorer-spacer" aria-hidden="true" />
       <Feedback error={error} notice={notice} />
       <p className="small-note">
-        Prepare feature invitations for each page. Customer banners are not
+        Add Explore features to each banner space. Customer banners are not
         rotating yet.
       </p>
       {loading ? (
@@ -155,7 +154,7 @@ export function ExploreWidgetControls() {
         data && (
           <>
             <Card title={data.title}>
-              <p className="section-caption">{section?.label}</p>
+              <p className="section-caption">Banner space: {section?.label}</p>
               <label>
                 Feature URL
                 <input
@@ -163,7 +162,10 @@ export function ExploreWidgetControls() {
                   value={new URL(data.href, window.location.origin).href}
                 />
               </label>
-              <button className="text-button" onClick={() => void copyUrl()}>
+              <button
+                className="button secondary"
+                onClick={() => void copyUrl()}
+              >
                 <Copy size={16} />
                 Copy feature URL
               </button>

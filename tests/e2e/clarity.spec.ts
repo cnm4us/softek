@@ -255,11 +255,11 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
   await expect.poll(() => scripts).toBe(2);
   // SPA entry crosses the captured-document boundary before private tools render.
   await page.evaluate(() => {
-    history.pushState(null, '', '/controls/clarity');
+    history.pushState(null, '', '/controls/feature-explorer');
     dispatchEvent(new PopStateEvent('popstate'));
   });
   await expect(
-    page.getByRole('heading', { name: 'Clarity Settings', exact: true }),
+    page.getByRole('heading', { name: 'Feature Explorer', exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate(() =>
