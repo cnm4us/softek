@@ -1,11 +1,5 @@
 import { Link } from 'react-router';
-import {
-  ArrowLeft,
-  ArrowDownLeft,
-  ArrowUpRight,
-  CreditCard,
-  Wallet,
-} from 'lucide-react';
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Wallet } from 'lucide-react';
 import { money, type Account, type State } from './api';
 import { Card } from './ui';
 
@@ -76,41 +70,49 @@ export function AccountDetails({
         Back to Account Summary
       </Link>
       <Card
-        className={`account-detail-balance ${kind === 'savings' ? 'savings-detail-balance' : ''}`}
+        className={`account-detail-balance ${kind !== 'checking' ? 'account-detail-compact' : ''}`}
       >
-        {kind === 'savings' ? (
+        {kind !== 'checking' ? (
           <>
-            <div className="savings-detail-heading">
-              <h2>Personal Savings</h2>
+            <div className="account-detail-topline">
+              <h2>{kind === 'savings' ? 'Personal Savings' : 'Credit Card'}</h2>
               <p className="account-detail-number" data-clarity-mask="true">
                 •••• {account.lastFour}
               </p>
             </div>
-            <p className="savings-interest">
-              Interest 1.25% / Compounded Monthly
-            </p>
+            {kind === 'savings' ? (
+              <p className="savings-interest">
+                Interest 1.25% / Compounded Monthly
+              </p>
+            ) : (
+              <dl
+                className="account-metrics account-credit-metrics"
+                data-clarity-mask="true"
+              >
+                <div>
+                  <dt>Available Credit</dt>
+                  <dd>{money(Math.max(0, creditLimit - owed))}</dd>
+                </div>
+                <div>
+                  <dt>Credit Limit</dt>
+                  <dd>{money(creditLimit)}</dd>
+                </div>
+              </dl>
+            )}
           </>
         ) : (
           <div className="account-detail-heading">
             <span className="icon-circle">
-              {kind === 'credit' ? (
-                <CreditCard size={24} />
-              ) : (
-                <Wallet size={24} />
-              )}
+              <Wallet size={24} />
             </span>
             <div>
-              <h2>{kind === 'credit' ? 'Your credit card' : 'Your account'}</h2>
-              <p className="small-note">
-                {kind === 'checking'
-                  ? 'Everyday spending, in one place.'
-                  : 'Your balance, payments and recent purchases.'}
-              </p>
+              <h2>Your account</h2>
+              <p className="small-note">Everyday spending, in one place.</p>
             </div>
           </div>
         )}
         <div className="banking-balance" data-clarity-mask="true">
-          {kind !== 'savings' && <p>•••• {account.lastFour}</p>}
+          {kind === 'checking' && <p>•••• {account.lastFour}</p>}
           <strong data-testid="account-detail-balance">
             {money(
               kind === 'credit' ? -account.balanceMinor : account.balanceMinor,
@@ -120,23 +122,11 @@ export function AccountDetails({
             {kind === 'credit' ? 'Current amount owed' : 'Available balance'}
           </small>
         </div>
-        {kind === 'credit' && (
-          <dl className="account-metrics" data-clarity-mask="true">
-            <div>
-              <dt>Available credit</dt>
-              <dd>{money(Math.max(0, creditLimit - owed))}</dd>
-            </div>
-            <div>
-              <dt>Example credit limit</dt>
-              <dd>{money(creditLimit)}</dd>
-            </div>
-          </dl>
-        )}
       </Card>
       <div
-        className={`account-detail-grid ${kind === 'savings' ? 'account-detail-grid-single' : ''}`}
+        className={`account-detail-grid ${kind !== 'checking' ? 'account-detail-grid-single' : ''}`}
       >
-        {kind !== 'savings' && (
+        {kind === 'checking' && (
           <Card title="Account information">
             <dl className="account-information" data-clarity-mask="true">
               <div>
@@ -149,9 +139,7 @@ export function AccountDetails({
               </div>
               <div>
                 <dt>Account type</dt>
-                <dd>
-                  {kind === 'credit' ? 'Credit card' : 'Personal checking'}
-                </dd>
+                <dd>Personal checking</dd>
               </div>
               <div>
                 <dt>Status</dt>
@@ -161,34 +149,14 @@ export function AccountDetails({
                 <dt>Currency</dt>
                 <dd>{account.currency}</dd>
               </div>
-              {kind === 'checking' && (
-                <>
-                  <div>
-                    <dt>Example account plan</dt>
-                    <dd>Everyday banking</dd>
-                  </div>
-                  <div>
-                    <dt>Example monthly fee</dt>
-                    <dd>$0.00</dd>
-                  </div>
-                </>
-              )}
-              {kind === 'credit' && (
-                <>
-                  <div>
-                    <dt>Example minimum payment</dt>
-                    <dd>
-                      {money(
-                        Math.min(owed, Math.max(2500, Math.ceil(owed * 0.02))),
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Example payment due date</dt>
-                    <dd>November 5, 2026</dd>
-                  </div>
-                </>
-              )}
+              <div>
+                <dt>Example account plan</dt>
+                <dd>Everyday banking</dd>
+              </div>
+              <div>
+                <dt>Example monthly fee</dt>
+                <dd>$0.00</dd>
+              </div>
             </dl>
             <p className="small-note">
               Rates, fees, limits and payment details are fictional examples for

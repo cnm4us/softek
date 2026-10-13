@@ -1742,33 +1742,33 @@ summary {
   flex-shrink: 0;
 }
 
-.savings-detail-balance {
+.account-detail-compact {
   min-height: 210px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-.savings-detail-balance .account-detail-number {
+.account-detail-compact .account-detail-number {
   margin: 0;
   color: var(--color-muted);
   font-size: 14px;
 }
-.savings-detail-balance .banking-balance {
+.account-detail-compact .banking-balance {
   margin-top: auto;
 }
 
-.savings-detail-heading {
+.account-detail-topline {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.savings-detail-heading h2 {
+.account-detail-topline h2 {
   margin: 0;
   font-size: 16px;
 }
-.savings-detail-balance .savings-interest {
+.account-detail-compact .savings-interest {
   flex: 1;
   display: flex;
   align-items: center;
@@ -1779,4 +1779,13 @@ summary {
 }
 .account-detail-grid-single {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.account-credit-metrics {
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  border-top: none;
+  margin: 0;
+  padding: 14px 0;
 }
