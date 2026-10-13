@@ -1014,7 +1014,7 @@ test('feature banner attribution, reload, direct/menu entry, tabs and report', a
   await page.goto('/controls/banners');
   await expect(
     page.getByRole('combobox', { name: 'Destination', exact: true }),
-  ).toContainText('EasyCoin Crypto');
+  ).toContainText('EasyCoin Cryptocurrency');
 });
 
 test('feature deep-link login, unavailable savings profile, unknown page and menu keyboard', async ({

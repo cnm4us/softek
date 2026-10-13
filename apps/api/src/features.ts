@@ -2,7 +2,7 @@
 export const features = [
   {
     id: 'easycoin',
-    label: 'EasyCoin Crypto',
+    label: 'EasyCoin Cryptocurrency',
     name: 'EasyCoin Cryptocurrency',
     href: '/features/easycoin',
     headline: 'Cryptocurrency Investing, Made More Accessible',
@@ -22,7 +22,7 @@ export const features = [
   },
   {
     id: 'easyvest-auto',
-    label: 'Automated Investing',
+    label: 'EasyVest Automated Investing',
     name: 'EasyVest Automated Investing',
     href: '/features/easyvest-auto',
     headline: 'Put Your Investment Goals on a Plan',
@@ -43,7 +43,7 @@ export const features = [
   },
   {
     id: 'easyvest-choice',
-    label: 'Self-Directed Investing',
+    label: 'EasyVest Self-Directed Investing',
     name: 'EasyVest Self-Directed Investing',
     href: '/features/easyvest-choice',
     headline: 'Your Portfolio. Your Decisions.',
@@ -221,7 +221,7 @@ export const features = [
   },
   {
     id: 'business-invoice',
-    label: 'Business Invoicing',
+    label: 'Small Business Invoicing',
     name: 'Small Business Invoicing',
     href: '/features/business-invoice',
     headline: 'Spend Less Time Billing. More Time Building.',

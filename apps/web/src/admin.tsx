@@ -514,7 +514,7 @@ function AdoptionReport() {
                   <tr key={row.featureId + row.placement}>
                     <th>
                       {row.featureId === 'easycoin'
-                        ? 'EasyCoin Crypto'
+                        ? 'EasyCoin Cryptocurrency'
                         : 'Skip A Pay'}
                       <span className="small-note">
                         {row.placement === 'loan-payment'

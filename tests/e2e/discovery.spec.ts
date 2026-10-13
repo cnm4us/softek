@@ -99,7 +99,7 @@ test('EasyCoin discovery follows explicit investing exploration and links to sep
   });
   await card.getByRole('button', { name: 'Learn more', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'EasyCoin Crypto', exact: true }),
+    page.getByRole('heading', { name: 'EasyCoin Cryptocurrency', exact: true }),
   ).toBeVisible();
   await page
     .getByRole('button', { name: 'Explore Crypto Investing', exact: true })
@@ -191,7 +191,7 @@ test('discovery opt-out and dismissal persist while permanent Explore remains av
     .getByRole('link', { name: 'EasyCoin Cryptocurrency', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'EasyCoin Crypto', exact: true }),
+    page.getByRole('heading', { name: 'EasyCoin Cryptocurrency', exact: true }),
   ).toBeVisible();
   await menu(page, 'Discovery preferences');
   await page.getByRole('radio', { name: /Standard suggestions/ }).check();
