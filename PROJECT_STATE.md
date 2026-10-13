@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[011 — Contextual feature discovery](plans/011-contextual-feature-discovery.md)**.
-Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Build two contextual journeys from the supplied brief: EasyCoin in savings/investment exploration and Skip A Pay on an eligible fictional loan-payment screen.**
-Next task: **Implement DISC-01–06 using the existing pages/theme/API, additive migration 0009, persistent discovery preferences and independent first-party reporting. The broader brief is phased; no automated-recording investigation is reopened.**
+Current focus: **[011 — Contextual feature discovery](plans/011-contextual-feature-discovery.md), delivered; awaiting owner walkthrough/next priority**.
+Latest completed implementation: **Plan 011 — contextual EasyCoin and Skip A Pay discovery**.
+Current request: **Two selected contextual journeys are implemented and deployed, with saved preferences and separate reporting.**
+Next task: **Owner walkthrough: Savings & Investing → Explore investing for EasyCoin, and Loans → Harbor auto loan for Skip A Pay. Use separate logins/customers because the new invitation cap is one per visit. Broader discovery/tenancy and automation await prioritization; automated recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -25,7 +25,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
-| 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Active | Owner selected EasyCoin and Skip A Pay; plan recorded, implementation next |
+| 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -80,6 +80,16 @@ Active identifies focus and does not itself authorize additional scope.
   one primary CTA. CTA acknowledgement
   shows an inline demo confirmation, without changing banking/enrollment. No banners
   or financial input forms appear on feature pages. All customers may explore them.
+- Customer Menu now includes **Savings & Investing** and **Loans**. Explicit
+  investing exploration can show EasyCoin; the eligible fictional auto-loan payment
+  screen can show Skip A Pay. The ineligible personal-loan example has no invitation.
+  Learn more/Dismiss uses the existing feature pages. Payment form, review and
+  confirmation are simulations without financial writes. Discovery preferences
+  persist across logins/reset: one reservation per visit, 14-day seen cooldown,
+  90-day dismissal and seven-day fewer-suggestion interval. These settings cover
+  the new invitations; Summary banners/Goals remain separate. Contextual Discovery
+  in Adoption Report has owned immutable attribution and existing actor/variant/
+  time filters; impersonation is excluded.
 - All twelve internal destinations are selectable in Manage Banners. No new artwork
   or enabled promotional set was created. Uploaded JPEG/PNG/WebP is re-encoded to
   immutable WebP; production assets remain outside releases in
@@ -99,10 +109,10 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0008** applied to **demo and demo_test**, version 8 with no
+- Migrations **0001–0009** applied to **demo and demo_test**, version 9 with no
   pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
   preferences; committed **7eb7290** before application. Batch/balance tables and
-  the collection switch/epoch remain intact. Next migration is **0009**. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application.
+  the collection switch/epoch remain intact. Next migration is **0010**. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
 - Root-only 0600 pre-0008 schema/data/ledger backup:
   `/var/backups/softek/demo-before-0008-20261012T061846Z.sql`; tested schema-8
   API/web recovery build `/var/backups/softek/schema8-tested-build-20261012-final.tar.gz`.
@@ -112,8 +122,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-12T06-30-44-829Z**. Previous authenticated release:
-  **2026-10-12T06-18-47-850Z**. Both current links point to the new release.
+- Current release: **2026-10-13T16-23-08-166Z**. Previous authenticated release:
+  **2026-10-12T06-30-44-829Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -714,12 +724,49 @@ fixtures were removed; ignored 0600 `artifacts/plan010-live.json` contains only
 password-free results. No unresolved failure, public rollback or real SDK capture
 remains. The owner declined an independent OS selector; existing presets remain.
 
+## Plan 011 — verified contextual discovery result
+
+DISC-01–06 complete. The selected EasyCoin and Skip A Pay journeys, saved
+preferences, visibility/cooldown/cap rules and independent reporting are deployed.
+Broader two-FI/catalogue/experiment scope remains B-014/B-007; no activation,
+money movement or loan servicing is implied by these educational confirmations.
+
+| Check actually run | Result |
+| --- | --- |
+| API/rules/migrations | **83/83 TAP entries**; new owned-context/strict input/CSRF, concurrent cap, cooldown boundaries, retry attribution, relogin/reset preferences, actor/impersonation separation and exact committed 0009 clean/repeat probes |
+| Banking/discovery browsers | **48 existing checks passed** at 360/390/1440px; after the preference loading fix **9/9 new discovery checks passed** on focused rerun |
+| Privacy SDK stub | **18 checks covered/passed**: mobile six passed before external SIGTERM; wide/mobile + desktop twelve passed on scoped rerun; no real vendor collection |
+| Typecheck/build/format | Passed; matched evaluation profile, main bundle ~622 kB / 179 kB gzip, existing B-011 advisory |
+| Migration/deploy | 0009 committed **b3305a6** before test/production apply; both schemas version 9, no drift/pending; repeats no-op; release **2026-10-13T16-23-08-166Z** |
+| Live HTTPS | **360/1440px** both invitations, linked feature views/CTAs, ineligible loan suppression, masked payment review/confirmation, preserved accounts and opt-out relogin; report matched one visible/view/CTA per feature for each scoped check |
+| Hosting/collection | Service/DB healthy, matched release links, Nginx syntax valid; collection settings unchanged, external requests/page errors zero in public checks; test listeners stopped |
+| Credentials/docs | Credential scan passed across **130 source/document/build files**; maintained local links, section structure and Git whitespace checks passed |
+
+Root-only 0600 pre-0009 backup:
+`/var/backups/softek/demo-before-0009-20261013T161812Z.sql`. 0009 only creates
+tables; do not downgrade/drop them for code recovery. Previous Plan 010 release
+retains existing layouts, but does not provide the discovery UI/report. Prefer
+forward recovery and consult LOCAL_SETUP before a deliberate rollback.
+
+The public helper created two owned Automation customers and deleted both through
+protected Delete after checks; no owner customer was used/reset. Ignored 0600
+`artifacts/plan011-live.json` contains password-free evidence. Public screenshots
+and the ignored helper are under `artifacts/`; no raw capture data was retained.
+Initial test setup mistakenly passed an extra login field/reset request ID; strict
+validation rejected them and the harness was corrected. The preference browser
+failure exposed controls showing a default choice before the saved setting loaded;
+controls are now hidden until loaded. One privacy runner was externally interrupted;
+only verified owned test process groups were stopped before the remaining checks.
+No unresolved application/check failure remains. Automated recording investigation
+and further actual capture remain stopped by owner decision.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 010 is complete and deployed; verify actual Git/release before new work.
-   Entry/exit, source attribution and collection exclusion are implemented.
-   Plans 008/009 account/deletion/retry protection remain intact.
+2. Plan 011 is complete and deployed; verify current release/schema/Git before new
+   work. Walk through Savings & Investing → Explore investing and Loans → auto
+   loan in separate logins/customers. Invitations are limited to one per visit.
+   Impersonation, account/deletion/reset protection and existing promotions remain.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
    activity plus human saved recordings and ended the missing-recording inquiry.
    Await the next priority; do not resume consent/shutdown experiments or support
@@ -739,8 +786,8 @@ remains. The owner declined an independent OS selector; existing presets remain.
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010 and the current Clarity implementation/checks/docs are
-committed locally on `main`; Plan 010 application commit **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011 and the current Clarity implementation/checks/docs are
+committed locally on `main`; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.

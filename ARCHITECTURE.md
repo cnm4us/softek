@@ -30,8 +30,6 @@ scope. The owner declined additional OS selectors.
 Status: M1 and Plans 001/004/005 implemented. MariaDB remains authoritative for banking
 state and adoption reporting; live Clarity evaluation is pending in M2.
 
-## System shape
-
 ## Contextual discovery — Plan 011
 
 The first phase reuses the existing twelve educational pages with two contextual
@@ -59,6 +57,8 @@ Impersonation has separate visit reservations/history and is excluded from the
 protected discovery report. Existing actor/variant/run-start/cutoff filters apply.
 No Clarity command, consent rule or third-party SDK is added; current gated replay
 can observe the rendered pages. Financial displays and payment forms are masked.
+
+## System shape
 
 Use a small TypeScript application with a React frontend, an Express API, and the
 existing MariaDB server. The browser uses the API for all persistent mutations.

@@ -69,4 +69,9 @@ report history after confirmation; original batch retries cannot recreate them.
 Plan 010 adds admin impersonation from customer details, conditional Exit to Admin,
 admin-bound sessions and labeled local activity with Clarity excluded.
 Production API runs as `softek` on loopback 3100; development/test uses 3101.
+Plan 011 adds Savings & Investing → EasyCoin contextual education and Loans →
+eligible fictional auto-loan Skip A Pay invitations, saved discovery preferences
+and separate first-party reporting. One contextual recommendation per visit;
+the payment flow remains a simulation. The owner accepted automated Dashboard
+activity with human saved recordings; missing automated recordings are not a blocker.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

@@ -39,39 +39,44 @@ remain an owner-accepted limitation.
 
 ## Tasks and acceptance
 
-- [ ] DISC-01: shared deterministic rules: one reserved recommendation per visit,
+- [x] DISC-01: shared deterministic rules: one reserved recommendation per visit,
   14-day same-feature impression cooldown, 90-day dismissal suppression, opt-out,
   fewer-suggestion frequency (one in seven days), current enabled features and
   explicit demo loan eligibility. Preferences/history belong to the customer;
   a new banking run does not clear them. Permanent Explore is exempt. Current
   confirmations do not constitute adoption; no invented activation state.
-- [ ] DISC-02: commit 0009 before applying; verify clean/additive/repeat behavior
+- [x] DISC-02: commit 0009 before applying; verify clean/additive/repeat behavior
   in `demo_test`; back up retained `demo` before production application. Tables
   cascade only with owned customer/run/visit data. Recover partial DDL by inspecting
   the runner ledger/table definitions and using the scoped backup; do not blindly
   retry or modify applied SQL.
-- [ ] DISC-03: Savings & Investing uses saved savings account data, existing goals
+- [x] DISC-03: Savings & Investing uses saved savings account data, existing goals
   links and an explicit investing-education choice before EasyCoin is suggested.
   Loan screens use labeled fictional fixtures with eligible/ineligible examples;
   normal payment actions remain prominent. Payment review/confirmation is a
   simulation that does not change accounts or loan obligations.
-- [ ] DISC-04: Learn more links to existing pages; Dismiss persists; visible
+- [x] DISC-04: Learn more links to existing pages; Dismiss persists; visible
   impressions require >=50% for one continuous second in a foreground tab.
   Hide suggestions during core payment review, confirmation, errors, preferences,
   login and support. Preferences persist across devices/logins; banking reset
   preserves them. No promotional overlays.
-- [ ] DISC-05: first-party report separates presentations, actual impressions,
+- [x] DISC-05: first-party report separates presentations, actual impressions,
   dismissals, Learn more clicks and linked feature views/CTAs from Savings Goals
   adoption. Validate immutable owned attribution; deduplicate retries. Exclude
   impersonation from default reports and preserve normal actor/variant/time filters.
   No names, balances, account numbers, raw inputs or transaction descriptions in
   discovery observation payloads. Existing financial/form DOM masks apply.
-- [ ] DISC-06: meaningful API/rules tests and mobile/desktop keyboard/navigation
+- [x] DISC-06: meaningful API/rules tests and mobile/desktop keyboard/navigation
   checks; no real Clarity traffic in routine checks. Run typecheck, formatting,
   build and relevant regressions. Deploy the authorized site changes with the
   existing collection configuration; verify public HTTPS without vendor capture.
 
 ## Reopening later scope
+
+Completed October 13 PDT; runtime/API/browser/SQL/public verification and release
+evidence are recorded in PROJECT_STATE.md. Initial preference browser failures
+were fixed by hiding the controls until the saved setting loads; nine focused
+journeys passed afterward. No automated Clarity recording investigation reopened.
 
 Two-FI configuration/tenant switching requires its own data-isolation and branding
 phase. Further contextual features reuse the placement engine once selected by

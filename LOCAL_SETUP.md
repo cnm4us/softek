@@ -75,8 +75,6 @@ setup: `npx playwright install chromium`. Tests force Clarity off and designate
 journeys as automation using a private harness secret, without embedding it in
 the frontend bundle.
 
-## Application configuration
-
 ## Contextual discovery walkthrough
 
 - Customer Menu → **Savings & Investing** → **Explore investing** shows the
@@ -99,6 +97,8 @@ The two banking contexts are fictional demonstrations; no provider integration,
 real eligibility decision, loan servicing or feature activation is implemented.
 The current institution is Harbor; tenant switching is later scope. Rule/copy
 configuration lives in `apps/api/src/discovery-config.ts`.
+
+## Application configuration
 
 `.env` is `ubuntu:ubuntu`, mode `0600`, ignored. The deployed allowlist is
 `/etc/softek/runtime.env`, `root:softek`, mode `0640`, inside a `0750` directory.

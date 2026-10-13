@@ -232,8 +232,6 @@ separate acceptance requirements. See [Plan 002](plans/002-clarity-validation.md
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.
 
-## Customer device and browser preferences
-
 ## Contextual discovery — first phase
 
 Owner selected **EasyCoin Cryptocurrency** for savings/investment exploration and
@@ -253,9 +251,11 @@ experiments retain their separate behavior. First-party Contextual Discovery
 reporting distinguishes selection, actual visibility, dismissal, clicks and linked
 feature views/CTAs; engagement does not constitute activation or adoption.
 
-The supplied brief's two-FI switching, wider catalogue organization, other nine
+The supplied brief's two-FI switching, wider catalogue organization, additional
 placements, experiment assignments and simulated activation belong to later phases.
 See [Plan 011](plans/011-contextual-feature-discovery.md).
+
+## Customer device and browser preferences
 
 Customer Device and Browser preferences are saved separately from banking state.
 Create Customer, Generate Customers and Customer Details provide both selectors;

@@ -1,13 +1,13 @@
 # MariaDB schema migration contract
 
 Status: migrations `0001_demo_foundation.sql` through
-`0007_customer_browser_profiles.sql` are committed and applied to `demo` and `demo_test`.
-Both ledgers are version 7, no pending/checksum drift. 0007 was committed in
-**7eb7290** before application. It adds per-user device/browser preferences;
-existing users/runs/history and 0006 balances are unchanged. Scoped production
-schema/data/ledger backup (0600):
-`/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
-Applied files are immutable; next schema change uses `0008_<description>.sql`.
+`0009_contextual_discovery.sql` are committed and applied to `demo` and `demo_test`.
+Both ledgers are version 9, no pending/checksum drift. 0009 was committed in
+**b3305a6** before application. It adds discovery preferences, presentations and
+feature attribution without changing existing layouts/ENUMs. Scoped production
+schema/data/ledger backup (root-only 0600):
+`/var/backups/softek/demo-before-0009-20261013T161812Z.sql`.
+Applied files are immutable; next schema change uses `0010_<description>.sql`.
 0005's persistent collection switch and its earlier backup remain intact.
 Earlier 0004 appends two feature ENUM values; its committed history and backup
 are preserved in PROJECT_STATE.
@@ -96,7 +96,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **8**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. The actual applied version is **9**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 
