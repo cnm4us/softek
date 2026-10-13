@@ -216,7 +216,7 @@ export function DiscoveryPreferencesPage({ state }: { state: State }) {
       <Card title="Make discovery work for you">
         <p>
           Choose how often you see optional suggestions while banking. You can
-          always browse Explore Features from the menu.
+          always browse Explore more ways to bank from the menu.
         </p>
         <p className="small-note">
           These settings control invitations in Savings &amp; Investing and

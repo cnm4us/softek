@@ -830,17 +830,14 @@ test('all twelve feature pages, one CTA, retry confirmation, and preserved banki
   });
   for (const f of features) {
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
-    const group = page.getByRole('button', {
-      name: 'Explore Features',
-      exact: true,
-    });
-    if ((await group.getAttribute('aria-expanded')) === 'false')
-      await group.click();
+    await page
+      .getByRole('link', { name: 'Explore more ways to bank', exact: true })
+      .click();
     if (f.id === 'easycoin')
       await page.screenshot({
         path: `artifacts/feature-menu-${test.info().project.name}.png`,
       });
-    await page.getByRole('link', { name: f.label, exact: true }).click();
+    await page.getByRole('link', { name: f.name, exact: true }).click();
     await expect(
       page.getByRole('heading', { name: f.headline, exact: true }),
     ).toBeVisible();
@@ -965,11 +962,9 @@ test('feature banner attribution, reload, direct/menu entry, tabs and report', a
   await expect(banner).toHaveAttribute('href', '/features/easycoin');
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Explore Features', exact: true })
+    .getByRole('link', { name: 'Explore more ways to bank', exact: true })
     .click();
-  await page
-    .getByRole('link', { name: features[0].label, exact: true })
-    .click();
+  await page.getByRole('link', { name: features[0].name, exact: true }).click();
   await page
     .getByRole('button', { name: features[0].cta, exact: true })
     .click();
@@ -1022,7 +1017,7 @@ test('feature banner attribution, reload, direct/menu entry, tabs and report', a
   ).toContainText('EasyCoin Crypto');
 });
 
-test('feature deep-link login, unavailable savings profile, unknown page and submenu keyboard', async ({
+test('feature deep-link login, unavailable savings profile, unknown page and menu keyboard', async ({
   page,
 }) => {
   const user = await fixtureUser(pool, 'jamie');
@@ -1043,25 +1038,9 @@ test('feature deep-link login, unavailable savings profile, unknown page and sub
   const width = page.viewportSize()!.width;
   await page.setViewportSize({ width, height: 500 });
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
-  const group = page.getByRole('button', {
-    name: 'Explore Features',
-    exact: true,
-  });
-  await expect(group).toHaveAttribute('aria-expanded', 'true');
   await expect(
-    page.getByRole('link', { name: 'Youth Banking', exact: true }),
-  ).toHaveAttribute('aria-current', 'page');
-  await group.focus();
-  await group.press('Space');
-  await expect(group).toHaveAttribute('aria-expanded', 'false');
-  await group.press('Enter');
-  await expect(group).toHaveAttribute('aria-expanded', 'true');
-  await page
-    .getByRole('link', { name: 'Business Invoicing', exact: true })
-    .scrollIntoViewIfNeeded();
-  await expect(
-    page.getByRole('link', { name: 'Business Invoicing', exact: true }),
-  ).toBeInViewport();
+    page.getByRole('link', { name: 'Explore more ways to bank', exact: true }),
+  ).toHaveClass('active');
   await page.getByRole('button', { name: 'Close menu', exact: true }).focus();
   await page.keyboard.press('Shift+Tab');
   await expect(

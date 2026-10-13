@@ -159,6 +159,9 @@ test('admin impersonation preserves state and isolates authentication and measur
       goalId = '',
       entry: any;
     const baseline = (await admin.req('/admin/report?actor=all')).data;
+    const baselineFeature = (
+      await admin.req('/admin/feature-activity?actor=all')
+    ).data.features.find((f: any) => f.id === 'easycoin');
     const requestId = randomUUID();
     await t.test(
       'lost response retries reissue cookie and preserve one run/banner with Clarity forced off',
@@ -261,8 +264,8 @@ test('admin impersonation preserves state and isolates authentication and measur
         const feature = (
           await admin.req('/admin/feature-activity?actor=all')
         ).data.features.find((f: any) => f.id === 'easycoin');
-        assert.equal(feature.views, 0);
-        assert.equal(feature.clicks, 0);
+        assert.equal(feature.views, baselineFeature.views);
+        assert.equal(feature.clicks, baselineFeature.clicks);
         const [first] = await pool.query(
           "SELECT dedupe_key FROM adoption_events WHERE run_id=? AND name='first_use'",
           [runId],

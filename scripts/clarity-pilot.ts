@@ -208,10 +208,10 @@ try {
     }
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
-      .getByRole('button', { name: 'Explore Features', exact: true })
+      .getByRole('link', { name: 'Explore more ways to bank', exact: true })
       .click();
     await page
-      .getByRole('link', { name: 'EasyCoin Crypto', exact: true })
+      .getByRole('link', { name: 'EasyCoin Cryptocurrency', exact: true })
       .click();
     await page.waitForTimeout(10000);
     await page.mouse.wheel(0, 350);

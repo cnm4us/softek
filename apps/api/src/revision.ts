@@ -44,6 +44,7 @@ const routeKeys = [
   'savings',
   'loans',
   'discovery-preferences',
+  'explore',
 ] as const;
 const destination = z.enum(destinations.map((d) => d.key));
 const username = z

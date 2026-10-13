@@ -61,10 +61,11 @@ import {
   impersonationStorage,
 } from './customer-session';
 import { isAdminRoute } from './routes';
-import { features, featureAtPath } from '../../api/src/features';
+import { featureAtPath } from '../../api/src/features';
 import { SavingsExploration, LoanPayments } from './banking-contexts';
 import { DiscoveryPreferencesPage } from './discovery';
 import { FeaturePage } from './feature-page';
+import { FeatureCatalog } from './feature-catalog';
 import './theme.css';
 
 type Context = {
@@ -983,7 +984,10 @@ function CustomerApp() {
     rememberBanner(result.userId, result.banner);
     await refresh();
     navigate(
-      location.pathname.startsWith('/features/') ? location.pathname : '/',
+      location.pathname.startsWith('/features/') ||
+        location.pathname === '/explore'
+        ? location.pathname
+        : '/',
     );
   };
   async function logout() {
@@ -1055,6 +1059,7 @@ function CustomerApp() {
         '/savings-goals': 'Savings Goals',
         '/enroll': 'Savings Goals',
         '/about': 'About Harbor',
+        '/explore': 'Explore more ways to bank',
         '/discovery-preferences': 'Discovery Preferences',
       } as Record<string, string>
     )[location.pathname] ??
@@ -1066,11 +1071,6 @@ function CustomerApp() {
         title={state ? title : null}
         authenticated={Boolean(state)}
         sections={sections}
-        featureSections={features.map((f) => ({
-          key: f.id,
-          label: f.label,
-          href: f.href,
-        }))}
         greeting={state?.profile.firstName}
         viewingAs={state?.impersonation ? state.user.displayName : undefined}
         onMenuOpen={() => {
@@ -1143,6 +1143,7 @@ function CustomerApp() {
                 <Route path="/savings-goals" element={<Details />} />
                 <Route path="/enroll" element={<Enrollment />} />
                 <Route path="/goals" element={<Goals />} />
+                <Route path="/explore" element={<FeatureCatalog />} />
                 <Route
                   path="/features/:featureId"
                   element={<FeaturePage state={state} />}

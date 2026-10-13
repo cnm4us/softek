@@ -69,10 +69,10 @@ async function login(
 async function feature(page: Page) {
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Explore Features', exact: true })
+    .getByRole('link', { name: 'Explore more ways to bank', exact: true })
     .click();
   await page
-    .getByRole('link', { name: 'EasyCoin Crypto', exact: true })
+    .getByRole('link', { name: 'EasyCoin Cryptocurrency', exact: true })
     .click();
   await expect(
     page.getByRole('heading', {

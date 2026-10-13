@@ -46,6 +46,10 @@ test('feature context clears old campaign/banner tags without loading Clarity', 
     null,
   );
   assert.equal(featureEntry(state, 'easyvest-auto', entry), null);
+  const catalog = analyticsContext(state, '/explore', entry);
+  assert.equal(catalog.route, 'explore');
+  assert.equal(catalog.feature, 'none');
+  assert.equal(catalog.banner, 'none');
   const calls: unknown[][] = [];
   const stub = (command: string, ...args: any[]) => {
     calls.push([command, ...args]);

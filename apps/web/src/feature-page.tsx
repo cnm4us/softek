@@ -20,7 +20,7 @@ export function FeaturePage({ state }: { state: State }) {
     />
   ) : (
     <Card title="Feature not found">
-      <p>Choose a feature from Explore Features.</p>
+      <p>Choose a feature from Explore more ways to bank.</p>
       <Link className="text-button" to="/">
         Back to Account Summary
       </Link>
@@ -35,6 +35,8 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
     feature.id,
     location.state?.discoveryEntry,
   );
+  const fromCatalog =
+    !entry && !discovery && location.state?.fromCatalog === true;
   const pageId = useRef(crypto.randomUUID()),
     viewId = useRef(crypto.randomUUID()),
     ctaId = useRef(crypto.randomUUID());
@@ -137,9 +139,13 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
       </Card>
       <Link
         className="text-button feature-return"
-        to={discovery?.returnTo ?? '/'}
+        to={discovery?.returnTo ?? (fromCatalog ? '/explore' : '/')}
       >
-        {discovery ? 'Back to where you were' : 'Back to Account Summary'}
+        {discovery
+          ? 'Back to where you were'
+          : fromCatalog
+            ? 'Back to Explore more ways to bank'
+            : 'Back to Account Summary'}
       </Link>
     </div>
   );

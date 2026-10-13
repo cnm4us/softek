@@ -136,10 +136,10 @@ try {
     assert.equal(saved.goals[0].currentMinor, 1000);
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
-      .getByRole('button', { name: 'Explore Features', exact: true })
+      .getByRole('link', { name: 'Explore more ways to bank', exact: true })
       .click();
     await page
-      .getByRole('link', { name: features[0].label, exact: true })
+      .getByRole('link', { name: features[0].name, exact: true })
       .click();
     await page
       .getByRole('heading', { name: features[0].headline, exact: true })
