@@ -184,7 +184,11 @@ comparison completed at 21:11–21:14 PDT: exactly 12 views, zero CTAs and 26 up
 Owner reports Clarity browser label Chrome for user `1mwvoop`, session `qlil7v`.
 Host-local command, times, tags and private evidence are recorded in
 [PROJECT_STATE.md](../PROJECT_STATE.md#october-12-night--authorized-headed-feature-menu-comparison).
-Saved Recordings lookup for this comparison remains pending.
+Owner now reports the headed recording is also missing. Both runs already sent
+custom tags using `clarity('set', ...)`, verified in acknowledged payloads; the
+suggested `test_run` alias does not establish a fix or bot-filter exemption.
+Next inspect session/consent shutdown and assemble support evidence; no additional
+capture or support contact was performed for this follow-up.
 Keep automated recording availability unresolved; current evidence
 does not prove bot filtering or a headless-specific cause.
 Completed-recording lookup, masking and heatmaps remain separate unchecked

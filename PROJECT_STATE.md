@@ -4,7 +4,7 @@ Last updated: **2026-10-13 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Repeat the all-feature menu capture in headed mode; completed with 12 views and no CTA clicks.**
-Next task: **Check saved Recordings for headed user `1mwvoop`, session `qlil7v`, and compare with headless user `1sblz1g`. Owner confirms the headed session is labeled Chrome. Earlier headless feature data appears in Dashboard, but its saved recording is missing despite visible manual recordings. Recording availability, masking, heatmaps and broader suite remain pending.**
+Next task: **Diagnose saved-recording absence for both automated feature-menu runs: owner now reports headed `1mwvoop` also missing. Custom tags were already verified in acknowledged uploads for both runs. Review session/consent shutdown and assemble Microsoft support evidence before another capture. Recording availability, masking, heatmaps and broader suite remain pending.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Six small capture journeys; headed comparison verifies 12 views, zero CTAs, 26 uploads and owner-observed Chrome label; earlier headless run has Dashboard/live data but no saved recording; saved recording availability/masks/heatmaps unresolved; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Six capture journeys; headless/headed menu runs each verify 12 views, zero CTAs and 26 uploads; both saved recordings owner-reported missing despite visible manual recordings; tags verified; recording availability/masks/heatmaps unresolved; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -436,7 +436,8 @@ and admin session closed. Other customers were not used/reset.
 
 - Customer UUID: `86284506-770b-4f7d-89cb-82a29da67830`.
 - Native Clarity user **`1mwvoop`**, session **`qlil7v`**. Owner opened the session
-  details and reports browser label **Chrome**; saved-recording lookup remains pending.
+  details and reports browser label **Chrome**; owner subsequently reports the
+  saved recording is **still not visible**.
 - `pilot_run`: `feature-menu-headed-97a261e8-7a18-4485-874f-500bf484e261`;
   scenario remains `all-features-menu-views-only`; extra `pilot_browser_mode` tag is `headed`.
 - Actual launch uses `headless: false` with a temporary Xvfb display and full
@@ -459,6 +460,20 @@ No application code, deployment, schema, collection setting or unrelated service
 changed. Runtime journey/assertions and evidence review passed; broad app suites
 were not repeated for the host-local browser-mode comparison. The Chrome label
 does not establish saved-recording acceptance or explain the earlier missing run.
+
+October 13 PDT follow-up: owner reports headed recording still missing and
+suggests `clarity('set', 'test_run', 'automated-suite')`. Both menu runs already
+use `set` for unique `pilot_run` and shared `pilot_scenario`; headed also sends
+`pilot_browser_mode`. Reinspection confirms one acknowledged payload per run
+contains the exact pilot tag and all 26 contain custom identity. Tags are sent
+after consent/SDK readiness. Microsoft's [custom-tag guidance](https://learn.microsoft.com/en-us/clarity/filters/custom-tags)
+documents segmentation; no bot exemption is documented for `set`. The
+[cited SEJ article](https://www.searchenginejournal.com/microsoft-clarity-ab-test/486432/)
+discusses A/B labels, not the quoted bot-filtering advice. Adding a `test_run`
+alias is not an established fix. Headless mode alone cannot explain both missing
+runs. Next review consent/session shutdown and assemble support evidence; no
+new capture, setting change or support contact was made. Microsoft sign-in is
+still required in the agent browser. Do not contact others without authorization.
 
 ## M2-C06 consent modal follow-up
 
@@ -673,9 +688,10 @@ remains. The owner declined an independent OS selector; existing presets remain.
 2. Plan 010 is complete and deployed; verify actual Git/release before new work.
    Entry/exit, source attribution and collection exclusion are implemented.
    Plans 008/009 account/deletion/retry protection remain intact.
-3. Headless and owner-requested headed feature-menu captures are complete; check
-   saved Recordings for headed user `1mwvoop` and compare with `1sblz1g`. See
-   evidence above. Plan 003's assignment/scheduler and broader Clarity profile classification remain
+3. Both feature-menu captures are complete and owner-reported absent from saved
+   Recordings. Inspect consent/session shutdown and assemble the exact IDs/times/
+   tags above for support. The latest advice discussion authorizes no new capture
+   or support message. Plan 003's assignment/scheduler and broader Clarity profile classification remain
    deferred. Keep existing device/browser presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
