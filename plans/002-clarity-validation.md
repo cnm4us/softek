@@ -98,14 +98,17 @@ continue but the real-recording checks remain incomplete.
 
 - [x] Implement/run the small harness against dedicated automation users: banner
   click versus skip, action versus skip, explicit waits, and menu returns.
-- [ ] Start with a small number of journeys; verify actual recordings before
-  expanding traffic. Keep timestamps/user IDs/scenario labels for lookup.
+- [x] Start with a small number of journeys; retain timestamps/user IDs/scenario
+  labels and verify Dashboard activity. On October 13 PDT the owner accepted
+  absent saved automated recordings as a demo limitation. Broader traffic needs
+  separate authorization; saved replay review uses human visits.
 - [x] Review bot detection with the project owner. Clarity excludes detected bot
   traffic from analytics by default and provides an advanced-setting toggle.
   The owner chose Off and reported changing it on 2026-10-12 UTC. Keep synthetic
   data labeled; any subsequent setting change requires owner direction.
-- [ ] Record the difference between harness success, database observations, and
-  what Clarity actually captured. Do not promise every synthetic run is recorded.
+- [x] Record the difference between harness success, database observations, and
+  owner-observed Dashboard/live replay versus unavailable saved automated
+  recordings. Evidence and the accepted limitation are in PROJECT_STATE.md.
 
 Reference: [installation verification and bot detection](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup).
 
@@ -193,6 +196,12 @@ Keep automated recording availability unresolved; current evidence
 does not prove bot filtering or a headless-specific cause.
 Completed-recording lookup, masking and heatmaps remain separate unchecked
 acceptance criteria. No broader automation implementation was authorized.
+
+**October 13 owner decision:** automated Dashboard activity and saved human
+recordings are sufficient for the current demo. Stop the missing automated
+recording investigation, including the proposed no-sign-out comparison and
+support escalation, unless explicitly reopened. This accepts a limitation; it
+does not assert a recording fix or complete remaining human masking/heatmap checks.
 
 ### M2-06 — Repeatable demonstration and findings
 

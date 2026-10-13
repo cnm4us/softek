@@ -45,6 +45,10 @@ Chris's invitation is deferred by the owner until the demo is ready. Host/databa
 
 ## Resolved requirements
 
+- On October 13 PDT the owner accepted automated Clarity Dashboard activity and
+  saved human recordings for the current demo. Missing saved automated recordings
+  are an accepted limitation; investigation is stopped unless explicitly reopened.
+  This is not a blocker for later owner-authorized automation. See [Plan 002](plans/002-clarity-validation.md).
 - Development is already on EC2; Windows/local MySQL guidance is superseded.
 - MariaDB is the sole database target; no cross-database portability work.
 - The interface is mobile first and uses a uniform theme with desktop adaptation.

@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
+Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), pilot results recorded; awaiting the owner's next priority**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Repeat the all-feature menu capture in headed mode; completed with 12 views and no CTA clicks.**
-Next task: **Diagnose saved-recording absence for both automated feature-menu runs. Read-only audit confirms sign-out sends analytics consent denied before SDK stop; next proposed control is the same journey closed without application sign-out, preserving the actual granted consent until browser close. No new capture is authorized by the current advice discussion. Assemble support evidence as needed; masking, heatmaps and broader suite remain pending.**
+Current request: **Owner accepts automated Dashboard activity and human saved recordings as sufficient for the current demo; stop investigating missing automated saved recordings.**
+Next task: **Await the next owner-prioritized demo task. Automated saved-recording absence is an accepted limitation, not a blocker. Do not run the proposed no-sign-out test or contact support unless the owner reopens this investigation. Human masking/heatmap review and broader suite work remain separately pending.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Six capture journeys; headless/headed menu runs each verify 12 views, zero CTAs and 26 uploads; both saved recordings owner-reported missing despite visible manual recordings; tags verified; recording availability/masks/heatmaps unresolved; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Synthetic pilot accepted for Dashboard activity; missing automated saved recordings accepted as a demo limitation, investigation ended by owner; human recordings visible, masking/heatmap review remains; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -493,6 +493,19 @@ sign-out, isolating this path. Do not weaken real decline/withdrawal handling or
 claim a fix until saved-recording behavior is observed. No capture/code change
 was performed for this advice review.
 
+## October 13 — owner accepts the automated recording limitation
+
+Owner accepts the demonstrated outcome for the current demo: automated Playwright
+activity appears in Dashboard, while saved human recordings are available.
+Automated saved recordings remain missing; cause is unknown and no fix is claimed.
+This is an accepted limitation and no longer a blocker. Stop this investigation;
+the proposed no-sign-out capture and Microsoft support case are not to proceed
+unless the owner explicitly reopens it. Retain existing evidence and labeled
+test customers; no cleanup, capture, application/consent change or support contact
+was requested. Product acceptance and M2-05 now reflect this owner decision.
+This does not complete remaining human masking/heatmap review, authorize the
+broader suite, or authorize Chris's access/presentation.
+
 ## M2-C06 consent modal follow-up
 
 The initial unanswered customer consent now uses a centered native modal over a
@@ -706,11 +719,11 @@ remains. The owner declined an independent OS selector; existing presets remain.
 2. Plan 010 is complete and deployed; verify actual Git/release before new work.
    Entry/exit, source attribution and collection exclusion are implemented.
    Plans 008/009 account/deletion/retry protection remain intact.
-3. Both feature-menu captures are complete and owner-reported absent from saved
-   Recordings. Inspect consent/session shutdown and assemble the exact IDs/times/
-   tags above for support. The latest advice discussion authorizes no new capture
-   or support message. Plan 003's assignment/scheduler and broader Clarity profile classification remain
-   deferred. Keep existing device/browser presets; no OS selector is requested.
+3. Both feature-menu captures are complete. Owner accepts automated Dashboard
+   activity plus human saved recordings and ended the missing-recording inquiry.
+   Await the next priority; do not resume consent/shutdown experiments or support
+   escalation unless explicitly reopened. Plan 003 and broader profile validation
+   remain deferred. Keep existing presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just

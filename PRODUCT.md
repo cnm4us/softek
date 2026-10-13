@@ -222,6 +222,13 @@ stops open pages at the next settings check and re-enabling requires fresh conse
 Admin pages and routine automation are excluded. The owner reviews recordings and
 heatmaps first; Chris's project invitation is deferred until the demo is ready.
 
+On **2026-10-13, America/Los_Angeles**, the owner accepted automated activity
+appearing in Clarity Dashboard and human activity in saved Recordings as
+sufficient for the current demo. Saved automated recordings are not required;
+their absence is an accepted limitation. Further investigation is stopped unless
+the owner reopens it. Human recording/masking and heatmap evaluation retain their
+separate acceptance requirements. See [Plan 002](plans/002-clarity-validation.md).
+
 Synthetic activity demonstrates instrumentation. Human walkthroughs are necessary
 to investigate human behavior; higher click counts alone do not prove adoption.
 
