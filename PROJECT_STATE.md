@@ -3,8 +3,8 @@
 Last updated: **2026-10-13 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Run one Clarity capture using Explore Features to visit each feature once; completed with 12 views and no CTA clicks.**
-Next task: **Investigate automated-session recording availability: owner sees all feature pages in Dashboard and manual recordings in All Recordings with filters cleared/Last 7 days, but the feature-menu test remains missing. Next proposed capture is the same menu-only journey in headed Chromium; no new capture has been run for this follow-up. Custom-tag lookup, masking, heatmaps and broader suite remain pending.**
+Current request: **Repeat the all-feature menu capture in headed mode; completed with 12 views and no CTA clicks.**
+Next task: **Check saved Recordings for headed user `1mwvoop`, session `qlil7v`, and compare with headless user `1sblz1g`. Owner confirms the headed session is labeled Chrome. Earlier headless feature data appears in Dashboard, but its saved recording is missing despite visible manual recordings. Recording availability, masking, heatmaps and broader suite remain pending.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Five small capture journeys; menu-only run verifies 12 views, zero CTAs and 26 uploads; owner sees all pages in Dashboard/live replay, but only manual visits in saved Recordings; automated recording availability/masks/heatmaps unresolved; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Six small capture journeys; headed comparison verifies 12 views, zero CTAs, 26 uploads and owner-observed Chrome label; earlier headless run has Dashboard/live data but no saved recording; saved recording availability/masks/heatmaps unresolved; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -408,7 +408,7 @@ explanation, not a diagnosis. Our agent browser still shows expired Microsoft
 sign-in, so dashboard evidence remains owner-observed. No account/service setting
 was changed and no new real capture was made.
 
-Next proposed controlled comparison: repeat the same menu-only journey with
+The proposed controlled comparison was to repeat the same menu-only journey with
 headed Chromium, keeping consent, capture gates and synthetic labeling intact.
 Playwright uses a separate headless shell by default versus regular Chromium for
 headed operation ([browser documentation](https://playwright.dev/docs/browsers#chromium)).
@@ -416,6 +416,49 @@ Host `Xvfb`/`xvfb-run` is available; Google Chrome is not on PATH. A result woul
 test browser-mode behavior, not prove a Microsoft filtering policy. If still
 missing, the existing project/user/session/time evidence supports a Microsoft
 support case; no message to Microsoft has been authorized or sent.
+
+## October 12 night — authorized headed feature-menu comparison
+
+Owner explicitly authorized the same all-feature test in headed mode. The
+headed Chromium preflight on `about:blank` passed without website/vendor traffic.
+The host-local comparison then ran:
+
+```bash
+xvfb-run -a npx tsx artifacts/run-feature-menu-headed.ts --collect
+```
+
+Capture timestamps: **21:11:38–21:14:35 PDT on October 12** (October 13
+04:11:38–04:14:35 UTC). One new **Clarity Headed Feature Menu Pilot** Automation
+customer used actual customer login and clicked Allow analytics. The twelve
+Explore Features links, catalogue order, 12-second pauses, no banner/CTA clicks,
+final pause and ordinary sign-out matched the earlier headless journey. Browser
+and admin session closed. Other customers were not used/reset.
+
+- Customer UUID: `86284506-770b-4f7d-89cb-82a29da67830`.
+- Native Clarity user **`1mwvoop`**, session **`qlil7v`**. Owner opened the session
+  details and reports browser label **Chrome**; saved-recording lookup remains pending.
+- `pilot_run`: `feature-menu-headed-97a261e8-7a18-4485-874f-500bf484e261`;
+  scenario remains `all-features-menu-views-only`; extra `pilot_browser_mode` tag is `headed`.
+- Actual launch uses `headless: false` with a temporary Xvfb display and full
+  Chromium 156.0.8078.4, Desktop/Chrome preset, viewport 1280×720. Native
+  `navigator.webdriver` remains true. No automation-detection override was used.
+- SDK 0.8.72 reports playback enabled, analytics storage granted, advertising
+  storage denied and 13 pages under the same native session.
+- **26 HTTP 204 uploads**, all project-matched, 25 with playback events; identity
+  and pilot tag verified in memory. No browser/CSP/analyzer errors, END command,
+  or private automation/capture headers sent to Microsoft were observed.
+- Local protected interaction history confirms **exactly one view per feature
+  (12 total), zero feature CTA clicks**. The live API health check passed.
+- Ignored 0600 evidence:
+  `artifacts/clarity-feature-menu-headed-2026-10-13T04-11-38-660Z.json`.
+  Helper is also ignored/0600; it is a host-local diagnostic, not a new package
+  command or general automation suite. Original headless helper/evidence retained.
+  Generated password/raw payloads were not saved; customer/history retained for lookup.
+
+No application code, deployment, schema, collection setting or unrelated service
+changed. Runtime journey/assertions and evidence review passed; broad app suites
+were not repeated for the host-local browser-mode comparison. The Chrome label
+does not establish saved-recording acceptance or explain the earlier missing run.
 
 ## M2-C06 consent modal follow-up
 
@@ -630,8 +673,9 @@ remains. The owner declined an independent OS selector; existing presets remain.
 2. Plan 010 is complete and deployed; verify actual Git/release before new work.
    Entry/exit, source attribution and collection exclusion are implemented.
    Plans 008/009 account/deletion/retry protection remain intact.
-3. The owner-requested single feature-menu capture is complete; use the lookup IDs
-   and evidence above to verify post-session Recordings availability. Plan 003's assignment/scheduler and new Clarity profile classification remain
+3. Headless and owner-requested headed feature-menu captures are complete; check
+   saved Recordings for headed user `1mwvoop` and compare with `1sblz1g`. See
+   evidence above. Plan 003's assignment/scheduler and broader Clarity profile classification remain
    deferred. Keep existing device/browser presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.

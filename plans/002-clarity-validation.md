@@ -179,8 +179,13 @@ Owner observed all twelve pages in playback. Native user `1sblz1g`, session
 [PROJECT_STATE.md](../PROJECT_STATE.md#october-12-evening--authorized-feature-menu-capture).
 Owner subsequently confirms all feature pages appear in Dashboard, but this test
 is missing from All Recordings even after clearing filters and selecting Last 7
-days; manual recordings are visible. A headed-browser comparison is proposed,
-not executed. Keep automated recording availability unresolved; current evidence
+days; manual recordings are visible. The subsequently owner-authorized headed
+comparison completed at 21:11–21:14 PDT: exactly 12 views, zero CTAs and 26 uploads.
+Owner reports Clarity browser label Chrome for user `1mwvoop`, session `qlil7v`.
+Host-local command, times, tags and private evidence are recorded in
+[PROJECT_STATE.md](../PROJECT_STATE.md#october-12-night--authorized-headed-feature-menu-comparison).
+Saved Recordings lookup for this comparison remains pending.
+Keep automated recording availability unresolved; current evidence
 does not prove bot filtering or a headless-specific cause.
 Completed-recording lookup, masking and heatmaps remain separate unchecked
 acceptance criteria. No broader automation implementation was authorized.
