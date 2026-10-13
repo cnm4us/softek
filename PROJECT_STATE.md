@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), compact account-card follow-ups delivered; awaiting Explore-placement discussion**.
-Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
-Current request: **Everyday Checking now uses the compact layout with Personal Checking upper-left, masked number upper-right and available balance lower-left; Account Information removed, deployed and verified.**
-Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
+Current focus: **[014 — Compact banner placeholders](plans/014-compact-banner-placeholders.md), delivered; awaiting the next owner-selected enhancement**.
+Latest completed implementation: **Plan 014 — compact banner placeholders**.
+Current request: **Compact placeholders on Summary and all three account detail pages are deployed and verified.**
+Next task: **Await the next owner-selected enhancement: future rotating strip content (B-016) and account-page Explore placements (B-015) require discussion. Automated recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -28,6 +28,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
 | 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–08 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
+| 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | Completed | STRIP-01–03 verified/deployed; 54 distinct account/banking cases, eight privacy checks, live HTTPS 360/1440px; schema 9 unchanged |
 
 ## Current reality
 
@@ -71,15 +72,19 @@ Active identifies focus and does not itself authorize additional scope.
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
   independent. New users use the common starting accounts; omitted-profile resets
   preserve existing internal assignments and restore saved starting amounts.
-- Account Summary retains accounts/activity/goals and its padded rotating banner.
+- Account Summary now starts with the three account widgets, followed by a compact
+  inactive full-width banner placeholder before Recent Activity. The same strip
+  follows each account detail balance card. The linked image is suspended; admin
+  creatives and selection/history remain. Summary analytics has no hidden banner/
+  feature/campaign context; strips emit no exposure/click events.
   The View savings options link is removed; complete checking/savings/credit widgets
   link to `/accounts/checking`, `/accounts/savings`, `/accounts/credit-card`. Pages
   use owned balances and account-ID-associated recent activity, with stable labeled
   statement examples and fictional terms. Viewing writes no ledger data; details
   are masked and routes have ordinary banking page tags. Explore placements await
   the owner discussion.
-  Login and full Summary refresh advance once; menu returns/data reads/feature CTAs
-  do not. Independent tabs retain their exact selection. Savings Goals enrollment,
+  Retained selections still advance once on login/full Summary refresh; menu returns/
+  data reads/feature CTAs do not. Independent tabs retain their exact selection. Savings Goals enrollment,
   goals and contributions remain functional; other banking sections use demo actions.
 - Customer Menu → **Explore more ways to bank** opens authenticated `/explore`,
   a searchable catalog with five expanded-by-default groups and all twelve
@@ -131,8 +136,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T19-57-01-817Z**. Previous authenticated release:
-  **2026-10-13T18-58-19-642Z**. Both current links point to the new release.
+- Current release: **2026-10-13T20-28-58-806Z**. Previous authenticated release:
+  **2026-10-13T19-57-01-817Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -900,13 +905,44 @@ matched release links verified; no test listeners remain. Evidence: ignored 0600
 `artifacts/checking-layout-live.json`. No migration or real vendor capture;
 Explore placements still await discussion.
 
+## Plan 014 verification — 2026-10-13 UTC
+
+Source **815cbe3**, release **2026-10-13T20-28-58-806Z**. Removed the large Summary
+linked image; account widgets now start beneath its header. Shared inactive More
+ways to bank strips follow Summary accounts and each detail balance card, above
+Recent Activity. Shared height token: balance cards minimum 210px, strips 105px;
+full padded content width, mobile and desktop. No link/image/exposure/click; Summary
+Clarity tags carry no invisible banner/feature/campaign context. Admin creatives,
+selection persistence and historical attribution remain; future rotation is B-016.
+The public smoke was adapted to retained selections and the active Goals sidebar.
+
+Typecheck, format, evaluation build and documentation links/diff checks passed.
+**54 distinct account/banking browser cases** at 360/390/1440px passed across
+batches/reruns, plus **eight SDK-stub privacy checks** (all six mobile scenarios
+and consent/masking on wide-mobile/desktop). Screenshots inspected. An obsolete
+login helper initially matched two elements after both pages gained strips; fixed.
+An interrupted browser parent left test-only fixtures and duplicate upload labels;
+removed 12 owned test users/three uploads from `demo_test`, completed remaining
+cases and reran failed checks successfully. No unresolved check failure or test
+listener remains. Broad 83 API/69 browser results above are earlier Plan 013 evidence,
+not a claim of rerunning those whole suites for this change.
+
+Live HTTPS 360/1440px verified all four placements, full width/half-height, absence
+of old linked artwork/actionable content, masked owned balances/activity, stable
+samples, reload/return and retained selection behavior. Banking/global collection
+settings unchanged; no banner visibility/click/feature observations, external
+requests or browser errors. Both owned Automation fixtures deleted. API/DB health,
+active service and matched API/web release links verified. No migration or real
+vendor capture. Evidence: ignored 0600 `artifacts/strip-layout-live.json` and
+`artifacts/strip-*.log`; logs/helpers/screenshots remain uncommitted.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 013 is complete and deployed; verify current release/schema/Git before new
-   work. Walk through the three Account Summary widgets and account details.
-   Discuss Explore features/copy/placements with the owner before implementing
-   those additions (B-015). Existing `/savings` education and `/loans` journeys
+2. Plans 013/014 are complete and deployed; verify current release/schema/Git before
+   new work. Walk through Summary and all three account details with their inactive
+   compact strips. Discuss rotating content/rules (B-016) and Explore features/copy/
+   placements (B-015) with the owner before implementing those additions. Existing `/savings` education and `/loans` journeys
    retain Plan 011's one-per-visit invitation cap. Tenancy/wider discovery remain
    deferred; do not infer authorization from the supplied broader brief.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
@@ -914,7 +950,9 @@ Explore placements still await discussion.
    Await the next priority; do not resume consent/shutdown experiments or support
    escalation unless explicitly reopened. Plan 003 and broader profile validation
    remain deferred. Keep existing presets; no OS selector is requested.
-4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
+4. Plan 014 suspends the visible image: adapt the banner-click pilot before reuse
+   (B-016). If owner requests recording evaluation after that adaptation, use
+   `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just
    uploads. Bot Detection is owner-reported Off as of 2026-10-12 UTC; the pilot's
@@ -928,7 +966,7 @@ Explore placements still await discussion.
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014 and the current Clarity implementation/checks/docs are
 committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

@@ -458,3 +458,8 @@ viewing them does not seed or alter ledger data. No migration: schema stays 9.
 Summary's standalone View savings options link is removed. Savings & Investing
 in the menu still opens the existing educational context; new account-page Explore
 placements await the owner discussion.
+
+Plan 014 replaces linked Summary artwork with inactive compact placeholders on
+Summary and account details. Admin assets and selection/history remain available;
+no placeholder click or exposure is recorded. The existing `clarity:pilot` banner
+pair requires adaptation before reuse (B-016); feature-menu journeys remain useful.

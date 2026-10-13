@@ -152,7 +152,8 @@ npm run smoke:public
 
 The public smoke uses HTTPS at 360/1440px, checks Secure/HttpOnly/SameSite cookies,
 creates users, signs in, completes enrollment/goal/contribution, proves saved
-state across relogin, cycles banners on Summary reload, preserves menu return,
+state across relogin, preserves retained banner selections across Summary reload/menu return,
+uses the active sidebar Savings Goals link with the inactive strip in place,
 uses a placeholder action, visits a feature through Explore more ways to bank, confirms its
 CTA, reloads the child route, returns to Summary without advancing the banner,
 checks unchanged accounts/goals/run and separate Feature Activity, then opens the
@@ -338,3 +339,14 @@ isolation and unknown-account handling. The existing Clarity consent SDK-stub ca
 now visits all three details to check mask containers and bounded banking tags
 without loading a real vendor. Account information and fixture terms remain
 read-only; full history/search and Explore placements are separate future work.
+
+## Compact placeholder checks — Plan 014
+
+`tests/e2e/accounts.spec.ts` verifies strip order, full content width, approximately
+half-card height, no actionable content or linked image, no overflow and unchanged
+owned banking/history. `banking.spec.ts` retains session-selection tests and uses
+the active Savings Goals sidebar for enrollment. Its reserved banner-attribution
+case supplies an owned Router entry directly: it validates the retained contract,
+not a click on the inactive placeholder. API banner/admin tests remain valid.
+The existing `clarity:pilot` banner-click pair assumes a rendered image and needs
+adaptation before reuse; future rotating strips are separate owner-selected work.

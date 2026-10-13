@@ -78,5 +78,7 @@ Plan 012 replaces the feature submenu with Explore more ways to bank at `/explor
 a five-group searchable catalog retaining all twelve existing educational pages.
 Plan 013 links the Summary widgets to read-only checking, savings and credit card
 account pages with owned balances/activity and labeled fictional statement entries.
-Explore placements on those pages await a separate owner discussion.
+Plan 014 replaces the large Summary image with a compact inactive banner placeholder
+below the three accounts and adds the same strip between balance/activity on each
+account page. Future rotation and Explore placements await owner discussion.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

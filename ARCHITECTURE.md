@@ -330,8 +330,13 @@ These are proportionate demo choices, with no signup or self-service recovery.
 Reference: [Node scrypt](https://nodejs.org/docs/latest-v22.x/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback).
 
 The branded login and shared section-title shell use the same theme tokens.
-Account Summary places the padded linked image above checking/savings/credit,
-activity and goals. The upper-right modal menu contains keyboard focus, closes
+Plan 014 replaces the Summary linked image with a shared inactive strip after
+checking/savings/credit and before activity. Each account detail page uses the
+same strip between its balance and activity cards. One CSS height token makes
+the strip half the balance-card minimum height. Clarity treats Summary as banking
+with no banner/feature/campaign tags, rather than tagging unrendered artwork.
+Banner selection/history and admin
+assets are retained; the placeholder creates no banner visibility/click events. The upper-right modal menu contains keyboard focus, closes
 on Escape/outside activation/selection, and returns focus. Banking placeholders
 have explicit simulated actions; existing savings remains functional.
 

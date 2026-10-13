@@ -33,8 +33,9 @@ acceptance remains in Plan 002:
   until an explicit reset. User identity persists separately from resettable runs.
 - Logged-in screens use the section title at the top; the home title is
   **Account Summary**. Hamburger navigation is in the upper-right.
-- Immediately below that title, show a banner image with margin on all sides,
-  followed by the existing accounts, recent activity, and goals.
+- Immediately below that title, show the three account widgets, then a compact
+  full-width banner placeholder before recent activity and goals (Plan 014).
+  The same placeholder follows the balance widget on each account detail page.
 - Banking menu sections use themed placeholder pages initially, while existing
   savings goals continues to work.
 - Admin uploads/manages ordered enabled banners and selects internal demo-page
@@ -85,8 +86,9 @@ basic descriptions and **one primary CTA**. Each card starts with the supplied
 headline in larger green uppercase type; the page title identifies the feature,
 so there is no repeated “Explore” line or decorative star. The CTA shows only a
 demo confirmation.
-Promotional banners remain on **Account Summary only** and can link to the same
-landing pages through the existing admin banner editor.
+The admin banner editor retains these internal destinations. Plan 014 suspends
+linked Summary image rendering and adds inactive placeholder strips on Summary
+and the three account detail pages; future rotating content is separate scope.
 
 Feature views and CTA clicks are engagement observations separate from the
 existing Savings Goals adoption funnel. They imply no enrollment, eligibility,
@@ -374,3 +376,18 @@ route. Existing goal contributions appear in the appropriate checking/savings
 history and balances. These are banking page views, separate from feature/adoption
 observations. Explore links/placements on these pages require the next owner
 conversation and are not part of this release.
+
+## Compact banner placeholders — Plan 014
+
+Summary's three account widgets sit directly below the section header. A full-width
+Harbor strip follows them and precedes Recent Activity. Checking, savings and
+credit-card detail pages use the same strip below their balance widget and above
+Recent Activity. A shared 210px balance-card minimum and 105px strip keep the
+placeholder half as tall on mobile and desktop. Full width means the padded main
+content width, preserving the site's margins.
+
+The strip says More ways to bank and has no image, link, button or impression/
+click tracking. Future rotating images/destinations and Explore invitations require
+separate work. Existing admin assets, rotation selections and historical reporting
+are retained, while actual linked image rendering is suspended. Sidebar Savings
+Goals promotion and banking activity remain functional.

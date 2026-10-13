@@ -63,7 +63,9 @@ Keep routine development and test traffic separate from presentation data.
 `npm run test:clarity` uses an intercepted SDK stub with no Microsoft traffic.
 `npm run clarity:pilot -- --collect` deliberately sends two labeled pilot journeys
 to the real project and saves ignored lookup evidence; use it only within authorized
-collection scope. Admin Menu → Clarity Settings controls the persistent switch.
+collection scope. Plan 014 makes the visible banner slot inactive; adapt the
+banner-click pair before reusing that pilot. Admin Menu → Clarity Settings controls
+the persistent switch.
 
 ## Official references for implementation
 

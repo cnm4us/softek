@@ -27,7 +27,7 @@ No migration, financial write, collection change or new artwork is needed.
   and half-height sizing, no new interaction/exposure events.
 - [x] STRIP-02: adapt existing browser checks for the placeholder and preserved
   selection contract; verify layout, owned data, navigation and privacy.
-- [ ] STRIP-03: evaluation build/deploy; live HTTPS mobile/desktop checks using
+- [x] STRIP-03: evaluation build/deploy; live HTTPS mobile/desktop checks using
   owned collection-disabled fixtures, delete fixtures, update docs and state.
 
 ## Validation boundaries
