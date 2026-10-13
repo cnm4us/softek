@@ -27,6 +27,11 @@ not hide this customer-initiated catalog. No schema or collection-setting change
 - [x] CAT-04: typecheck, API/browser/privacy checks, build, responsive visual review,
   production deployment and collection-free live verification; update handoff docs.
 
+- [x] CAT-05 follow-up: use the owner-requested full landing titles for EasyVest
+  Automated Investing, EasyVest Self-Directed Investing, EasyCoin Cryptocurrency
+  and Small Business Invoicing. Keep shared navigation/report labels consistent;
+  verify mobile/desktop headings and deploy without a migration.
+
 ## Validation
 
 Evidence and release belong in PROJECT_STATE. Routine tests use `demo_test` and

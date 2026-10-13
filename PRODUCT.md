@@ -337,7 +337,9 @@ shared Harbor theme. Groups start expanded and collapse independently:
 Show counts (4/3/1/2/2), the introduction “Discover services available through your
 financial institution.” and the supplied FI configuration note. The search icon
 reveals a name search with result counts and a clear action. Catalog links use full
-product names; landing titles and existing feature IDs remain stable. Catalog
+product names. The two EasyVest landing titles, EasyCoin Cryptocurrency and
+Small Business Invoicing now match their full catalog names; other titles and
+existing feature IDs remain stable. Catalog
 entries return to the catalog. Banner and contextual entries retain their own
 return paths and attribution. Browsing the catalog is a page view; opening a
 landing and clicking its CTA remain separate feature observations. Discovery

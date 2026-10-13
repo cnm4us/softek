@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[012 — Explore more ways to bank](plans/012-grouped-feature-catalog.md), delivered; awaiting owner walkthrough/next priority**.
+Current focus: **[012 — Explore more ways to bank](plans/012-grouped-feature-catalog.md), catalog and full-title follow-up delivered; awaiting next priority**.
 Latest completed implementation: **Plan 012 — grouped customer feature catalog**.
-Current request: **Renamed Customer Menu entry and the owner's five-group catalog layout are implemented and deployed.**
+Current request: **Four feature page titles updated to the full product names and deployed.**
 Next task: **Owner walkthrough: Customer Menu → Explore more ways to bank. Broader discovery/tenancy and automation await prioritization; automated recording investigation remains stopped.**
 
 ## Plan status registry
@@ -26,7 +26,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
-| 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–04 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
+| 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
 
 ## Current reality
 
@@ -124,8 +124,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T16-23-08-166Z**. Previous authenticated release:
-  **2026-10-12T06-30-44-829Z**. Both current links point to the new release.
+- Current release: **2026-10-13T17-23-41-174Z**. Previous authenticated release:
+  **2026-10-13T17-01-20-049Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -788,6 +788,20 @@ protected Delete endpoint, without using/resetting owner accounts. Password-free
 0600 evidence: ignored `artifacts/plan012-live.json`; helper/screenshots/logs also
 remain ignored. Missing automated recordings remain an accepted limitation;
 no actual Clarity capture or investigation was performed for this release.
+
+### CAT-05 title follow-up — 2026-10-13 UTC
+
+Source **9235495**, release **2026-10-13T17-23-41-174Z**. Page/browser titles now
+use EasyVest Automated Investing, EasyVest Self-Directed Investing, EasyCoin
+Cryptocurrency and Small Business Invoicing. Shared banner/report labels follow
+these names; IDs, paths, headlines and CTA behavior remain unchanged.
+Typecheck, format, evaluation build and **9/9 focused browser checks** passed at
+360/390/1440px (all-twelve feature journey plus EasyCoin discovery/opt-out).
+Live HTTPS verified all twelve headings/links at 360/1440px, with screenshots of
+the four updated titles; API/DB health and release links matched. The two owned
+Automation fixtures were deleted; zero external requests/page errors, accounts
+and collection settings unchanged. Evidence: ignored 0600
+`artifacts/feature-titles-live.json`. No migration or actual vendor capture.
 
 ## Exact resume point
 
