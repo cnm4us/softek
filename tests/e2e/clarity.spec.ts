@@ -174,18 +174,11 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
     await expect(
       page.getByTestId('account-detail-balance').locator('..'),
     ).toHaveAttribute('data-clarity-mask', 'true');
-    if (name !== 'Everyday checking')
-      await expect(page.locator('.account-detail-number')).toHaveAttribute(
-        'data-clarity-mask',
-        'true',
-      );
-    if (name !== 'Everyday checking')
-      await expect(page.locator('.account-information')).toHaveCount(0);
-    else
-      await expect(page.locator('.account-information')).toHaveAttribute(
-        'data-clarity-mask',
-        'true',
-      );
+    await expect(page.locator('.account-detail-number')).toHaveAttribute(
+      'data-clarity-mask',
+      'true',
+    );
+    await expect(page.locator('.account-information')).toHaveCount(0);
     if (name === 'Harbor credit card')
       await expect(page.locator('.account-credit-metrics')).toHaveAttribute(
         'data-clarity-mask',
