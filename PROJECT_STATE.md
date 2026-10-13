@@ -4,7 +4,7 @@ Last updated: **2026-10-13 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Repeat the all-feature menu capture in headed mode; completed with 12 views and no CTA clicks.**
-Next task: **Diagnose saved-recording absence for both automated feature-menu runs: owner now reports headed `1mwvoop` also missing. Custom tags were already verified in acknowledged uploads for both runs. Review session/consent shutdown and assemble Microsoft support evidence before another capture. Recording availability, masking, heatmaps and broader suite remain pending.**
+Next task: **Diagnose saved-recording absence for both automated feature-menu runs. Read-only audit confirms sign-out sends analytics consent denied before SDK stop; next proposed control is the same journey closed without application sign-out, preserving the actual granted consent until browser close. No new capture is authorized by the current advice discussion. Assemble support evidence as needed; masking, heatmaps and broader suite remain pending.**
 
 ## Plan status registry
 
@@ -474,6 +474,24 @@ alias is not an established fix. Headless mode alone cannot explain both missing
 runs. Next review consent/session shutdown and assemble support evidence; no
 new capture, setting change or support contact was made. Microsoft sign-in is
 still required in the agent browser. Do not contact others without authorization.
+
+Human-like-action advice follow-up: the two menu runs already pause 12 seconds
+per feature; earlier capture also verified mouse/scroll input and uploaded Scroll
+events. Login typing occurs before collection/consent, so slower login typing
+would not supply recorded behavioral input. The linked
+[Microsoft issue 520](https://github.com/microsoft/clarity/issues/520) reports live
+replay missing from saved sessions. Microsoft support comments describe missing
+data/low-confidence replay; a later user reports a consent-integration cause in
+their own setup. This is not evidence of a mandatory human-like action sequence.
+The referenced YouTube page was throttled; its content was not verified.
+Read-only local audit confirms customer sign-out calls `beginCustomerTransition`
+and `finishCustomerTransition`, both reaching `stopCollection`, which sends
+ConsentV2 analytics denied before SDK stop and cookie removal. Whether that
+shutdown affects saved replay is unproven. Next proposed controlled capture:
+keep the same consent/actions/pauses but close the browser without application
+sign-out, isolating this path. Do not weaken real decline/withdrawal handling or
+claim a fix until saved-recording behavior is observed. No capture/code change
+was performed for this advice review.
 
 ## M2-C06 consent modal follow-up
 
