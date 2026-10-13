@@ -157,8 +157,8 @@ confirm the owner is not watching Highlights or joining Go Live after the scroll
 The owner now confirms **full recording from the beginning**; next check whether
 Scroll entries appear under More details → Events. Speed/Skip inactivity settings
 have not been independently verified.
-Do not create more capture sessions or mark replay acceptance on count-only
-transport evidence. Previous raw payloads were discarded; manifests retain only
+Additional capture sessions require owner direction; do not mark replay acceptance
+on count-only transport evidence. Previous raw payloads were discarded; manifests retain only
 safe metadata/counts and actual measured document offsets.
 
 The owner subsequently reports **scrolling visible in mobile view**, adding
@@ -168,6 +168,17 @@ independently inspected. All four captures used Desktop Chrome, so this report
 does not establish mobile-profile capture or browser/device classification.
 Next confirm completed recording/custom-tag lookup and review masking/heatmaps;
 broader automation remains deferred until separately authorized.
+
+Owner explicitly requested a further **menu-only visit to all twelve features**
+on October 12 evening (October 13 UTC). One new customer completed the journey:
+normal login, Allow analytics, each Explore Features link once with 12-second
+pauses, ordinary sign-out, and no CTA clicks. Protected local history confirms
+**12 views, one per feature, and zero CTAs**; Clarity acknowledged **26 uploads**.
+Owner observed all twelve pages in playback. Native user `1sblz1g`, session
+`1q6lmba`; exact times, tags and private evidence are in
+[PROJECT_STATE.md](../PROJECT_STATE.md#october-12-evening--authorized-feature-menu-capture).
+Completed-recording lookup, masking and heatmaps remain separate unchecked
+acceptance criteria. No broader automation implementation was authorized.
 
 ### M2-06 — Repeatable demonstration and findings
 

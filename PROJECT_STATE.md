@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-12 UTC**.
+Last updated: **2026-10-13 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Test Playwright collection before building the broader automation suite**.
-Next task: **Investigate post-session recording availability before scaling the pilot, then confirm custom-tag lookup and review masking/heatmaps. Owner observed live page/click/CTA replay and scrolling in mobile view, but now reports those recordings are no longer found. Desktop scroll display remains unexplained. Broader suite implementation is not yet authorized.**
+Current request: **Run one Clarity capture using Explore Features to visit each feature once; completed with 12 views and no CTA clicks.**
+Next task: **Check whether the finished feature-menu session (Clarity user `1sblz1g`, session `1q6lmba`) remains searchable/playable in Recordings, then review custom tags, masking and heatmaps. Owner observed all 12 feature pages in playback. Earlier post-session availability and desktop scroll display remain unresolved. Broader suite implementation is not yet authorized.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Four small capture journeys; owner confirms page/click/CTA replay and scrolling in mobile view; six physical movements/eight uploaded scroll events verified; desktop display/completed recordings/masks/heatmaps pending; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Five small capture journeys; latest menu-only run verifies exactly 12 feature views, zero CTAs and 26 acknowledged uploads; owner sees all 12 pages; completed-recording lookup/masks/heatmaps pending; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -360,6 +360,37 @@ counts for that browser label, not saved-recording availability or a match to
 specific pilot customers. Live replay was observed earlier; post-session recording
 availability remains unresolved. No additional capture was run for this update.
 
+## October 12 evening — authorized feature-menu capture
+
+The owner requested one run using **Explore Features** to visit each feature once.
+The ignored host-local helper `artifacts/run-feature-menu-pilot.ts --collect` ran
+at **18:04:50–18:07:45 PDT on October 12** (October 13 01:04:50–01:07:45 UTC).
+It created one new Automation customer, **Clarity Feature Menu Pilot**, used a
+fresh Desktop/Chrome context and actual customer login, clicked **Allow analytics**,
+then opened every feature via the menu in catalogue order. Each page had a
+12-second reading pause; no banner or feature CTA was clicked. It signed out
+normally and closed the browser/admin session. No existing customer was used/reset.
+
+- Customer UUID: `dfa52b47-f007-41fe-9f94-0e5de360461f`; native Clarity user ID
+  **`1sblz1g`**, session **`1q6lmba`**.
+- Custom `pilot_run`: `feature-menu-e54d91f4-d953-44f7-9b12-efb66e4b4f43`;
+  `pilot_scenario`: `all-features-menu-views-only`.
+- SDK 0.8.72 reported playback enabled, analytics storage granted, advertising
+  storage denied, and 13 pages (Summary plus the 12 features) in this session.
+- **26 HTTP 204 uploads** matched project `yvs5hp3ivb`; 25 included playback data.
+  Custom identity and lookup tag were observed in memory. No END command, browser
+  page/CSP error or private header sent to Microsoft was observed.
+- Protected local interaction history independently confirms **exactly one view
+  of each of the 12 features and zero feature CTA clicks** in the owned run.
+- Owner confirmed live visibility and described all 12 feature pages in order,
+  ending with Business Invoicing. The earlier “Waiting for additional activity”
+  overlay did not prevent subsequent page playback. Completed-recording lookup,
+  classification, masking and heatmaps remain unverified.
+- Ignored 0600 evidence: `artifacts/clarity-feature-menu-2026-10-13T01-04-50-178Z.json`.
+  Raw capture payloads and the generated password were not retained. The new
+  customer/history remain available for dashboard lookup. No application code,
+  deployment, schema, collection setting or unrelated service changed.
+
 ## M2-C06 consent modal follow-up
 
 The initial unanswered customer consent now uses a centered native modal over a
@@ -573,13 +604,14 @@ remains. The owner declined an independent OS selector; existing presets remain.
 2. Plan 010 is complete and deployed; verify actual Git/release before new work.
    Entry/exit, source attribution and collection exclusion are implemented.
    Plans 008/009 account/deletion/retry protection remain intact.
-3. Await the next owner-prioritized change. Plan 003's assignment/scheduler and new Clarity profile classification remain
+3. The owner-requested single feature-menu capture is complete; use the lookup IDs
+   and evidence above to verify post-session Recordings availability. Plan 003's assignment/scheduler and new Clarity profile classification remain
    deferred. Keep existing device/browser presets; no OS selector is requested.
 4. If owner requests recording evaluation, use `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just
-   uploads. Bot Detection is owner-reported Off as of 2026-10-12 UTC; update the
-   pilot's hardcoded `botDetection` evidence label before the next capture.
+   uploads. Bot Detection is owner-reported Off as of 2026-10-12 UTC; the pilot's
+   evidence label already reflects that owner-reported setting.
    OS identities are preset-derived; no independent OS selector is implemented.
    Verify user agent/platform consistency and actual Clarity classification before
    claiming OS emulation acceptance. Owner has reported mouse playback; Chris
