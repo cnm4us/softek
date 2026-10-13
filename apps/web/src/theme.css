@@ -1749,11 +1749,34 @@ summary {
   align-items: flex-start;
 }
 .savings-detail-balance .account-detail-number {
-  align-self: flex-end;
   margin: 0;
   color: var(--color-muted);
   font-size: 14px;
 }
 .savings-detail-balance .banking-balance {
   margin-top: auto;
+}
+
+.savings-detail-heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.savings-detail-heading h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.savings-detail-balance .savings-interest {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 14px 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.account-detail-grid-single {
+  grid-template-columns: minmax(0, 1fr);
 }

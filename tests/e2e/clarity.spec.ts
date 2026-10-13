@@ -179,10 +179,13 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
         'data-clarity-mask',
         'true',
       );
-    await expect(page.locator('.account-information')).toHaveAttribute(
-      'data-clarity-mask',
-      'true',
-    );
+    if (name === 'Harbor savings')
+      await expect(page.locator('.account-information')).toHaveCount(0);
+    else
+      await expect(page.locator('.account-information')).toHaveAttribute(
+        'data-clarity-mask',
+        'true',
+      );
     await expect(page.locator('.account-detail-activity')).toHaveAttribute(
       'data-clarity-mask',
       'true',

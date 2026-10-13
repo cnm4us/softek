@@ -79,9 +79,17 @@ export function AccountDetails({
         className={`account-detail-balance ${kind === 'savings' ? 'savings-detail-balance' : ''}`}
       >
         {kind === 'savings' ? (
-          <p className="account-detail-number" data-clarity-mask="true">
-            •••• {account.lastFour}
-          </p>
+          <>
+            <div className="savings-detail-heading">
+              <h2>Personal Savings</h2>
+              <p className="account-detail-number" data-clarity-mask="true">
+                •••• {account.lastFour}
+              </p>
+            </div>
+            <p className="savings-interest">
+              Interest 1.25% / Compounded Monthly
+            </p>
+          </>
         ) : (
           <div className="account-detail-heading">
             <span className="icon-circle">
@@ -125,81 +133,69 @@ export function AccountDetails({
           </dl>
         )}
       </Card>
-      <div className="account-detail-grid">
-        <Card title="Account information">
-          <dl className="account-information" data-clarity-mask="true">
-            <div>
-              <dt>Account</dt>
-              <dd>{account.name}</dd>
-            </div>
-            <div>
-              <dt>Ending in</dt>
-              <dd>•••• {account.lastFour}</dd>
-            </div>
-            <div>
-              <dt>Account type</dt>
-              <dd>
-                {kind === 'credit'
-                  ? 'Credit card'
-                  : kind === 'savings'
-                    ? 'Personal savings'
-                    : 'Personal checking'}
-              </dd>
-            </div>
-            <div>
-              <dt>Status</dt>
-              <dd>Open</dd>
-            </div>
-            <div>
-              <dt>Currency</dt>
-              <dd>{account.currency}</dd>
-            </div>
-            {kind === 'checking' && (
-              <>
-                <div>
-                  <dt>Example account plan</dt>
-                  <dd>Everyday banking</dd>
-                </div>
-                <div>
-                  <dt>Example monthly fee</dt>
-                  <dd>$0.00</dd>
-                </div>
-              </>
-            )}
-            {kind === 'savings' && (
-              <>
-                <div>
-                  <dt>Example annual percentage yield</dt>
-                  <dd>1.25%</dd>
-                </div>
-                <div>
-                  <dt>Interest frequency</dt>
-                  <dd>Monthly</dd>
-                </div>
-              </>
-            )}
-            {kind === 'credit' && (
-              <>
-                <div>
-                  <dt>Example minimum payment</dt>
-                  <dd>
-                    {money(
-                      Math.min(owed, Math.max(2500, Math.ceil(owed * 0.02))),
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Example payment due date</dt>
-                  <dd>November 5, 2026</dd>
-                </div>
-              </>
-            )}
-          </dl>
-          <p className="small-note">
-            Rates, fees, limits and payment details are fictional examples for
-            this demo.
-          </p>
-        </Card>
+      <div
+        className={`account-detail-grid ${kind === 'savings' ? 'account-detail-grid-single' : ''}`}
+      >
+        {kind !== 'savings' && (
+          <Card title="Account information">
+            <dl className="account-information" data-clarity-mask="true">
+              <div>
+                <dt>Account</dt>
+                <dd>{account.name}</dd>
+              </div>
+              <div>
+                <dt>Ending in</dt>
+                <dd>•••• {account.lastFour}</dd>
+              </div>
+              <div>
+                <dt>Account type</dt>
+                <dd>
+                  {kind === 'credit' ? 'Credit card' : 'Personal checking'}
+                </dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>Open</dd>
+              </div>
+              <div>
+                <dt>Currency</dt>
+                <dd>{account.currency}</dd>
+              </div>
+              {kind === 'checking' && (
+                <>
+                  <div>
+                    <dt>Example account plan</dt>
+                    <dd>Everyday banking</dd>
+                  </div>
+                  <div>
+                    <dt>Example monthly fee</dt>
+                    <dd>$0.00</dd>
+                  </div>
+                </>
+              )}
+              {kind === 'credit' && (
+                <>
+                  <div>
+                    <dt>Example minimum payment</dt>
+                    <dd>
+                      {money(
+                        Math.min(owed, Math.max(2500, Math.ceil(owed * 0.02))),
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Example payment due date</dt>
+                    <dd>November 5, 2026</dd>
+                  </div>
+                </>
+              )}
+            </dl>
+            <p className="small-note">
+              Rates, fees, limits and payment details are fictional examples for
+              this demo.
+            </p>
+          </Card>
+        )}
         <Card title="Recent activity">
           <p className="section-caption">
             {kind === 'credit'
