@@ -352,9 +352,11 @@ The entire checking, savings and credit card widget on Account Summary is a link
 with a chevron. The old View savings options link is removed. Each opens a
 mobile-first account page with its saved name, masked last four and live demo
 balance, account information and recent activity. The savings balance card omits
-the generic heading/subtitle: its masked number is upper-right, with the amount
-and available-balance label lower-left. Checking includes spending/
-deposit examples; savings includes transfers/interest and an illustrative APY;
+the generic heading/subtitle: Personal Savings sits upper-left, its masked number
+is upper-right, and Interest 1.25% / Compounded Monthly appears middle-left. The
+amount and available-balance label stay lower-left. Savings has no separate Account
+Information widget; Recent Activity follows the balance card at full width. Checking includes spending/
+deposit examples; savings includes transfers/interest and illustrative monthly compounding;
 credit includes purchases/payments, available credit and example payment terms.
 
 Pages are read-only. Saved ledger activity appears for that account; additional

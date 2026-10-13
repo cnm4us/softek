@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), including savings layout follow-up delivered; awaiting Explore-placement discussion**.
+Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), savings card follow-ups delivered; awaiting Explore-placement discussion**.
 Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
-Current request: **Savings balance card simplified and deployed: masked number upper-right, amount/label lower-left, redundant heading/subtitle removed.**
+Current request: **Savings card now shows Personal Savings upper-left and Interest 1.25% / Compounded Monthly middle-left; its separate Account Information widget is removed and the update is deployed.**
 Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
 
 ## Plan status registry
@@ -27,7 +27,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
-| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–05 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
+| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–06 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -131,8 +131,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T18-19-30-775Z**. Previous authenticated release:
-  **2026-10-13T17-57-03-153Z**. Both current links point to the new release.
+- Current release: **2026-10-13T18-35-10-471Z**. Previous authenticated release:
+  **2026-10-13T18-19-30-775Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -851,6 +851,21 @@ holds password-free evidence. API/DB health and matching release links verified.
 Focused SDK-stub assertions reported **3/3**; the initial npm parent exited 143
 with no test failure or remaining listeners. Direct CLI confirmation passed **3/3**
 with exit 0; no unresolved check failure remains.
+
+### DETAIL-06 savings card consolidation — 2026-10-13 UTC
+
+Source **42eef8f**, release **2026-10-13T18-35-10-471Z**. Personal Savings is
+upper-left, masked last-four upper-right, Interest 1.25% / Compounded Monthly
+middle-left, balance/label lower-left. Savings Account Information is removed;
+Recent Activity uses the full width. Terms remain fictional display examples.
+Typecheck, format and evaluation build passed; **6/6 focused account journeys**
+at 360/390/1440px, then **2/2 visual reruns** after tightening rate-line spacing,
+and **3/3 consent/masking SDK-stub journeys** passed with exit 0. Screenshots
+inspected. Live HTTPS 360/1440px confirmed the new labels, absent information
+widget, masking, unchanged owned balances/history, stable samples and return/banner
+behavior. Zero external requests/errors, collection settings unchanged, both owned
+fixtures deleted. API/DB health and release links matched; no test listeners.
+Evidence: ignored 0600 `artifacts/savings-content-live.json`. No migration/capture.
 
 ## Exact resume point
 

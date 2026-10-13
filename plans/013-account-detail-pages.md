@@ -36,6 +36,11 @@ engagement or adoption events. Explore placements await the owner's next discuss
   redundant heading/subtitle, placing the masked account number upper-right and
   keeping the amount/available-balance label lower-left. Verify masking/layout and deploy.
 
+- [x] DETAIL-06 follow-up: add Personal Savings upper-left and Interest 1.25% /
+  Compounded Monthly middle-left to the savings balance card; remove its separate
+  Account Information panel and let recent activity use the full available width.
+  Preserve number/balance alignment, masking and owned data; verify/deploy.
+
 ## Validation boundaries
 
 Use `demo_test` for routine tests with collection disabled/intercepted. Live checks
