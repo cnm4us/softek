@@ -41,6 +41,11 @@ engagement or adoption events. Explore placements await the owner's next discuss
   Account Information panel and let recent activity use the full available width.
   Preserve number/balance alignment, masking and owned data; verify/deploy.
 
+- [x] DETAIL-07 follow-up: apply the compact layout to credit: type upper-left,
+  masked number upper-right, available credit/credit limit in the middle and current
+  amount owed lower-left. Remove credit Account Information, use full-width activity,
+  preserve owned balances, mask all credit figures, verify/deploy.
+
 ## Validation boundaries
 
 Use `demo_test` for routine tests with collection disabled/intercepted. Live checks

@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), savings card follow-ups delivered; awaiting Explore-placement discussion**.
+Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), compact savings/credit follow-ups delivered; awaiting Explore-placement discussion**.
 Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
-Current request: **Savings card now shows Personal Savings upper-left and Interest 1.25% / Compounded Monthly middle-left; its separate Account Information widget is removed and the update is deployed.**
+Current request: **Credit card now uses the compact layout with available credit/credit limit in the middle and no Account Information widget; deployed and verified.**
 Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
 
 ## Plan status registry
@@ -27,7 +27,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
-| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–06 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
+| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–07 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -131,8 +131,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T18-35-10-471Z**. Previous authenticated release:
-  **2026-10-13T18-19-30-775Z**. Both current links point to the new release.
+- Current release: **2026-10-13T18-58-19-642Z**. Previous authenticated release:
+  **2026-10-13T18-35-10-471Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -866,6 +866,22 @@ widget, masking, unchanged owned balances/history, stable samples and return/ban
 behavior. Zero external requests/errors, collection settings unchanged, both owned
 fixtures deleted. API/DB health and release links matched; no test listeners.
 Evidence: ignored 0600 `artifacts/savings-content-live.json`. No migration/capture.
+
+### DETAIL-07 credit card consolidation — 2026-10-13 UTC
+
+Source **49a2acf**, release **2026-10-13T18-58-19-642Z**. Savings/credit share
+compact-card styling. Credit Card is upper-left, masked number upper-right;
+Available Credit/Credit Limit are middle, current amount owed lower-left. Credit's
+Account Information panel is removed and Recent Activity uses the full width.
+The fictional credit limit and available-credit calculation are preserved.
+Typecheck, format, evaluation build, **6/6 account browser checks** at 360/390/1440px
+and **3/3 consent/masking SDK-stub checks** passed, all with exit 0. Screenshots
+inspected. Live HTTPS 360/1440px verified labels, removed panel, masked number/
+credit figures, exact owned balances/history, stable samples and return/banner
+behavior. Zero external requests/errors, collection settings unchanged and both
+owned fixtures deleted. API/DB health and matched release links verified; no test
+listeners remain. Evidence: ignored 0600 `artifacts/credit-layout-live.json`.
+No migration or real vendor capture; Explore placements still await discussion.
 
 ## Exact resume point
 

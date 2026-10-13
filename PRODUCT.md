@@ -357,7 +357,11 @@ is upper-right, and Interest 1.25% / Compounded Monthly appears middle-left. The
 amount and available-balance label stay lower-left. Savings has no separate Account
 Information widget; Recent Activity follows the balance card at full width. Checking includes spending/
 deposit examples; savings includes transfers/interest and illustrative monthly compounding;
-credit includes purchases/payments, available credit and example payment terms.
+credit includes purchases/payments, available credit and a fictional credit limit.
+Its balance card follows the same compact layout: Credit Card upper-left, masked
+number upper-right, Available Credit / Credit Limit in the middle, and current
+amount owed lower-left. Its Account Information widget is removed, with full-width
+Recent Activity immediately below.
 
 Pages are read-only. Saved ledger activity appears for that account; additional
 stable sample entries are labeled and do not modify balances or history. Rates,
