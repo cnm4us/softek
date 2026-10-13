@@ -51,8 +51,9 @@ import {
   restoreBanner,
   type Banner,
 } from './revision';
-import { Card, Alert, Heading, BannerPlaceholder } from './ui';
+import { Card, Alert, Heading } from './ui';
 import { AppShell } from './shell';
+import { SummaryFeatureBanner } from './summary-feature-banner';
 import { AdminApp } from './admin';
 import {
   beginCustomerTransition,
@@ -271,7 +272,10 @@ function Overview() {
           </Link>
         ))}
       </section>
-      <BannerPlaceholder />
+      <SummaryFeatureBanner
+        key={`${state.user.id}:${state.runId}`}
+        state={state}
+      />
       <div className="dashboard-grid">
         <Card title="Recent activity">
           <div className="section-caption">Your latest account movements</div>

@@ -18,6 +18,10 @@ type Context = {
   pool: Pool;
   test: boolean;
   transaction: <T>(action: (c: PoolConnection) => Promise<T>) => Promise<T>;
+  active: (c: PoolConnection, req: Request) => Promise<Row>;
+  visit: (c: PoolConnection, run: Row, req: Request) => Promise<string>;
+  token: (req: Request) => string;
+  checkCsrf: (req: Request, token: string) => void;
   admin: (
     req: Request,
     mutate?: boolean,
@@ -47,7 +51,100 @@ export function registerFeatureExplorer({
   test,
   transaction,
   admin,
+  active,
+  visit,
+  token,
+  checkCsrf,
 }: Context) {
+  app.post('/api/feature-explorer/summary/select', async (req, res) => {
+    checkCsrf(req, token(req));
+    const b = z
+      .object({
+        requestId: uuid,
+        advance: z.boolean(),
+        selectionId: uuid.optional(),
+      })
+      .strict()
+      .parse(req.body);
+    const data = await transaction(async (c) => {
+      const r = await active(c, req),
+        v = await visit(c, r, req);
+      const requestKey = `explorer-summary:${b.requestId}`;
+      const render = (p: Row) => ({
+        id: p.id,
+        bannerId: p.banner_id,
+        imageUrl: `/media/banners/${p.asset_key}`,
+        title: p.title,
+        altText: p.alt_text,
+        destination: p.destination,
+        href: getFeature(p.destination)!.href,
+        campaignId: null,
+      });
+      const [retry] = await c.query(
+        'SELECT * FROM banner_presentations WHERE user_id=? AND run_id=? AND request_key=?',
+        [r.user_id, r.id, requestKey],
+      );
+      if (retry) return render(retry);
+      if (!b.advance && b.selectionId) {
+        const [saved] = await c.query(
+          "SELECT * FROM banner_presentations WHERE id=? AND user_id=? AND run_id=? AND request_key LIKE 'explorer-summary:%'",
+          [b.selectionId, r.user_id, r.id],
+        );
+        if (!saved)
+          throw new HttpError(
+            403,
+            'That banner is not assigned to this account.',
+          );
+        const [current] = await c.query(
+          "SELECT id FROM feature_explorer_widgets WHERE id=? AND section_key='summary' AND enabled=TRUE AND asset_key=?",
+          [saved.banner_id, saved.asset_key],
+        );
+        if (current) return render(saved);
+      }
+      const widgets: Row[] = await c.query(
+        "SELECT * FROM feature_explorer_widgets WHERE section_key='summary' AND enabled=TRUE AND asset_key IS NOT NULL ORDER BY sort_order,id",
+      );
+      if (!widgets.length) return null;
+      const [cursor] = await c.query(
+        'SELECT last_widget_id FROM summary_explorer_rotation WHERE user_id=?',
+        [r.user_id],
+      );
+      const index = widgets.findIndex((w) => w.id === cursor?.last_widget_id);
+      const next =
+        widgets[b.advance ? (index + 1) % widgets.length : Math.max(0, index)]!;
+      const feature = getFeature(next.feature_id)!,
+        id = randomUUID();
+      await c.query(
+        'INSERT INTO banner_presentations (id,user_id,run_id,visit_id,request_key,banner_id,asset_key,title,alt_text,destination,campaign_id,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NULL,?,UTC_TIMESTAMP(6))',
+        [
+          id,
+          r.user_id,
+          r.id,
+          v,
+          requestKey,
+          next.id,
+          next.asset_key,
+          feature.name,
+          next.alt_text,
+          feature.id,
+          b.advance ? 'refresh' : 'fallback',
+        ],
+      );
+      await c.query(
+        'INSERT INTO summary_explorer_rotation VALUES (?,?) ON DUPLICATE KEY UPDATE last_widget_id=VALUES(last_widget_id)',
+        [r.user_id, next.id],
+      );
+      return render({
+        id,
+        banner_id: next.id,
+        asset_key: next.asset_key,
+        title: feature.name,
+        alt_text: next.alt_text,
+        destination: feature.id,
+      });
+    });
+    res.json(data);
+  });
   app.get('/api/admin/feature-explorer', async (req, res) => {
     await admin(req);
     const widgets: Row[] = await pool.query(

@@ -3,9 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Check } from 'lucide-react';
 import { api, type State } from './api';
-import { confirmed, collectionAvailable } from './analytics';
+import {
+  confirmed,
+  collectionAvailable,
+  consentChoice,
+  initialize,
+} from './analytics';
+import {
+  setRenderedSummaryBanner,
+  clearRenderedSummaryBanner,
+} from './summary-explorer-context';
 import { isAdminRoute } from './routes';
 import { featureAtPath } from '../../api/src/features';
+import { BannerPlaceholder } from './ui';
 
 export type Banner = {
   id: string;
@@ -65,7 +75,7 @@ export function interaction(
     if (
       result.accepted &&
       collectionAvailable(state) &&
-      sessionStorage.getItem('softek_analytics_consent') === 'granted'
+      consentChoice(state) === 'granted'
     )
       window.clarity?.('event', name);
   });
@@ -105,13 +115,23 @@ export async function restoreBanner(state: State, refreshDocument: boolean) {
 export function ImageBanner({
   state,
   banner,
+  compact = false,
 }: {
   state: State;
   banner: Banner | null;
+  compact?: boolean;
 }) {
   const element = useRef<HTMLAnchorElement>(null),
     [loaded, setLoaded] = useState(false),
     [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (!compact) return;
+    setRenderedSummaryBanner(state, loaded && !failed ? banner : null);
+    initialize(state);
+    return () => {
+      clearRenderedSummaryBanner();
+    };
+  }, [compact, banner?.id, loaded, failed, state.user.id, state.runId]);
   useEffect(() => {
     setLoaded(false);
     setFailed(false);
@@ -148,11 +168,14 @@ export function ImageBanner({
       document.removeEventListener('visibilitychange', schedule);
     };
   }, [banner?.id, loaded, failed, state.runId]);
-  if (!banner?.imageUrl || failed) return null;
+  if (!banner?.imageUrl || failed)
+    return compact ? <BannerPlaceholder /> : null;
   return (
     <Link
       ref={element}
-      className="image-banner"
+      className={
+        compact ? 'surface image-banner summary-feature-banner' : 'image-banner'
+      }
       data-testid="promotion-banner"
       to={banner.href}
       state={

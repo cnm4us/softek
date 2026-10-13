@@ -356,7 +356,17 @@ export function createApp(test = false) {
     checkCsrf,
     cookieOptions,
   });
-  registerFeatureExplorer({ app, pool, test, transaction, admin });
+  registerFeatureExplorer({
+    app,
+    pool,
+    test,
+    transaction,
+    admin,
+    active,
+    visit,
+    token,
+    checkCsrf,
+  });
   registerDiscovery({
     app,
     transaction,

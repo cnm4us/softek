@@ -816,7 +816,7 @@ export function registerRevision(ctx: Context) {
     const data = await transaction(async (c) => {
       const r = await active(c, req);
       const [p] = await c.query(
-        'SELECT * FROM banner_presentations WHERE user_id=? AND run_id=? AND (? IS NULL OR id=?) ORDER BY created_at DESC,id DESC LIMIT 1',
+        "SELECT * FROM banner_presentations WHERE user_id=? AND run_id=? AND request_key NOT LIKE 'explorer-summary:%' AND (? IS NULL OR id=?) ORDER BY created_at DESC,id DESC LIMIT 1",
         [r.user_id, r.id, requested, requested],
       );
       if (requested && !p)

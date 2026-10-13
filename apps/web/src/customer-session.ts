@@ -1,11 +1,14 @@
 import { api } from './api';
 import { stopCollection } from './analytics';
+import { clearRenderedSummaryBanner } from './summary-explorer-context';
 
 export const impersonationStorage = 'softek_impersonation_context';
 const channel = new BroadcastChannel('softek_customer_session');
 function clearCustomerState() {
   stopCollection();
   sessionStorage.removeItem('softek_banner');
+  sessionStorage.removeItem('softek_explorer_summary');
+  clearRenderedSummaryBanner();
   sessionStorage.removeItem('softek_analytics_consent');
 }
 channel.onmessage = ({ data }) => {

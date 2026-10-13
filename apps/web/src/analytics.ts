@@ -1,3 +1,4 @@
+import { renderedSummaryBanner } from './summary-explorer-context';
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
 import { analyticsContext, applyContext } from './feature-context';
@@ -117,8 +118,7 @@ export function initialize(state: State) {
     script.src = `https://www.clarity.ms/tag/${state.analytics.projectId}`;
     document.head.append(script);
   }
-  // The Summary slot is inactive. Retained rotation selections describe no
-  // rendered artwork and must not label this visit as a banner/feature exposure.
+  // Only loaded Summary artwork supplies banner context, never retained legacy selections.
   applyContext(
     window.clarity!,
     state,
@@ -126,6 +126,7 @@ export function initialize(state: State) {
       state,
       location.pathname,
       window.history.state?.usr?.featureEntry,
+      location.pathname === '/' ? renderedSummaryBanner(state) : null,
     ),
   );
 }

@@ -78,6 +78,10 @@ test('admin manages four banner spaces with catalog URLs and persistent mobile a
     });
     await expect(selector.locator('option')).toHaveCount(12);
     const feature = features[index]!;
+    const rotationLabel =
+      section.key === 'summary'
+        ? 'Include in rotation'
+        : 'Include in future rotation';
     await selector.selectOption(feature.id);
     await space
       .getByRole('button', { name: 'Add Explore feature', exact: true })
@@ -101,7 +105,7 @@ test('admin manages four banner spaces with catalog URLs and persistent mobile a
       page.getByLabel('Feature URL', { exact: true }),
     ).toHaveAttribute('readonly', '');
     await expect(
-      page.getByLabel('Include in future rotation', { exact: true }),
+      page.getByLabel(rotationLabel, { exact: true }),
     ).toBeDisabled();
     if (index === 0) {
       const buffer = await sharp({
@@ -126,9 +130,7 @@ test('admin manages four banner spaces with catalog URLs and persistent mobile a
         .getByLabel('Accessible link text', { exact: true })
         .fill('Explore crypto investing');
       await page.getByLabel('Display order', { exact: true }).fill('2');
-      await page
-        .getByLabel('Include in future rotation', { exact: true })
-        .check();
+      await page.getByLabel(rotationLabel, { exact: true }).check();
       await page
         .getByRole('button', { name: 'Save widget', exact: true })
         .click();
@@ -140,7 +142,7 @@ test('admin manages four banner spaces with catalog URLs and persistent mobile a
         page.getByLabel('Accessible link text', { exact: true }),
       ).toHaveValue('Explore crypto investing');
       await expect(
-        page.getByLabel('Include in future rotation', { exact: true }),
+        page.getByLabel(rotationLabel, { exact: true }),
       ).toBeChecked();
       await page
         .getByLabel('Replace mobile banner', { exact: true })

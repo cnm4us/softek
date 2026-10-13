@@ -43,8 +43,8 @@ export function FeatureExplorerControls() {
     <div className="feature-explorer-controls">
       <Feedback error={error} notice={notice} />
       <p className="small-note">
-        Add Explore features to each banner space. Customer banners are not
-        rotating yet.
+        Enabled Account Summary banners rotate on login and refresh. Other
+        banner spaces are configuration only.
       </p>
       {loading ? (
         <p role="status">Loading Feature Explorer…</p>
@@ -73,7 +73,9 @@ export function FeatureExplorerControls() {
                           {!w.imageUrl
                             ? 'Needs banner'
                             : w.enabled
-                              ? 'Ready for rotation'
+                              ? section.key === 'summary'
+                                ? 'In rotation'
+                                : 'Ready for rotation'
                               : 'Disabled'}
                         </span>
                       </div>
@@ -294,7 +296,9 @@ export function ExploreWidgetControls() {
                     disabled={!data.imageUrl}
                     defaultChecked={data.enabled}
                   />
-                  Include in future rotation
+                  {data.section === 'summary'
+                    ? 'Include in rotation'
+                    : 'Include in future rotation'}
                 </label>
                 <button className="button secondary" disabled={busy}>
                   Save widget

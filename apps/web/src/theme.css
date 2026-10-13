@@ -1875,3 +1875,18 @@ summary {
 .explorer-delete {
   margin-top: 20px;
 }
+
+.image-banner.summary-feature-banner {
+  height: calc(var(--account-card-height) / 2);
+  width: 100%;
+  margin: 0 0 26px;
+  background: #e8efe7;
+  overflow: hidden;
+  display: block;
+}
+.image-banner.summary-feature-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
