@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), pilot results recorded; awaiting the owner's next priority**.
+Current focus: **[011 — Contextual feature discovery](plans/011-contextual-feature-discovery.md)**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
-Current request: **Owner accepts automated Dashboard activity and human saved recordings as sufficient for the current demo; stop investigating missing automated saved recordings.**
-Next task: **Await the next owner-prioritized demo task. Automated saved-recording absence is an accepted limitation, not a blocker. Do not run the proposed no-sign-out test or contact support unless the owner reopens this investigation. Human masking/heatmap review and broader suite work remain separately pending.**
+Current request: **Build two contextual journeys from the supplied brief: EasyCoin in savings/investment exploration and Skip A Pay on an eligible fictional loan-payment screen.**
+Next task: **Implement DISC-01–06 using the existing pages/theme/API, additive migration 0009, persistent discovery preferences and independent first-party reporting. The broader brief is phased; no automated-recording investigation is reopened.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Synthetic pilot accepted for Dashboard activity; missing automated saved recordings accepted as a demo limitation, investigation ended by owner; human recordings visible, masking/heatmap review remains; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Deferred | Synthetic Dashboard activity accepted; missing automated saved recordings accepted, investigation ended; human masking/heatmap review remains; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -25,6 +25,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | Completed | ACCT-01–04 verified/deployed; no migration; eligibility independent, retained profiles/balances/history preserved |
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
+| 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Active | Owner selected EasyCoin and Skip A Pay; plan recorded, implementation next |
 
 ## Current reality
 

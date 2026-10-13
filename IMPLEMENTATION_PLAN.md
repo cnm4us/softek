@@ -18,6 +18,7 @@ verification evidence, and the resume point live in
 | 008 | [Simplify starting accounts](plans/008-simplify-starting-accounts.md) | ACCT-01–04; shared account setup and independent eligibility; depends on 006/007 |
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | DEL-01–04; card controls, linked-data removal and retry protection; depends on 006–008 |
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | IMP-01–06; protected entry/exit, session provenance and analytics exclusion; depends on 001/002/004 and 006–009 |
+| 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | DISC-01–06; EasyCoin savings/investing exploration and Skip A Pay loan-payment context, preferences and first-party reporting; depends on 005/010 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
