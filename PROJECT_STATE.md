@@ -4,7 +4,7 @@ Last updated: **2026-10-13 UTC**.
 Current focus: **[002 — Clarity validation](plans/002-clarity-validation.md), authorized small capture pilot**.
 Latest completed implementation: **Plan 010 — admin-bound customer impersonation and analytics separation**.
 Current request: **Run one Clarity capture using Explore Features to visit each feature once; completed with 12 views and no CTA clicks.**
-Next task: **Check whether the finished feature-menu session (Clarity user `1sblz1g`, session `1q6lmba`) remains searchable/playable in Recordings, then review custom tags, masking and heatmaps. Owner observed all 12 feature pages in playback. Earlier post-session availability and desktop scroll display remain unresolved. Broader suite implementation is not yet authorized.**
+Next task: **Investigate automated-session recording availability: owner sees all feature pages in Dashboard and manual recordings in All Recordings with filters cleared/Last 7 days, but the feature-menu test remains missing. Next proposed capture is the same menu-only journey in headed Chromium; no new capture has been run for this follow-up. Custom-tag lookup, masking, heatmaps and broader suite remain pending.**
 
 ## Plan status registry
 
@@ -16,7 +16,7 @@ Active identifies focus and does not itself authorize additional scope.
 | --- | --- | --- | --- |
 | 000 | [Foundation and first demo](plans/000-foundation-and-first-demo.md) | Completed | M0/M1 verified/deployed; historical checklists retained |
 | 001 | [Login, layout, and rotating banners](plans/001-login-layout-and-banners.md) | Completed | M1-R01–08 verified/deployed; real Clarity acceptance stays in 002 |
-| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Five small capture journeys; latest menu-only run verifies exactly 12 feature views, zero CTAs and 26 acknowledged uploads; owner sees all 12 pages; completed-recording lookup/masks/heatmaps pending; Chris deferred |
+| 002 | [Clarity validation](plans/002-clarity-validation.md) | Active | Five small capture journeys; menu-only run verifies 12 views, zero CTAs and 26 uploads; owner sees all pages in Dashboard/live replay, but only manual visits in saved Recordings; automated recording availability/masks/heatmaps unresolved; Chris deferred |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | Deferred | Typed feature/banking scenario contract exists; no runner/scheduler/UI |
 | 004 | [Admin and Customer menus](plans/004-admin-and-customer-menus.md) | Completed | MENU-01–07 verified/deployed with independent sessions and protected child routes |
 | 005 | [Feature campaign landing pages](plans/005-feature-campaign-landing-pages.md) | Completed | FEAT-01–09 implemented, migration 0004 applied, API/browser/public acceptance verified and deployed |
@@ -390,6 +390,32 @@ normally and closed the browser/admin session. No existing customer was used/res
   Raw capture payloads and the generated password were not retained. The new
   customer/history remain available for dashboard lookup. No application code,
   deployment, schema, collection setting or unrelated service changed.
+
+### Feature-menu post-session follow-up
+
+Owner now reports **all feature pages appear in Dashboard, but the test is absent
+from All Recordings**. With filters/saved segments cleared and **Last 7 days**
+selected, **manual recordings appear; the test remains missing**. This narrows the
+observed discrepancy to the automated session rather than an entirely empty
+recording list. It does not establish that headless mode or bot filtering caused it.
+
+Read-only review reconfirmed all 26 uploads succeeded and 25 contained playback
+data, with no captured errors/END command. Microsoft's
+[Dashboard troubleshooting](https://learn.microsoft.com/en-us/clarity/insights/troubleshooting-dashboard)
+documents Dashboard activity without playable recordings when received replay
+data is insufficient, and suggests broadening filters; that is a possible
+explanation, not a diagnosis. Our agent browser still shows expired Microsoft
+sign-in, so dashboard evidence remains owner-observed. No account/service setting
+was changed and no new real capture was made.
+
+Next proposed controlled comparison: repeat the same menu-only journey with
+headed Chromium, keeping consent, capture gates and synthetic labeling intact.
+Playwright uses a separate headless shell by default versus regular Chromium for
+headed operation ([browser documentation](https://playwright.dev/docs/browsers#chromium)).
+Host `Xvfb`/`xvfb-run` is available; Google Chrome is not on PATH. A result would
+test browser-mode behavior, not prove a Microsoft filtering policy. If still
+missing, the existing project/user/session/time evidence supports a Microsoft
+support case; no message to Microsoft has been authorized or sent.
 
 ## M2-C06 consent modal follow-up
 

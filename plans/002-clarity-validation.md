@@ -177,6 +177,11 @@ pauses, ordinary sign-out, and no CTA clicks. Protected local history confirms
 Owner observed all twelve pages in playback. Native user `1sblz1g`, session
 `1q6lmba`; exact times, tags and private evidence are in
 [PROJECT_STATE.md](../PROJECT_STATE.md#october-12-evening--authorized-feature-menu-capture).
+Owner subsequently confirms all feature pages appear in Dashboard, but this test
+is missing from All Recordings even after clearing filters and selecting Last 7
+days; manual recordings are visible. A headed-browser comparison is proposed,
+not executed. Keep automated recording availability unresolved; current evidence
+does not prove bot filtering or a headless-specific cause.
 Completed-recording lookup, masking and heatmaps remain separate unchecked
 acceptance criteria. No broader automation implementation was authorized.
 
