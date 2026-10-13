@@ -391,3 +391,22 @@ click tracking. Future rotating images/destinations and Explore invitations requ
 separate work. Existing admin assets, rotation selections and historical reporting
 are retained, while actual linked image rendering is suspended. Sidebar Savings
 Goals promotion and banking activity remain functional.
+
+## Feature Explorer administration — Plan 015
+
+Admin Menu → Feature Explorer lists four banner spaces: Account Summary, Everyday
+Checking, Harbor Savings and Harbor Credit Card. Each space header has its own
+Explore feature widgets. Add a title from all twelve catalog features, then open
+its title to configure its mobile artwork and view/copy the automatically derived
+feature URL. One widget per feature per space; a feature may appear in multiple
+spaces. Titles/destinations remain catalog-owned.
+
+Upload JPEG/PNG/WebP up to 5 MiB, recommended 960×315 for a 320×105 mobile slot.
+The responsive preview preserves the image proportions. Replacements keep old
+image URLs immutable. Accessible link text, display order and inclusion in future
+rotation are saved per widget. Image-less widgets cannot be included.
+
+The owner selected **admin controls only for now**. Adding/uploading/saving a widget
+does not activate customer artwork, impressions, clicks, rotation or discovery.
+The four customer pages retain Plan 014's inactive placeholders. Future section
+rotation, attribution and desktop artwork behavior remain B-016.

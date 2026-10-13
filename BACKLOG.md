@@ -23,7 +23,7 @@ its backlog ID.
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 | B-013 | Completed | First contextual discovery pair | [Plan 011](plans/011-contextual-feature-discovery.md) implements EasyCoin investing exploration and Skip A Pay loan-payment invitations, preferences and reporting |
-| B-016 | Later | Rotating content for compact banner slots | Plan 014 supplies inactive Summary/account-page placeholders; choose artwork, destinations, rotation/exposure rules and adapt banner-click automation before activation |
+| B-016 | Later | Rotating content for compact banner slots | Plan 014 supplies inactive slots; Plan 015 adds admin-configured mobile artwork/catalog widgets. Owner explicitly deferred customer activation; add section rotation, desktop display behavior, owned attribution/exposures and adapted automation before activation |
 | B-015 | Next discussion | Explore links on account detail pages | Owner requested discussion after Plan 013; choose features, copy and placement before implementing invitations |
 | B-014 | Later | Broader contextual discovery | Additional placements and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011, grouped catalog is delivered in Plan 012 |
 

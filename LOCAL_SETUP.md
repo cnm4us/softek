@@ -445,7 +445,8 @@ Customer Menu → Explore more ways to bank opens authenticated `/explore`.
 Direct visits prompt for login and then retain that destination. Five sections
 start expanded; search filters full product names. Catalog feature links return
 to the catalog; banners and contextual suggestions retain their existing return
-paths. This UI release needs no migration and preserves schema version 9.
+paths. Plan 012 itself needed no migration; subsequent Plan 015 adds the
+configuration-only 0010 migration.
 The tracked smoke/pilot scripts now use the catalog; actual capture still requires
 explicit collection authorization and the existing private capture controls.
 
@@ -463,3 +464,21 @@ Plan 014 replaces linked Summary artwork with inactive compact placeholders on
 Summary and account details. Admin assets and selection/history remain available;
 no placeholder click or exposure is recorded. The existing `clarity:pilot` banner
 pair requires adaptation before reuse (B-016); feature-menu journeys remain useful.
+
+## Feature Explorer controls — Plan 015
+
+Use Admin Menu → Feature Explorer (`/controls/feature-explorer`). Add a catalog
+feature under a banner space, then select its title to upload/replace mobile
+artwork, copy its URL and save accessible text, display order and inclusion in
+future rotation. JPEG/PNG/WebP, at most 5 MiB/4096px per side; recommend 960×315.
+Uploads use the existing persistent immutable WebP directory. Only the new
+widget image-upload URL has an additional scoped Nginx 6 MiB body allowance.
+Customer rotation is not activated by these settings; the owner chose admin-only
+configuration in this phase. Migration 0010 is additive and needs no seed data.
+
+Migration 0010 is applied to `demo` and `demo_test`; repeat application is a no-op.
+Scoped root-only 0600 prechange backup:
+`/var/backups/softek/demo-before-0010-20261013T205047Z.sql`.
+The prior Plan 014 application can ignore this additive table during a code-only
+rollback; keep the schema and configuration data rather than dropping the table.
+No rollback was performed. Next migration number is 0011.

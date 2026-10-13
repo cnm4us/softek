@@ -45,7 +45,7 @@ separate feature/CTA observations and accurate section/banner Clarity tags.
 - [x] EXP-04: API/database and responsive browser checks for access, invalid uploads,
   duplicate widgets, configuration persistence, replacement and selected rotation scope;
   verify existing data/reporting/privacy boundaries.
-- [ ] EXP-05: scoped backup/migration/status checks, evaluation build/deploy, live
+- [x] EXP-05: scoped backup/migration/status checks, evaluation build/deploy, live
   HTTPS checks without vendor capture, remove only owned fixtures and update handoff.
 
 ## Boundaries

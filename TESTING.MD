@@ -350,3 +350,14 @@ case supplies an owned Router entry directly: it validates the retained contract
 not a click on the inactive placeholder. API banner/admin tests remain valid.
 The existing `clarity:pilot` banner-click pair assumes a rendered image and needs
 adaptation before reuse; future rotating strips are separate owner-selected work.
+
+## Feature Explorer checks — Plan 015
+
+`tests/feature-explorer.test.ts` covers private admin/CSRF access, all four spaces,
+catalog-owned URLs, duplicates, settings, image-less activation refusal, valid/
+invalid/oversize uploads, immutable replacements and missing-widget cleanup.
+`tests/e2e/feature-explorer.spec.ts` covers mobile/desktop creation, title navigation,
+URL display, upload/preview/replacement, persisted settings, independent spaces,
+menu and Admin Home links, overflow and errors. Collection is disabled and external
+requests are blocked. Existing account checks prove customer placeholders remain;
+the consent/masking SDK-stub journey crosses into the new admin route.

@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[014 — Compact banner placeholders](plans/014-compact-banner-placeholders.md), delivered; awaiting the next owner-selected enhancement**.
-Latest completed implementation: **Plan 014 — compact banner placeholders**.
-Current request: **Compact placeholders on Summary and all three account detail pages are deployed and verified.**
-Next task: **Await the next owner-selected enhancement: future rotating strip content (B-016) and account-page Explore placements (B-015) require discussion. Automated recording investigation remains stopped.**
+Current focus: **[015 — Feature Explorer controls](plans/015-feature-explorer-controls.md), admin-only controls delivered; customer activation deferred**.
+Latest completed implementation: **Plan 015 — Feature Explorer administration**.
+Current request: **Admin Feature Explorer is deployed: four banner spaces, catalog-selected widgets, mobile image configuration and automatic URLs. Owner explicitly chose admin controls only; customer placeholders stay inactive.**
+Next task: **Await the next owner-selected enhancement. Customer rotation/attribution (B-016) and further contextual placements (B-015) remain deferred; recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -29,6 +29,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
 | 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–08 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 | 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | Completed | STRIP-01–03 verified/deployed; 54 distinct account/banking cases, eight privacy checks, live HTTPS 360/1440px; schema 9 unchanged |
+| 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–05 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
 
 ## Current reality
 
@@ -113,20 +114,31 @@ Active identifies focus and does not itself authorize additional scope.
   CSRF and optional immutable banner entry; retries deduplicate per page/feature.
   Banner history state belongs to the exact landing entry; menu/direct entries do
   not inherit another tab's or the user's last banner attribution.
-- Admin Menu contains Manage Customers, Manage Banners, Adoption Report and Clarity Settings at
+- Admin Menu contains Manage Customers, Manage Banners, Feature Explorer, Adoption Report and Clarity Settings at
   `/controls/*`. Feature Activity within the report shows raw views/clicks, distinct
   customers/runs and banner-attributed counts under actor/variant/UTC filters.
   Savings Goals funnel queries/denominators are unchanged. Selected-customer activity
   names feature observations. Admin descendants remain masked and analytics-excluded.
+- Feature Explorer (`/controls/feature-explorer`) has four banner space headers:
+  Account Summary, Everyday Checking, Harbor Savings and Harbor Credit Card. Add a
+  catalog feature, open its title, upload/replace mobile artwork, view/copy its
+  automatically derived URL and save accessible text/order/future inclusion.
+  Recommend 960×315 for the compact mobile slot. One widget per feature per space;
+  repeat features across spaces are allowed. Image-less inclusion is rejected.
+  Owner explicitly selected admin controls only; no customer reader, rotation,
+  impressions/clicks or new discovery is activated. Customer placeholders remain.
 - MariaDB is authoritative. Business writes use user/run locks and READ COMMITTED;
   savings reports use consistent snapshots; feature aggregates use one SQL statement.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0009** applied to **demo and demo_test**, version 9 with no
+- Migrations **0001–0010** applied to **demo and demo_test**, version 10 with no
   pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
   preferences; committed **7eb7290** before application. Batch/balance tables and
-  the collection switch/epoch remain intact. Next migration is **0010**. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
+  the collection switch/epoch remain intact. Next migration is **0011**. 0010 adds only unseeded admin widget configuration, committed **c8f4204** before application. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
+- Root-only 0600 pre-0010 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0010-20261013T205047Z.sql`.
+  Prior code can ignore the additive table on code rollback; no rollback performed.
 - Root-only 0600 pre-0008 schema/data/ledger backup:
   `/var/backups/softek/demo-before-0008-20261012T061846Z.sql`; tested schema-8
   API/web recovery build `/var/backups/softek/schema8-tested-build-20261012-final.tar.gz`.
@@ -136,8 +148,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T20-28-58-806Z**. Previous authenticated release:
-  **2026-10-13T19-57-01-817Z**. Both current links point to the new release.
+- Current release: **2026-10-13T20-55-23-121Z**. Previous authenticated release:
+  **2026-10-13T20-28-58-806Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -936,13 +948,47 @@ active service and matched API/web release links verified. No migration or real
 vendor capture. Evidence: ignored 0600 `artifacts/strip-layout-live.json` and
 `artifacts/strip-*.log`; logs/helpers/screenshots remain uncommitted.
 
+## Plan 015 verification — 2026-10-13 UTC
+
+Owner chose **admin controls only** and clarified that each page name is a banner
+space header. Source/migration **c8f4204**, verified UI/test follow-up **b52045c**;
+release **2026-10-13T20-55-23-121Z**. Feature Explorer is the fifth Admin Menu/Home
+entry, with four space sections, twelve catalog choices, widget-title configuration,
+read-only/copyable automatic URL, mobile upload/preview/replacement, accessible
+text/order and inclusion in future rotation. Image-less inclusion is rejected.
+No customer reader, artwork activation, rotation, impressions or CTA attribution
+was introduced. Plan 014 customer placeholders remain inactive.
+
+| Check actually run | Result |
+| --- | --- |
+| API/migration suite | `npm test`: **88 TAP entries passed**, including five new Feature Explorer entries; no failure/skip |
+| Browser | **9/9**: new admin configuration and both account journeys at 360/390/1440px; persisted artwork/settings/URLs, four spaces, menu/Home, no overflow/errors; screenshots reviewed |
+| Privacy | **3/3** consent/masking SDK-stub journeys crossing into `/controls/feature-explorer`; admin excluded and masked, no real Microsoft capture |
+| Build/quality | Typecheck, format, evaluation build and documentation link/diff checks passed; existing bundle advisory remains B-011 |
+| Migration | 0010 committed before application, tested on `demo_test`, then applied to retained `demo`; both ledgers version **10**, no pending/drift, repeats no-op; one additive unseeded table |
+| Backup | Root-only 0600 `/var/backups/softek/demo-before-0010-20261013T205047Z.sql`, including schema/data/ledger |
+| Live HTTPS | Admin spaces/configuration at 360/1440px; a valid >32 KiB PNG crossed the new scoped Nginx upload allowance; actual WebP preview, saved settings and derived URLs verified |
+| Customer boundary | Own customers on Summary and three account details retain non-actionable placeholders, unchanged owned balances/history/goals, no new banner/feature observations; global collection settings unchanged |
+
+Initial browser test assumed an Admin Home menu item that does not exist; corrected
+the test to close the menu and open the Home route, then all nine checks passed.
+No unresolved failure or dev/test listener remains. Live checks removed only their
+own eight widgets, two assets and two Automation customers; no configuration was
+seeded for retained customers. Production widget table is empty after cleanup.
+No external requests/browser errors; matched release links, active service and API/
+DB health verified. Evidence: ignored 0600 `artifacts/explorer-live.json`; helpers,
+logs/screenshots remain ignored. New runtime-table data remains independent of
+legacy banner history and account state. Customer rotation is still explicitly
+owner-deferred (B-016), with further contextual placements separate (B-015).
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plans 013/014 are complete and deployed; verify current release/schema/Git before
-   new work. Walk through Summary and all three account details with their inactive
-   compact strips. Discuss rotating content/rules (B-016) and Explore features/copy/
-   placements (B-015) with the owner before implementing those additions. Existing `/savings` education and `/loans` journeys
+2. Plans 013/014/015 are complete and deployed; verify current release/schema/Git before
+   new work. Walk through Feature Explorer admin spaces/configuration and the
+   four customer pages with inactive strips. Owner explicitly chose admin-only
+   configuration; discuss rotation/attribution (B-016) and further contextual Explore
+   placements (B-015) before activating them. Existing `/savings` education and `/loans` journeys
    retain Plan 011's one-per-visit invitation cap. Tenancy/wider discovery remain
    deferred; do not infer authorization from the supplied broader brief.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
@@ -966,7 +1012,7 @@ vendor capture. Evidence: ignored 0600 `artifacts/strip-layout-live.json` and
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015 and the current Clarity implementation/checks/docs are
 committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

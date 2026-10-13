@@ -599,3 +599,23 @@ retained customers is needed; only existing authenticated reads/page observation
 occur. Balance, account information and history containers are Clarity-masked.
 Owner deferred Explore placements to a subsequent discussion; existing contextual
 journeys and collection gates remain independent.
+
+## Feature Explorer configuration — Plan 015
+
+Migration 0010 adds only `feature_explorer_widgets`, with a unique (space, feature)
+constraint and nullable FK to existing `banner_assets`. Shared catalog/space
+identities derive titles/internal URLs; admin mutation accepts no destination URL.
+Blank widgets are disabled, and enabling requires an asset in both API validation
+and a MariaDB check. All endpoints use the existing independent admin session,
+Origin/CSRF checks and multipart authentication before reading the image body.
+The new upload endpoint gets a scoped Nginx 6 MiB limit; all other limits remain.
+
+Image decoding/publication reuses bounded Sharp processing and immutable WebP
+storage. Replacement swaps a widget's current asset inside a transaction while
+retaining old assets; failed publication/unknown widget removes the new file.
+Controls share the existing resource/loading/error components and masked admin
+shell. `feature_explorer_widgets` is deliberately independent of legacy
+`demo_banners` and participant banking state. This phase has no customer reader,
+rotation cursor, presentation table or analytics events for the new configuration.
+Owner-selected future activation must add owned attribution and per-space rotation
+without treating a configuration inclusion flag as consent or a recorded exposure.
