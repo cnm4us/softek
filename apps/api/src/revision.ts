@@ -41,6 +41,9 @@ const routeKeys = [
   'goals',
   'enroll',
   'about',
+  'savings',
+  'loans',
+  'discovery-preferences',
 ] as const;
 const destination = z.enum(destinations.map((d) => d.key));
 const username = z
@@ -961,6 +964,7 @@ export function registerRevision(ctx: Context) {
         requestId: uuid,
         pageId: uuid,
         selectionId: uuid.optional(),
+        discoveryPresentationId: uuid.optional(),
         name: z.enum([
           'banner_visible',
           'banner_clicked',
@@ -984,6 +988,19 @@ export function registerRevision(ctx: Context) {
       const r = await active(c, req),
         v = await visit(c, r, req);
       const featureEvent = b.name.startsWith('feature_');
+      if (b.discoveryPresentationId) {
+        if (!featureEvent || b.selectionId)
+          throw new HttpError(400, 'Invalid discovery action.');
+        const [discovery] = await c.query(
+          'SELECT id FROM discovery_presentations WHERE id=? AND user_id=? AND run_id=? AND visit_id=? AND feature_id=? AND clicked_at IS NOT NULL',
+          [b.discoveryPresentationId, r.user_id, r.id, v, b.routeKey],
+        );
+        if (!discovery)
+          throw new HttpError(
+            403,
+            'That discovery link is not assigned to this visit.',
+          );
+      }
       if (featureEvent && (!getFeature(b.routeKey) || b.targetKey))
         throw new HttpError(400, 'Invalid feature action.');
       if (b.selectionId && !featureEvent && !b.name.startsWith('banner_'))
@@ -1013,9 +1030,14 @@ export function registerRevision(ctx: Context) {
         throw new HttpError(403, 'That banner does not lead to this feature.');
       if (
         b.name === 'placeholder_action' &&
-        !['transfers', 'bill-pay', 'cards', 'statements', 'support'].includes(
-          b.routeKey,
-        )
+        ![
+          'transfers',
+          'bill-pay',
+          'cards',
+          'statements',
+          'support',
+          'loans',
+        ].includes(b.routeKey)
       )
         throw new HttpError(400, 'Invalid demo action.');
       let dedupe = featureEvent
@@ -1029,7 +1051,7 @@ export function registerRevision(ctx: Context) {
         dedupe = `admin:${dedupe}`;
       if (featureEvent) {
         const [previous] = await c.query(
-          'SELECT selection_id FROM interaction_events WHERE run_id=? AND dedupe_key=?',
+          'SELECT id,selection_id FROM interaction_events WHERE run_id=? AND dedupe_key=?',
           [r.id, dedupe],
         );
         if (
@@ -1040,6 +1062,20 @@ export function registerRevision(ctx: Context) {
             409,
             'Retry this action with its original context.',
           );
+        if (previous) {
+          const [linked] = await c.query(
+            'SELECT presentation_id FROM discovery_feature_observations WHERE interaction_id=?',
+            [previous.id],
+          );
+          if (
+            (linked?.presentation_id ?? null) !==
+            (b.discoveryPresentationId ?? null)
+          )
+            throw new HttpError(
+              409,
+              'Retry this action with its original discovery context.',
+            );
+        }
       }
       const inserted = await c.query(
         'INSERT IGNORE INTO interaction_events VALUES (?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
@@ -1057,6 +1093,25 @@ export function registerRevision(ctx: Context) {
         ],
       );
       const milestones: string[] = [];
+      if (b.discoveryPresentationId) {
+        const [observation] = await c.query(
+          'SELECT id FROM interaction_events WHERE run_id=? AND dedupe_key=?',
+          [r.id, dedupe],
+        );
+        const [prior] = await c.query(
+          'SELECT presentation_id FROM discovery_feature_observations WHERE interaction_id=?',
+          [observation.id],
+        );
+        if (prior && prior.presentation_id !== b.discoveryPresentationId)
+          throw new HttpError(
+            409,
+            'Retry this action with its original discovery context.',
+          );
+        await c.query(
+          'INSERT IGNORE INTO discovery_feature_observations VALUES (?,?)',
+          [observation.id, b.discoveryPresentationId],
+        );
+      }
       if (
         b.name.startsWith('banner_') &&
         inserted.affectedRows &&

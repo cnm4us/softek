@@ -233,6 +233,25 @@ to the ignored evidence; no new real SDK recording is implied by preference test
 
 ## Remaining evaluation
 
+## Contextual discovery checks — Plan 011
+
+Migration 0009 must be applied to `demo_test` before these checks:
+
+```bash
+npx tsx --test --test-concurrency=1 tests/discovery.test.ts tests/discovery-migration.test.ts
+npx playwright test tests/e2e/discovery.spec.ts
+```
+
+Seven API/rules/migration TAP entries cover exact cooldown boundaries, eligibility,
+concurrent one-per-visit reservations, strict input/CSRF/ownership, retry-safe
+visibility and immutable feature attribution, preferences/history across relogin
+and reset, separate actors, impersonation exclusion and additive SQL/repeat no-op.
+Nine browser journeys across 360/390/1440px cover both contexts, actual visibility,
+feature CTA linking, payment review/confirmation without banking changes, opt-out,
+re-enable, dismissal persistence and permanent Explore. External traffic is blocked.
+The full commands now include **83 TAP entries** and **57 banking/discovery browser
+checks**. Existing SDK-stub privacy coverage remains 18 checks.
+
 The owner must inspect actual Clarity recordings/heatmaps, private-content masks,
 rendered artwork/CSS and user/route/event context before presentation. Network
 uploads demonstrate SDK transport, not dashboard processing, bot inclusion or

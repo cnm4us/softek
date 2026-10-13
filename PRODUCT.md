@@ -234,6 +234,29 @@ to investigate human behavior; higher click counts alone do not prove adoption.
 
 ## Customer device and browser preferences
 
+## Contextual discovery — first phase
+
+Owner selected **EasyCoin Cryptocurrency** for savings/investment exploration and
+**Skip A Pay** on an eligible fictional loan-payment screen. Customer Menu gains
+Savings & Investing and Loans. EasyCoin follows an explicit Explore investing
+choice, using educational risk-aware copy without balance-based targeting. The
+auto-loan fixture can show “See whether you can defer an upcoming payment.” The
+personal-loan fixture has no Skip A Pay invitation. Primary payment actions stay
+prominent; review/confirmation simulates a payment without changing banking state.
+
+Inline invitations have Learn more and Dismiss, use the existing feature pages,
+and appear at most once per visit. Seen features rest fourteen days; dismissals
+last ninety days. Discovery preferences persist across logins/devices and offer
+standard, fewer (one per seven days) and off for these contextual suggestions.
+Explore Features remains available. Existing Summary banners and Savings Goals
+experiments retain their separate behavior. First-party Contextual Discovery
+reporting distinguishes selection, actual visibility, dismissal, clicks and linked
+feature views/CTAs; engagement does not constitute activation or adoption.
+
+The supplied brief's two-FI switching, wider catalogue organization, other nine
+placements, experiment assignments and simulated activation belong to later phases.
+See [Plan 011](plans/011-contextual-feature-discovery.md).
+
 Customer Device and Browser preferences are saved separately from banking state.
 Create Customer, Generate Customers and Customer Details provide both selectors;
 bulk CSV includes their IDs. Existing customers default to Desktop/Chrome. Choices

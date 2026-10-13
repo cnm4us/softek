@@ -14,6 +14,188 @@
   --radius-card: 20px;
   --space-page: clamp(20px, 4vw, 48px);
 }
+
+.banking-context {
+  display: grid;
+  gap: 20px;
+}
+.banking-context > .text-button {
+  justify-self: start;
+}
+.banking-balance {
+  display: grid;
+  gap: 5px;
+  margin: 18px 0;
+}
+.banking-balance p {
+  margin: 0;
+}
+.banking-balance > strong {
+  font-size: clamp(28px, 5vw, 36px);
+}
+.banking-balance > small,
+.loan-summary small {
+  color: var(--color-muted);
+}
+.context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.context-links {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+}
+.context-links a {
+  color: var(--color-primary);
+  text-underline-offset: 4px;
+}
+.investing-exploration {
+  margin-top: 20px;
+}
+.discovery-card {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 44px;
+  gap: 10px;
+  padding: 18px;
+  margin-top: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: #f2f7f1;
+}
+.discovery-icon {
+  color: var(--color-primary);
+  padding-top: 3px;
+}
+.discovery-copy {
+  min-width: 0;
+}
+.discovery-copy .eyebrow {
+  font-size: 10px;
+  margin: 0 0 6px;
+}
+.discovery-copy h3 {
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+.discovery-copy p {
+  margin: 0 0 10px;
+}
+.discovery-copy .discovery-disclosure {
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.discovery-learn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.discovery-dismiss {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  border-radius: 8px;
+}
+.discovery-dismiss:hover {
+  background: #e4eee3;
+}
+.loan-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+.loan-option {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 20px;
+  gap: 14px;
+  width: 100%;
+  align-items: center;
+  text-align: left;
+  min-height: 88px;
+  padding: 16px;
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+.loan-option span {
+  display: grid;
+  gap: 6px;
+}
+.loan-option small {
+  color: var(--color-muted);
+}
+.loan-option:hover {
+  background: #f2f7f1;
+}
+.loan-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 18px 0;
+}
+.loan-summary > div {
+  display: grid;
+  gap: 6px;
+}
+.loan-summary strong {
+  font-size: 23px;
+}
+.discovery-options {
+  margin: 24px 0 16px;
+  padding: 0;
+  border: 0;
+}
+.discovery-options legend {
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.discovery-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  min-height: 70px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.discovery-choice input {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 3px 0 0;
+}
+.discovery-choice span {
+  display: grid;
+  gap: 5px;
+}
+.discovery-choice small {
+  color: var(--color-muted);
+}
+@media (max-width: 600px) {
+  .discovery-copy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .discovery-dismiss {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .discovery-icon {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
 * {
   box-sizing: border-box;
 }

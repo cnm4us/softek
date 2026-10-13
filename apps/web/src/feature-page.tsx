@@ -6,6 +6,7 @@ import { api, type State } from './api';
 import { emitFeatureObservation } from './analytics';
 import { featureEntry } from './feature-context';
 import { Alert, Card } from './ui';
+import { discoveryEntry } from './discovery';
 
 export function FeaturePage({ state }: { state: State }) {
   const { featureId } = useParams(),
@@ -29,6 +30,11 @@ export function FeaturePage({ state }: { state: State }) {
 function Landing({ state, feature }: { state: State; feature: Feature }) {
   const location = useLocation();
   const entry = featureEntry(state, feature.id, location.state?.featureEntry);
+  const discovery = discoveryEntry(
+    state,
+    feature.id,
+    location.state?.discoveryEntry,
+  );
   const pageId = useRef(crypto.randomUUID()),
     viewId = useRef(crypto.randomUUID()),
     ctaId = useRef(crypto.randomUUID());
@@ -51,6 +57,9 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
         name,
         routeKey: feature.id,
         ...(entry ? { selectionId: entry.selectionId } : {}),
+        ...(discovery
+          ? { discoveryPresentationId: discovery.presentationId }
+          : {}),
         observedAt: new Date().toISOString(),
       },
       state.csrf,
@@ -126,8 +135,11 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
           enrollments will occur.
         </p>
       </Card>
-      <Link className="text-button feature-return" to="/">
-        Back to Account Summary
+      <Link
+        className="text-button feature-return"
+        to={discovery?.returnTo ?? '/'}
+      >
+        {discovery ? 'Back to where you were' : 'Back to Account Summary'}
       </Link>
     </div>
   );

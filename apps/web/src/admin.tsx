@@ -291,6 +291,19 @@ function AdoptionReport() {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false);
   const [activity, setActivity] = useState<FeatureActivity | null>(null);
+  const [discovery, setDiscovery] = useState<{
+    rows: {
+      featureId: string;
+      placement: string;
+      presentations: number;
+      impressions: number;
+      viewers: number;
+      dismissals: number;
+      clicks: number;
+      featureViews: number;
+      featureCtas: number;
+    }[];
+  } | null>(null);
   const requestSequence = useRef(0);
   const load = useCallback(async () => {
     const sequence = ++requestSequence.current;
@@ -299,16 +312,19 @@ function AdoptionReport() {
     setError('');
     setReport(null);
     setActivity(null);
+    setDiscovery(null);
     try {
       for (const [key, value] of Object.entries({ start, end, cutoff }))
         if (value) q.set(key, new Date(value + 'Z').toISOString());
-      const [result, featureResult] = await Promise.all([
+      const [result, featureResult, discoveryResult] = await Promise.all([
         request<Report>('/admin/report?' + q),
         request<FeatureActivity>('/admin/feature-activity?' + q),
+        request<NonNullable<typeof discovery>>('/admin/discovery-report?' + q),
       ]);
       if (sequence === requestSequence.current) {
         setReport(result);
         setActivity(featureResult);
+        setDiscovery(discoveryResult);
       }
     } catch (e) {
       if (sequence === requestSequence.current) setError((e as Error).message);
@@ -471,6 +487,65 @@ function AdoptionReport() {
           </>
         )}
       </Card>
+      {discovery && (
+        <Card title="Contextual Discovery">
+          <p>
+            Optional invitations shown during investing exploration and eligible
+            demo loan payments. These observations are separate from Savings
+            Goals adoption. Admin impersonation is excluded; the filters above
+            apply.
+          </p>
+          <div className="table-scroll">
+            <table data-testid="discovery-report">
+              <thead>
+                <tr>
+                  <th>Feature / placement</th>
+                  <th>Selected</th>
+                  <th>Visible</th>
+                  <th>Viewers</th>
+                  <th>Dismissed</th>
+                  <th>Learn more</th>
+                  <th>Linked views</th>
+                  <th>Linked CTAs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {discovery.rows.map((row) => (
+                  <tr key={row.featureId + row.placement}>
+                    <th>
+                      {row.featureId === 'easycoin'
+                        ? 'EasyCoin Crypto'
+                        : 'Skip A Pay'}
+                      <span className="small-note">
+                        {row.placement === 'loan-payment'
+                          ? 'Loan payment'
+                          : 'Investing exploration'}
+                      </span>
+                    </th>
+                    <td>{row.presentations}</td>
+                    <td>{row.impressions}</td>
+                    <td>{row.viewers}</td>
+                    <td>{row.dismissals}</td>
+                    <td>{row.clicks}</td>
+                    <td>{row.featureViews}</td>
+                    <td>{row.featureCtas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!discovery.rows.length && (
+            <p className="small-note">
+              No contextual discovery activity in this selection.
+            </p>
+          )}
+          <p className="small-note">
+            Selection reserves one invitation per visit. Visible requires at
+            least 50% on screen for one continuous second. Linked feature clicks
+            are demo engagement, not activation.
+          </p>
+        </Card>
+      )}
       {activity && (
         <Card title="Feature Activity">
           <p className="small-note">

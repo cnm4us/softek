@@ -49,6 +49,9 @@ export function analyticsContext(
     'statements',
     'support',
     'about',
+    'savings',
+    'loans',
+    'discovery-preferences',
   ];
   return {
     institution: 'harbor',

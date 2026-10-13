@@ -77,6 +77,29 @@ the frontend bundle.
 
 ## Application configuration
 
+## Contextual discovery walkthrough
+
+- Customer Menu → **Savings & Investing** → **Explore investing** shows the
+  EasyCoin invitation when preferences/cooldowns allow. Learn more opens the
+  existing Crypto page; its CTA remains confirmation-only.
+- Customer Menu → **Loans** → **Harbor auto loan** shows the Skip A Pay invitation.
+  The personal-loan example is ineligible and does not show it. Make a demo
+  payment offers a masked form, review and confirmation without moving money.
+- Customer Menu → **Discovery preferences** controls these contextual invitations.
+  The settings follow the customer across logins and survive banking reset.
+- Only one contextual invitation is reserved per visit; use separate logins or
+  customers to demonstrate the two features. Seen features rest 14 days and
+  dismissals 90 days; fewer suggestions adds a seven-day interval. Existing
+  banners and Savings Goals remain separate. Permanent Explore is always available.
+- Admin Menu → **Adoption Report** includes **Contextual Discovery**, with the same
+  actor/variant/time filters and impersonation excluded. It counts actual-visible
+  impressions separately from reserved selections and linked feature engagement.
+
+The two banking contexts are fictional demonstrations; no provider integration,
+real eligibility decision, loan servicing or feature activation is implemented.
+The current institution is Harbor; tenant switching is later scope. Rule/copy
+configuration lives in `apps/api/src/discovery-config.ts`.
+
 `.env` is `ubuntu:ubuntu`, mode `0600`, ignored. The deployed allowlist is
 `/etc/softek/runtime.env`, `root:softek`, mode `0640`, inside a `0750` directory.
 It contains runtime DB credentials and application secrets; it excludes all

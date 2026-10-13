@@ -16,6 +16,7 @@ import { clarityStatus, customerAnalytics } from './clarity.js';
 import { HttpError } from './errors.js';
 import { authenticatedRun, registerRevision } from './revision.js';
 import { customerToken, customerContext } from './customer-context.js';
+import { registerDiscovery } from './discovery.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
@@ -353,6 +354,15 @@ export function createApp(test = false) {
     checkOrigin,
     checkCsrf,
     cookieOptions,
+  });
+  registerDiscovery({
+    app,
+    transaction,
+    active,
+    visit,
+    token,
+    checkCsrf,
+    admin,
   });
   app.get('/api/health', async (_req, res) => {
     try {

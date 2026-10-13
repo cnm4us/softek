@@ -62,6 +62,8 @@ import {
 } from './customer-session';
 import { isAdminRoute } from './routes';
 import { features, featureAtPath } from '../../api/src/features';
+import { SavingsExploration, LoanPayments } from './banking-contexts';
+import { DiscoveryPreferencesPage } from './discovery';
 import { FeaturePage } from './feature-page';
 import './theme.css';
 
@@ -259,6 +261,11 @@ function Overview() {
                 ? 'Current amount owed'
                 : 'Available balance'}
             </span>
+            {a.kind === 'savings' && (
+              <Link className="text-button" to="/savings">
+                View savings options <ArrowRight size={15} />
+              </Link>
+            )}
           </Card>
         ))}
       </section>
@@ -1048,6 +1055,7 @@ function CustomerApp() {
         '/savings-goals': 'Savings Goals',
         '/enroll': 'Savings Goals',
         '/about': 'About Harbor',
+        '/discovery-preferences': 'Discovery Preferences',
       } as Record<string, string>
     )[location.pathname] ??
     'Harbor';
@@ -1077,6 +1085,9 @@ function CustomerApp() {
         actions={
           <>
             <Link to="/about">About this demo</Link>
+            {state && (
+              <Link to="/discovery-preferences">Discovery preferences</Link>
+            )}
             {state && (
               <>
                 <button
@@ -1137,7 +1148,10 @@ function CustomerApp() {
                   element={<FeaturePage state={state} />}
                 />
                 {sections
-                  .filter((s) => !['summary', 'goals'].includes(s.key))
+                  .filter(
+                    (s) =>
+                      !['summary', 'goals', 'savings', 'loans'].includes(s.key),
+                  )
                   .map((section) => (
                     <Route
                       key={section.key}
@@ -1147,6 +1161,15 @@ function CustomerApp() {
                       }
                     />
                   ))}
+                <Route
+                  path="/savings"
+                  element={<SavingsExploration state={state} />}
+                />
+                <Route path="/loans" element={<LoanPayments state={state} />} />
+                <Route
+                  path="/discovery-preferences"
+                  element={<DiscoveryPreferencesPage state={state} />}
+                />
                 <Route
                   path="*"
                   element={

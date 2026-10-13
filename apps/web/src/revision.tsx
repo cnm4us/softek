@@ -19,6 +19,8 @@ export type Banner = {
 export const sections = [
   { key: 'summary', label: 'Account Summary', href: '/' },
   { key: 'transfers', label: 'Transfers', href: '/transfers' },
+  { key: 'savings', label: 'Savings & Investing', href: '/savings' },
+  { key: 'loans', label: 'Loans', href: '/loans' },
   { key: 'bill-pay', label: 'Bill Pay', href: '/bill-pay' },
   { key: 'cards', label: 'Cards', href: '/cards' },
   { key: 'goals', label: 'Savings Goals', href: '/goals' },

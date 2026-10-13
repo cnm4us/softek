@@ -32,6 +32,34 @@ state and adoption reporting; live Clarity evaluation is pending in M2.
 
 ## System shape
 
+## Contextual discovery — Plan 011
+
+The first phase reuses the existing twelve educational pages with two contextual
+entry points: explicit investing exploration → EasyCoin, and the eligible
+fictional auto-loan payment screen → Skip A Pay. Savings displays the owned saved
+account; loans use shared labeled fictional fixtures. Loan payment review and
+confirmation are UI simulations with no balance or servicing writes. Broader
+tenancy, experiment assignments, activation and catalogue redesign are deferred.
+
+MariaDB migration 0009 adds preferences, immutable presentations and a join from
+existing feature observations to their discovery origin. Existing table layouts
+and ENUMs stay intact. Customer/run locks serialize reservation of one suggestion
+per visit. Selection is a reservation, not an impression: the foreground browser
+must observe >=50% visibility for one continuous second before the API records
+an impression. Fourteen-day seen and ninety-day dismissal cooldowns use customer
+history across retained runs; fewer suggestions adds a seven-day global interval.
+These preferences cover the new contextual invitations; existing Summary banners
+and Savings Goals campaigns keep their separate behavior. Permanent Explore stays
+available. Confirmation-only feature CTAs are not interpreted as activation.
+
+Observations are bounded presentation IDs/actions; no banking amounts, raw inputs,
+account IDs or names enter discovery payloads. Optional feature attribution is
+validated against the owned clicked presentation and cannot change on retry.
+Impersonation has separate visit reservations/history and is excluded from the
+protected discovery report. Existing actor/variant/run-start/cutoff filters apply.
+No Clarity command, consent rule or third-party SDK is added; current gated replay
+can observe the rendered pages. Financial displays and payment forms are masked.
+
 Use a small TypeScript application with a React frontend, an Express API, and the
 existing MariaDB server. The browser uses the API for all persistent mutations.
 The dedicated Nginx site at `demo.bawebtech.com` serves built assets and proxies

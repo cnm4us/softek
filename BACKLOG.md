@@ -22,6 +22,7 @@ its backlog ID.
 | B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 597 kB (174 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
+| B-013 | In progress | Contextual feature discovery | [Plan 011](plans/011-contextual-feature-discovery.md) covers EasyCoin investing exploration and Skip A Pay loan-payment invitations; wider placements, catalogue grouping, experiment assignments and two-FI switching are later phases |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 
