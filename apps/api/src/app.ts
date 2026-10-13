@@ -392,7 +392,7 @@ export function createApp(test = false) {
         [r.id],
       );
       const transactions = await c.query(
-        'SELECT t.id,t.description,t.amount_minor AS amountMinor,t.occurred_at AS occurredAt,a.name AS accountName FROM transactions t JOIN accounts a ON a.id=t.account_id WHERE t.run_id=? ORDER BY t.occurred_at DESC,t.id LIMIT 12',
+        'SELECT t.id,t.account_id AS accountId,t.description,t.amount_minor AS amountMinor,t.occurred_at AS occurredAt,a.name AS accountName FROM transactions t JOIN accounts a ON a.id=t.account_id WHERE t.run_id=? ORDER BY t.occurred_at DESC,t.id LIMIT 12',
         [r.id],
       );
       const goals = await c.query(

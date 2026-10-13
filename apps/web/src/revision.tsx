@@ -1,3 +1,4 @@
+import { accountPageAtPath } from '../../api/src/account-pages';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Check } from 'lucide-react';
@@ -32,6 +33,7 @@ let pageId = crypto.randomUUID(),
   pagePath = location.pathname;
 export function routeKey(path = location.pathname) {
   return (
+    accountPageAtPath(path)?.routeKey ??
     featureAtPath(path)?.id ??
     sections.find((s) => s.href === path)?.key ??
     path.slice(1)

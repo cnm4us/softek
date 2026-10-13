@@ -50,6 +50,18 @@ test('feature context clears old campaign/banner tags without loading Clarity', 
   assert.equal(catalog.route, 'explore');
   assert.equal(catalog.feature, 'none');
   assert.equal(catalog.banner, 'none');
+  for (const path of [
+    '/accounts/checking',
+    '/accounts/savings',
+    '/accounts/credit-card',
+  ]) {
+    const tags = analyticsContext(state, path, entry);
+    assert.match(tags.route, /^account-(checking|savings|credit)$/);
+    assert.equal(tags.feature, 'none');
+    assert.equal(tags.banner, 'none');
+    assert.equal(tags.campaign, 'none');
+    assert.equal(tags.service, 'banking');
+  }
   const calls: unknown[][] = [];
   const stub = (command: string, ...args: any[]) => {
     calls.push([command, ...args]);

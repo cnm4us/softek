@@ -1648,3 +1648,96 @@ summary {
 .catalog-note {
   margin: 16px 0 0;
 }
+
+.account-widget-link {
+  display: block;
+  text-decoration: none;
+  transition: box-shadow 0.15s;
+}
+.account-widget-link:hover {
+  box-shadow: 0 5px 18px #19372f18;
+}
+.account-details {
+  max-width: 1080px;
+  margin: auto;
+  display: grid;
+  gap: 20px;
+}
+.account-back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.account-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.account-detail-heading h2,
+.account-detail-heading p {
+  margin: 0;
+}
+.account-detail-heading .icon-circle {
+  flex-shrink: 0;
+}
+.account-detail-heading p {
+  margin-top: 4px;
+}
+.account-detail-balance .banking-balance {
+  margin-bottom: 0;
+}
+.account-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+  margin-top: 24px;
+}
+.account-metrics dt,
+.account-information dt {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.account-metrics dd {
+  margin: 5px 0 0;
+  font-size: 21px;
+  font-weight: 650;
+}
+.account-detail-grid {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+.account-information {
+  margin-top: 20px;
+}
+.account-information > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.account-information dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.account-detail-activity .transaction > div:nth-child(2) {
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  .account-detail-grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+}
+.account-widget-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}

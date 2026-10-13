@@ -165,6 +165,43 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
     initial.some((c: any[]) => c[0] === 'identify' && c[1] === user.id),
   ).toBe(true);
   await expect(page.locator('[data-clarity-mask="true"]')).not.toHaveCount(0);
+  for (const [name, route] of [
+    ['Everyday checking', 'account-checking'],
+    ['Harbor savings', 'account-savings'],
+    ['Harbor credit card', 'account-credit'],
+  ]) {
+    await page.getByRole('link', { name: `Open ${name}`, exact: true }).click();
+    await expect(
+      page.getByTestId('account-detail-balance').locator('..'),
+    ).toHaveAttribute('data-clarity-mask', 'true');
+    await expect(page.locator('.account-information')).toHaveAttribute(
+      'data-clarity-mask',
+      'true',
+    );
+    await expect(page.locator('.account-detail-activity')).toHaveAttribute(
+      'data-clarity-mask',
+      'true',
+    );
+    await expect
+      .poll(
+        async () =>
+          (await calls(page))
+            .filter((c: any[]) => c[0] === 'set' && c[1] === 'route')
+            .at(-1)?.[2],
+      )
+      .toBe(route);
+    const tags = new Map(
+      (await calls(page))
+        .filter((c: any[]) => c[0] === 'set')
+        .map((c: any[]) => [c[1], c[2]]),
+    );
+    expect(tags.get('feature')).toBe('none');
+    expect(tags.get('banner')).toBe('none');
+    expect(tags.get('service')).toBe('banking');
+    await page
+      .getByRole('link', { name: 'Back to Account Summary', exact: true })
+      .click();
+  }
   await feature(page);
   await page
     .getByRole('button', { name: 'Explore Crypto Investing', exact: true })

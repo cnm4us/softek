@@ -20,6 +20,7 @@ import {
 import {
   ArrowRight,
   ArrowUpRight,
+  ChevronRight,
   Check,
   CreditCard,
   Leaf,
@@ -66,6 +67,8 @@ import { SavingsExploration, LoanPayments } from './banking-contexts';
 import { DiscoveryPreferencesPage } from './discovery';
 import { FeaturePage } from './feature-page';
 import { FeatureCatalog } from './feature-catalog';
+import { AccountDetails } from './account-details';
+import { accountPages, accountPageAtPath } from '../../api/src/account-pages';
 import './theme.css';
 
 type Context = {
@@ -241,17 +244,22 @@ function Overview() {
         data-clarity-mask="true"
       >
         {state.accounts.map((a) => (
-          <Card
+          <Link
+            to={accountPages.find((page) => page.kind === a.kind)!.href}
+            aria-label={`Open ${a.name}`}
             key={a.id}
-            className={`account-card ${a.kind === 'checking' ? 'account-primary' : ''}`}
+            className={`surface card account-card account-widget-link ${a.kind === 'checking' ? 'account-primary' : ''}`}
           >
             <div className="account-label">
               <span>{a.name}</span>
-              {a.kind === 'credit' ? (
-                <CreditCard size={20} />
-              ) : (
-                <Wallet size={20} />
-              )}
+              <span className="account-widget-icons" aria-hidden="true">
+                {a.kind === 'credit' ? (
+                  <CreditCard size={20} />
+                ) : (
+                  <Wallet size={20} />
+                )}
+                <ChevronRight size={16} />
+              </span>
             </div>
             <p className="account-number">•••• {a.lastFour}</p>
             <strong className="account-balance">
@@ -262,12 +270,7 @@ function Overview() {
                 ? 'Current amount owed'
                 : 'Available balance'}
             </span>
-            {a.kind === 'savings' && (
-              <Link className="text-button" to="/savings">
-                View savings options <ArrowRight size={15} />
-              </Link>
-            )}
-          </Card>
+          </Link>
         ))}
       </section>
       <div className="dashboard-grid">
@@ -985,7 +988,8 @@ function CustomerApp() {
     await refresh();
     navigate(
       location.pathname.startsWith('/features/') ||
-        location.pathname === '/explore'
+        location.pathname === '/explore' ||
+        Boolean(accountPageAtPath(location.pathname))
         ? location.pathname
         : '/',
     );
@@ -1037,7 +1041,9 @@ function CustomerApp() {
       state &&
       location.pathname !== '/login' &&
       (!location.pathname.startsWith('/features/') ||
-        featureAtPath(location.pathname))
+        featureAtPath(location.pathname)) &&
+      (!location.pathname.startsWith('/accounts/') ||
+        accountPageAtPath(location.pathname))
     )
       void interaction(state, 'page_view').catch(() => {});
   }, [location.pathname, state?.runId]);
@@ -1052,6 +1058,9 @@ function CustomerApp() {
     return () => window.removeEventListener('demo-action', handler);
   }, [state]);
   const title =
+    state?.accounts.find(
+      (a) => a.kind === accountPageAtPath(location.pathname)?.kind,
+    )?.name ??
     featureAtPath(location.pathname)?.label ??
     sections.find((s) => s.href === location.pathname)?.label ??
     (
@@ -1144,6 +1153,13 @@ function CustomerApp() {
                 <Route path="/enroll" element={<Enrollment />} />
                 <Route path="/goals" element={<Goals />} />
                 <Route path="/explore" element={<FeatureCatalog />} />
+                {accountPages.map((page) => (
+                  <Route
+                    key={page.kind}
+                    path={page.href}
+                    element={<AccountDetails state={state} kind={page.kind} />}
+                  />
+                ))}
                 <Route
                   path="/features/:featureId"
                   element={<FeaturePage state={state} />}

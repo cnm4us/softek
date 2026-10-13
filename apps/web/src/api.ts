@@ -26,6 +26,7 @@ export type State = {
   accounts: Account[];
   transactions: {
     id: string;
+    accountId: string;
     description: string;
     amountMinor: number;
     occurredAt: string;

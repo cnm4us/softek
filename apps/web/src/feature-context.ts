@@ -1,3 +1,4 @@
+import { accountPageAtPath } from '../../api/src/account-pages.js';
 import type { State } from './api.js';
 import { featureAtPath, getFeature } from '../../api/src/features.js';
 export type FeatureEntry = {
@@ -59,6 +60,7 @@ export function analyticsContext(
     actor: state.analytics.actor,
     variant: state.variant,
     route:
+      accountPageAtPath(path)?.routeKey ??
       feature?.id ??
       (path === '/'
         ? 'summary'

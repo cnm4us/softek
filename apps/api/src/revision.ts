@@ -1,3 +1,4 @@
+import { accountPages } from './account-pages.js';
 import type { Express, Request, Response } from 'express';
 import type { Pool, PoolConnection } from 'mariadb';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -45,6 +46,7 @@ const routeKeys = [
   'loans',
   'discovery-preferences',
   'explore',
+  ...accountPages.map((page) => page.routeKey),
 ] as const;
 const destination = z.enum(destinations.map((d) => d.key));
 const username = z
