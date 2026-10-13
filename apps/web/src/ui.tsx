@@ -39,3 +39,15 @@ export function Heading({
     </div>
   );
 }
+
+export function BannerPlaceholder() {
+  return (
+    <section
+      className="surface banner-placeholder"
+      aria-label="Banner placeholder"
+      data-testid="banner-placeholder"
+    >
+      <span>More ways to bank</span>
+    </section>
+  );
+}

@@ -89,10 +89,19 @@ try {
         .click();
       await page.getByRole('link', { name: label, exact: true }).click();
     };
-    const banner = page.getByTestId('promotion-banner');
-    assert.equal(await banner.getAttribute('href'), '/savings-goals');
+    const placeholder = page.getByTestId('banner-placeholder');
+    const selectionHref = () =>
+      page.evaluate(
+        () =>
+          JSON.parse(sessionStorage.getItem('softek_banner') ?? 'null')?.banner
+            ?.href,
+      );
+    await placeholder.waitFor();
+    assert.equal(await selectionHref(), '/savings-goals');
     await page.waitForTimeout(1200);
-    await banner.click();
+    await page
+      .getByRole('link', { name: 'Explore savings goals', exact: true })
+      .click();
     await page.getByRole('link', { name: 'Get started' }).click();
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByRole('checkbox').check();
@@ -115,11 +124,11 @@ try {
     await page.reload();
     await page.getByRole('heading', { name: 'Deployment check' }).waitFor();
     await menu('Account Summary');
-    assert.equal(await banner.getAttribute('href'), '/savings-goals');
+    assert.equal(await selectionHref(), '/savings-goals');
     await page.reload();
-    await banner.waitFor();
-    assert.equal(await banner.getAttribute('href'), '/bill-pay');
-    await banner.click();
+    await placeholder.waitFor();
+    assert.equal(await selectionHref(), '/bill-pay');
+    await menu('Bill Pay');
     await page.getByRole('button', { name: 'Try bill pay' }).click();
     await page.getByText('Demo action completed.').waitFor();
     await menu('Account Summary');
@@ -128,8 +137,8 @@ try {
     await page.getByLabel('Username', { exact: true }).fill(username);
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await banner.waitFor();
-    assert.equal(await banner.getAttribute('href'), '/cards');
+    await placeholder.waitFor();
+    assert.equal(await selectionHref(), '/cards');
     const saved = await state();
     assert.equal(saved.runId, initial.runId);
     assert.equal(saved.user.id, initial.user.id);
@@ -163,8 +172,8 @@ try {
       .getByRole('heading', { name: features[0].headline, exact: true })
       .waitFor();
     await menu('Account Summary');
-    await banner.waitFor();
-    assert.equal(await banner.getAttribute('href'), '/cards');
+    await placeholder.waitFor();
+    assert.equal(await selectionHref(), '/cards');
     const afterFeature = await state();
     assert.equal(afterFeature.runId, saved.runId);
     assert.deepEqual(afterFeature.accounts, saved.accounts);

@@ -44,7 +44,6 @@ import {
   observe,
 } from './analytics';
 import {
-  ImageBanner,
   Placeholder,
   sections,
   interaction,
@@ -52,7 +51,7 @@ import {
   restoreBanner,
   type Banner,
 } from './revision';
-import { Card, Alert, Heading } from './ui';
+import { Card, Alert, Heading, BannerPlaceholder } from './ui';
 import { AppShell } from './shell';
 import { AdminApp } from './admin';
 import {
@@ -233,11 +232,10 @@ function Promotion({ placement }: { placement: 'banner' | 'sidebar' }) {
   );
 }
 function Overview() {
-  const { state, banner } = useDemo();
+  const { state } = useDemo();
   if (!state) return <Entry />;
   return (
     <>
-      <ImageBanner state={state} banner={banner} />
       <section
         aria-label="Account balances"
         className="accounts-grid"
@@ -273,6 +271,7 @@ function Overview() {
           </Link>
         ))}
       </section>
+      <BannerPlaceholder />
       <div className="dashboard-grid">
         <Card title="Recent activity">
           <div className="section-caption">Your latest account movements</div>

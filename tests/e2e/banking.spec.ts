@@ -29,6 +29,16 @@ async function state(page: Page) {
     return r.json();
   });
 }
+async function selectedBanner(page: Page) {
+  return page.evaluate(
+    () => JSON.parse(sessionStorage.getItem('softek_banner') ?? 'null')?.banner,
+  );
+}
+async function expectSelection(page: Page, href: string) {
+  await expect.poll(async () => (await selectedBanner(page))?.href).toBe(href);
+  await expect(page.getByTestId('banner-placeholder')).toBeVisible();
+  await expect(page.getByTestId('promotion-banner')).toHaveCount(0);
+}
 async function entry(page: Page, profile = 'Alex Morgan') {
   const user = await fixtureUser(
     pool,
@@ -98,12 +108,11 @@ test.afterAll(async () => {
   await pool.end();
 });
 
-test('banner rotation, menu actions, keyboard close, logout and relogin', async ({
+test('retained banner selection, menu actions, keyboard close, logout and relogin', async ({
   page,
 }) => {
   const user = await entry(page);
-  const banner = page.getByTestId('promotion-banner');
-  await expect(banner).toHaveAttribute('href', '/savings-goals');
+  await expectSelection(page, '/savings-goals');
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await expect(
     page.getByRole('dialog', { name: 'Customer Menu' }),
@@ -121,16 +130,16 @@ test('banner rotation, menu actions, keyboard close, logout and relogin', async 
     'Demo action completed.',
   );
   await menu(page, 'Account Summary');
-  await expect(banner).toHaveAttribute('href', '/savings-goals');
+  await expectSelection(page, '/savings-goals');
   await page.reload();
-  await expect(banner).toHaveAttribute('href', '/bill-pay');
-  await banner.click();
+  await expectSelection(page, '/bill-pay');
+  await menu(page, 'Bill Pay');
   await expect(
     page.getByRole('heading', { name: 'Bill Pay', exact: true }),
   ).toBeVisible();
   await page.reload();
   await menu(page, 'Account Summary');
-  await expect(banner).toHaveAttribute('href', '/bill-pay');
+  await expectSelection(page, '/bill-pay');
   const before = await state(page);
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
@@ -138,7 +147,7 @@ test('banner rotation, menu actions, keyboard close, logout and relogin', async 
   await page.getByLabel('Username', { exact: true }).fill(user.username);
   await page.getByLabel('Password', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(banner).toHaveAttribute('href', '/cards');
+  await expectSelection(page, '/cards');
   const after = await state(page);
   expect(after.runId).toBe(before.runId);
   expect(after.user.id).toBe(before.user.id);
@@ -158,35 +167,17 @@ test('two tabs retain their selected banner independently', async ({
   context,
 }) => {
   await entry(page);
-  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/savings-goals',
-  );
+  await expectSelection(page, '/savings-goals');
   const other = await context.newPage();
   await other.goto('/');
-  await expect(other.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/bill-pay',
-  );
-  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/savings-goals',
-  );
+  await expectSelection(other, '/bill-pay');
+  await expectSelection(page, '/savings-goals');
   await menu(page, 'Savings Goals');
   await menu(page, 'Account Summary');
-  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/savings-goals',
-  );
+  await expectSelection(page, '/savings-goals');
   await other.reload();
-  await expect(other.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/cards',
-  );
-  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/savings-goals',
-  );
+  await expectSelection(other, '/cards');
+  await expectSelection(page, '/savings-goals');
   await other.close();
 });
 
@@ -363,18 +354,18 @@ test('complete enrollment, persistence, contribution, later visit, and reset', a
   const initial = await state(page);
   await noOverflow(page);
   await expect(page.getByText('$4,286.42', { exact: true })).toBeVisible();
-  await page.getByTestId('promotion-banner').scrollIntoViewIfNeeded();
+  await page.getByTestId('promotion-sidebar').scrollIntoViewIfNeeded();
   await expect
-    .poll(() => count(initial.runId, 'promotion_visible', 'banner'))
+    .poll(() => count(initial.runId, 'promotion_visible', 'sidebar'))
     .toBe(1);
-  // The sidebar (inline on mobile) is rendered below the fold, but is not an exposure.
-  if (testInfo.project.name === 'mobile')
-    expect(await count(initial.runId, 'promotion_visible', 'sidebar')).toBe(0);
+  expect(await count(initial.runId, 'promotion_visible', 'banner')).toBe(0);
   await page.screenshot({
     path: `artifacts/banking-${testInfo.project.name}.png`,
     fullPage: true,
   });
-  await page.getByTestId('promotion-banner').click();
+  await page
+    .getByRole('link', { name: 'Explore savings goals', exact: true })
+    .click();
   await expect(
     page.getByRole('heading', { name: 'Something to look forward to.' }),
   ).toBeVisible();
@@ -454,7 +445,7 @@ test('independent participants and unavailable profile', async ({
   await entry(page, 'Jamie Chen');
   const jamie = await state(page);
   expect(jamie.eligible).toBe(false);
-  await expect(page.getByTestId('promotion-banner')).toBeVisible();
+  await expect(page.getByTestId('banner-placeholder')).toBeVisible();
   await page.goto('/savings-goals');
   await expect(
     page.getByText('Savings goals isn’t available for this demo profile.'),
@@ -560,7 +551,10 @@ test('abandonment and direct entry preserve form errors and keyboard actions', a
 }) => {
   await entry(page);
   const abandoned = await state(page);
-  const promotion = page.getByTestId('promotion-banner');
+  const promotion = page.getByRole('link', {
+    name: 'Explore savings goals',
+    exact: true,
+  });
   await promotion.focus();
   await promotion.press('Enter');
   await page.getByRole('link', { name: 'Get started' }).click();
@@ -892,14 +886,11 @@ test('all twelve feature pages, one CTA, retry confirmation, and preserved banki
     ),
   ).toEqual(before);
   await menu(page, 'Account Summary');
-  await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-    'href',
-    '/savings-goals',
-  );
+  await expectSelection(page, '/savings-goals');
   expect(errors).toEqual([]);
 });
 
-test('feature banner attribution, reload, direct/menu entry, tabs and report', async ({
+test('reserved feature banner attribution contract, reload, direct/menu entry, tabs and report', async ({
   page,
   context,
 }) => {
@@ -938,9 +929,31 @@ test('feature banner attribution, reload, direct/menu entry, tabs and report', a
     [original.user.id],
   );
   await page.reload();
-  const banner = page.getByTestId('promotion-banner');
-  await expect(banner).toHaveAttribute('href', '/features/easycoin');
-  await banner.click();
+  await expectSelection(page, '/features/easycoin');
+  // The visible slot is intentionally inactive. Exercise the retained owned
+  // landing-entry contract directly, rather than imply a clickable placeholder.
+  const selection = await selectedBanner(page);
+  await page.evaluate(
+    ({ userId, runId, selection }) => {
+      history.pushState(
+        {
+          usr: {
+            featureEntry: {
+              userId,
+              runId,
+              featureId: 'easycoin',
+              selectionId: selection.id,
+              bannerId: selection.bannerId,
+            },
+          },
+        },
+        '',
+        '/features/easycoin',
+      );
+      dispatchEvent(new PopStateEvent('popstate'));
+    },
+    { userId: original.user.id, runId: original.runId, selection },
+  );
   await expect(
     page.getByRole('heading', { name: features[0].headline, exact: true }),
   ).toBeVisible();
@@ -959,7 +972,7 @@ test('feature banner attribution, reload, direct/menu entry, tabs and report', a
     page.getByRole('button', { name: features[0].cta, exact: true }),
   ).toBeEnabled();
   await menu(page, 'Account Summary');
-  await expect(banner).toHaveAttribute('href', '/features/easycoin');
+  await expectSelection(page, '/features/easycoin');
   await page.getByRole('button', { name: 'Open menu', exact: true }).click();
   await page
     .getByRole('link', { name: 'Explore more ways to bank', exact: true })

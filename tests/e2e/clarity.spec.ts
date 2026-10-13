@@ -165,6 +165,17 @@ test('consent, masks, feature events, withdrawal, admin boundary and shared-brow
     initial.some((c: any[]) => c[0] === 'identify' && c[1] === user.id),
   ).toBe(true);
   await expect(page.locator('[data-clarity-mask="true"]')).not.toHaveCount(0);
+  const summaryTags = new Map(
+    (await calls(page))
+      .filter((c: any[]) => c[0] === 'set')
+      .map((c: any[]) => [c[1], c[2]]),
+  );
+  expect(summaryTags.get('route')).toBe('summary');
+  expect(summaryTags.get('banner')).toBe('none');
+  expect(summaryTags.get('feature')).toBe('none');
+  expect(summaryTags.get('campaign')).toBe('none');
+  expect(summaryTags.get('service')).toBe('banking');
+
   for (const [name, route] of [
     ['Everyday checking', 'account-checking'],
     ['Harbor savings', 'account-savings'],
@@ -428,8 +439,11 @@ test('impersonation enters saved customer, preserves menu banners and exits to a
     [user.id],
   );
   expect(presentations.length).toBe(1);
-  const banner = page.locator('.image-banner');
-  const initial = await banner.getAttribute('href');
+  const initial = await page.evaluate(() =>
+    sessionStorage.getItem('softek_banner'),
+  );
+  await expect(page.getByTestId('banner-placeholder')).toBeVisible();
+  await expect(page.locator('.image-banner')).toHaveCount(0);
   await feature(page);
   await page
     .getByRole('button', { name: 'Explore Crypto Investing', exact: true })
@@ -439,7 +453,10 @@ test('impersonation enters saved customer, preserves menu banners and exits to a
   await page
     .getByRole('link', { name: 'Account Summary', exact: true })
     .click();
-  await expect(banner).toHaveAttribute('href', initial!);
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('softek_banner')),
+  ).toBe(initial);
+  await expect(page.getByTestId('banner-placeholder')).toBeVisible();
   await page.reload();
   await expect(
     page.getByText('Viewing as Test Harbor User', { exact: true }),

@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { money, type Account, type State } from './api';
-import { Card } from './ui';
+import { Card, BannerPlaceholder } from './ui';
 
 const samples = {
   checking: [
@@ -113,6 +113,7 @@ export function AccountDetails({
           </small>
         </div>
       </Card>
+      <BannerPlaceholder />
       <div className="account-detail-grid account-detail-grid-single">
         <Card title="Recent activity">
           <p className="section-caption">

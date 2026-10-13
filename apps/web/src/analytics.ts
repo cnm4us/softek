@@ -117,13 +117,8 @@ export function initialize(state: State) {
     script.src = `https://www.clarity.ms/tag/${state.analytics.projectId}`;
     document.head.append(script);
   }
-  let savedBanner = null;
-  try {
-    const saved = JSON.parse(sessionStorage.getItem('softek_banner') ?? 'null');
-    if (saved?.userId === state.user.id) savedBanner = saved.banner;
-  } catch {
-    /* No saved artwork context. */
-  }
+  // The Summary slot is inactive. Retained rotation selections describe no
+  // rendered artwork and must not label this visit as a banner/feature exposure.
   applyContext(
     window.clarity!,
     state,
@@ -131,7 +126,6 @@ export function initialize(state: State) {
       state,
       location.pathname,
       window.history.state?.usr?.featureEntry,
-      savedBanner,
     ),
   );
 }

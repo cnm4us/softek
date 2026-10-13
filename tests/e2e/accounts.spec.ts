@@ -46,11 +46,7 @@ async function login(
   await page.getByLabel('Password', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page).toHaveURL(path);
-  await expect(
-    page
-      .getByTestId('promotion-banner')
-      .or(page.getByTestId('account-detail-balance')),
-  ).toBeVisible();
+  await expect(page.getByTestId('banner-placeholder')).toBeVisible();
 }
 const paths = {
   checking: '/accounts/checking',
@@ -69,6 +65,27 @@ async function noOverflow(page: Page) {
   ).toBe(true);
 }
 
+async function placeholderLayout(page: Page, preceding: string) {
+  const strip = page.getByTestId('banner-placeholder');
+  await expect(strip).toBeVisible();
+  await expect(strip.locator('a, button, img')).toHaveCount(0);
+  await expect(page.getByTestId('promotion-banner')).toHaveCount(0);
+  const rect = await strip.boundingBox();
+  const first = await page.locator(preceding).boundingBox();
+  const activity = await page
+    .getByRole('heading', { name: 'Recent activity', exact: true })
+    .boundingBox();
+  expect(rect!.y).toBeGreaterThanOrEqual(first!.y + first!.height);
+  expect(rect!.y + rect!.height).toBeLessThan(activity!.y);
+  expect(Math.abs(rect!.width - first!.width)).toBeLessThan(2);
+  const card = await page
+    .locator(preceding === '.accounts-grid' ? '.account-card' : preceding)
+    .first()
+    .boundingBox();
+  expect(rect!.height / card!.height).toBeGreaterThan(0.4);
+  expect(rect!.height / card!.height).toBeLessThan(0.6);
+}
+
 test('Summary widgets open masked read-only account details with stable sample history', async ({
   page,
 }) => {
@@ -76,9 +93,14 @@ test('Summary widgets open masked read-only account details with stable sample h
   ids.push(user.id);
   await login(page, user);
   const original = await state(page);
-  const banner = await page
-    .getByTestId('promotion-banner')
-    .getAttribute('href');
+  const banner = await page.evaluate(() =>
+    sessionStorage.getItem('softek_banner'),
+  );
+  await placeholderLayout(page, '.accounts-grid');
+  await page.screenshot({
+    path: `artifacts/strip-summary-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   await expect(
     page.getByRole('link', { name: 'View savings options', exact: true }),
   ).toHaveCount(0);
@@ -130,6 +152,7 @@ test('Summary widgets open masked read-only account details with stable sample h
       kind === 'credit' ? 6 : 4,
     );
     await expect(page.getByTestId('promotion-banner')).toHaveCount(0);
+    await placeholderLayout(page, '.account-detail-balance');
     await expect(page.getByTestId('discovery-card')).toHaveCount(0);
     await expect(page.locator('a[href^="/features/"]')).toHaveCount(0);
     const examples = await page
@@ -147,10 +170,10 @@ test('Summary widgets open masked read-only account details with stable sample h
     await page
       .getByRole('link', { name: 'Back to Account Summary', exact: true })
       .click();
-    await expect(page.getByTestId('promotion-banner')).toHaveAttribute(
-      'href',
-      banner!,
-    );
+    expect(
+      await page.evaluate(() => sessionStorage.getItem('softek_banner')),
+    ).toBe(banner);
+    await expect(page.getByTestId('banner-placeholder')).toBeVisible();
   }
   const current = await state(page);
   expect(current.accounts).toEqual(original.accounts);
