@@ -78,8 +78,9 @@ change was approved as part of this menu revision.
 
 ## Implemented feature campaign phase — Plan 005
 
-The user supplied twelve feature campaigns and approved Customer Menu →
-**Explore Features** as a submenu. Each item opens a themed landing page with
+The user supplied twelve feature campaigns. Plan 012 supersedes the original
+Explore Features submenu with Customer Menu → **Explore more ways to bank**
+at `/explore`. Each product opens a themed landing page with
 basic descriptions and **one primary CTA**. Each card starts with the supplied
 headline in larger green uppercase type; the page title identifies the feature,
 so there is no repeated “Explore” line or decorative star. The CTA shows only a
@@ -246,7 +247,7 @@ Inline invitations have Learn more and Dismiss, use the existing feature pages,
 and appear at most once per visit. Seen features rest fourteen days; dismissals
 last ninety days. Discovery preferences persist across logins/devices and offer
 standard, fewer (one per seven days) and off for these contextual suggestions.
-Explore Features remains available. Existing Summary banners and Savings Goals
+Explore more ways to bank remains available. Existing Summary banners and Savings Goals
 experiments retain their separate behavior. First-party Contextual Discovery
 reporting distinguishes selection, actual visibility, dismissal, clicks and linked
 feature views/CTAs; engagement does not constitute activation or adoption.
@@ -319,3 +320,26 @@ adoption/feature report counts. Admin-only runs enter customer cohorts after a
 customer visit, retaining original run-start dates. Business effects remain, but
 admin enrollment does not imply customer adoption. See
 [Plan 010](plans/010-admin-customer-impersonation.md) for verified acceptance.
+
+## Grouped feature catalog — Plan 012
+
+The customer-initiated catalog follows the owner-supplied screenshot, using the
+shared Harbor theme. Groups start expanded and collapse independently:
+
+| Group | Products in display order |
+| --- | --- |
+| Save & Invest | Savings Accounts & Certificates; EasyVest Automated Investing; EasyVest Self-Directed Investing; EasyCoin Cryptocurrency |
+| Borrow & Manage Payments | Buy Now, Pay Later; Auto Loans & Refinancing; Skip A Pay |
+| Move Money | Instant Payments |
+| Protect & Understand | Credit Score Monitoring; Identity Protection |
+| Family & Business | Youth Banking; Small Business Invoicing |
+
+Show counts (4/3/1/2/2), the introduction “Discover services available through your
+financial institution.” and the supplied FI configuration note. The search icon
+reveals a name search with result counts and a clear action. Catalog links use full
+product names; landing titles and existing feature IDs remain stable. Catalog
+entries return to the catalog. Banner and contextual entries retain their own
+return paths and attribution. Browsing the catalog is a page view; opening a
+landing and clicking its CTA remain separate feature observations. Discovery
+preferences do not restrict deliberate exploration. Multi-FI configuration is
+still deferred; the footer describes the future configuration model.

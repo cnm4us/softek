@@ -438,3 +438,13 @@ repeat no-op. Never modify applied files or downgrade the ENUM to roll back UI.
 Historical compatibility was checked on schema 4. The current schema is version
 7; follow the rollback section above, including collection-off runtime/CSP before
 using pre-switch code. See the verified releases and backups in PROJECT_STATE.
+
+## Customer catalog navigation — Plan 012
+
+Customer Menu → Explore more ways to bank opens authenticated `/explore`.
+Direct visits prompt for login and then retain that destination. Five sections
+start expanded; search filters full product names. Catalog feature links return
+to the catalog; banners and contextual suggestions retain their existing return
+paths. This UI release needs no migration and preserves schema version 9.
+The tracked smoke/pilot scripts now use the catalog; actual capture still requires
+explicit collection authorization and the existing private capture controls.

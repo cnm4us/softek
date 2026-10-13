@@ -23,7 +23,7 @@ its backlog ID.
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 | B-013 | Completed | First contextual discovery pair | [Plan 011](plans/011-contextual-feature-discovery.md) implements EasyCoin investing exploration and Skip A Pay loan-payment invitations, preferences and reporting |
-| B-014 | Later | Broader contextual discovery | Additional placements, grouped catalogue and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011 |
+| B-014 | Later | Broader contextual discovery | Additional placements and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011, grouped catalog is delivered in Plan 012 |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

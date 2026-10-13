@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[011 — Contextual feature discovery](plans/011-contextual-feature-discovery.md), delivered; awaiting owner walkthrough/next priority**.
-Latest completed implementation: **Plan 011 — contextual EasyCoin and Skip A Pay discovery**.
-Current request: **Two selected contextual journeys are implemented and deployed, with saved preferences and separate reporting.**
-Next task: **Owner walkthrough: Savings & Investing → Explore investing for EasyCoin, and Loans → Harbor auto loan for Skip A Pay. Use separate logins/customers because the new invitation cap is one per visit. Broader discovery/tenancy and automation await prioritization; automated recording investigation remains stopped.**
+Current focus: **[012 — Explore more ways to bank](plans/012-grouped-feature-catalog.md), delivered; awaiting owner walkthrough/next priority**.
+Latest completed implementation: **Plan 012 — grouped customer feature catalog**.
+Current request: **Renamed Customer Menu entry and the owner's five-group catalog layout are implemented and deployed.**
+Next task: **Owner walkthrough: Customer Menu → Explore more ways to bank. Broader discovery/tenancy and automation await prioritization; automated recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -26,6 +26,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 009 | [Permanent customer deletion](plans/009-delete-customers.md) | Completed | DEL-01–04 verified/deployed; permanent linked-data removal, responsive cards and no batch-retry recreation |
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
+| 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–04 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
 
 ## Current reality
 
@@ -73,8 +74,9 @@ Active identifies focus and does not itself authorize additional scope.
   Login and full Summary refresh advance once; menu returns/data reads/feature CTAs
   do not. Independent tabs retain their exact selection. Savings Goals enrollment,
   goals and contributions remain functional; other banking sections use demo actions.
-- Customer Menu → **Explore Features** contains all twelve supplied campaigns at
-  authenticated `/features/:featureId` routes. One shared Harbor landing component
+- Customer Menu → **Explore more ways to bank** opens authenticated `/explore`,
+  a searchable catalog with five expanded-by-default groups and all twelve
+  campaigns. Full product names link to the existing `/features/:featureId` routes. One shared Harbor landing component
   starts each card with a larger green uppercase headline, without the repeated
   Explore line or decorative star, then renders copy, benefits, disclosures and
   one primary CTA. CTA acknowledgement
@@ -728,7 +730,7 @@ remains. The owner declined an independent OS selector; existing presets remain.
 
 DISC-01–06 complete. The selected EasyCoin and Skip A Pay journeys, saved
 preferences, visibility/cooldown/cap rules and independent reporting are deployed.
-Broader two-FI/catalogue/experiment scope remains B-014/B-007; no activation,
+Broader two-FI/experiment scope remains B-014/B-007; no activation,
 money movement or loan servicing is implied by these educational confirmations.
 
 | Check actually run | Result |
@@ -760,13 +762,41 @@ only verified owned test process groups were stopped before the remaining checks
 No unresolved application/check failure remains. Automated recording investigation
 and further actual capture remain stopped by owner decision.
 
+
+## Plan 012 verification — 2026-10-13 UTC
+
+Source commit **99abd9d**. Release **2026-10-13T17-01-20-049Z**, matched API/web
+links. Customer Menu opens `/explore`, with the five screenshot groups, full product
+names/counts, independently collapsible sections and search. Existing feature
+landings/CTAs retain their routes and reporting; catalog entries return to the catalog
+without banner/contextual attribution. Admin Menu and collection configuration remain.
+No migration: production and test schemas stay at version 9, without pending/drift.
+
+| Check actually run | Result |
+| --- | --- |
+| Routine browsers | **63/63** at 360/390/1440px; includes six new catalog checks plus existing feature/banner/discovery/controls journeys |
+| Privacy SDK stub | **18/18**, vendor requests intercepted; consent, withdrawal, switch and impersonation boundaries preserved |
+| API regression | Full run **81/83 passing entries**; the impersonation exclusion assertion assumed zero retained feature activity. Changed it to compare pre-entry counts; focused rerun **9/9** passes, resolving the failed subtest and parent. Other API/migration entries passed unchanged |
+| Static/build | Typecheck, format, Git whitespace passed; matched Clarity evaluation build, ~626.75 kB main JS / 180.11 kB gzip (existing B-011 advisory) |
+| Responsive review | Catalog screenshots inspected at 360/390/1440px; all rows readable, no horizontal overflow |
+| Live HTTPS | At **360/1440px**, deep-link login, search, all twelve feature links/returns, Skip A Pay confirmation and unchanged accounts; each scoped customer had twelve views/one CTA with no banner attribution |
+| Hosting/collection | API/DB healthy, Nginx syntax valid, matching release links, no dev/test listeners. Live checks had zero external requests/browser errors and verified collection settings unchanged |
+| Documentation/credentials | 86 local link targets and Git whitespace passed; credential scan passed across 121 source/plan/build files plus 10 root documents |
+
+Live helper created two owned Automation customers and deleted both through the
+protected Delete endpoint, without using/resetting owner accounts. Password-free
+0600 evidence: ignored `artifacts/plan012-live.json`; helper/screenshots/logs also
+remain ignored. Missing automated recordings remain an accepted limitation;
+no actual Clarity capture or investigation was performed for this release.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 011 is complete and deployed; verify current release/schema/Git before new
-   work. Walk through Savings & Investing → Explore investing and Loans → auto
-   loan in separate logins/customers. Invitations are limited to one per visit.
-   Impersonation, account/deletion/reset protection and existing promotions remain.
+2. Plan 012 is complete and deployed; verify current release/schema/Git before new
+   work. Walk through Customer Menu → Explore more ways to bank: five groups,
+   search and existing feature CTAs. Plan 011 contextual invitations still have
+   a one-per-visit cap; use separate logins/customers to review both invitations.
+   Await the next owner priority; tenancy and wider discovery remain deferred.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
    activity plus human saved recordings and ended the missing-recording inquiry.
    Await the next priority; do not resume consent/shutdown experiments or support
@@ -786,8 +816,8 @@ and further actual capture remain stopped by owner decision.
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011 and the current Clarity implementation/checks/docs are
-committed locally on `main`; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012 and the current Clarity implementation/checks/docs are
+committed locally on `main`; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.

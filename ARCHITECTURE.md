@@ -560,3 +560,18 @@ its surviving customers even if the list is empty. A committed empty batch is
 not re-generated. Integration tests cover concurrent first generation and partial/
 all deletion retries. No migration is needed. Deleted local events cease to appear
 in reports; this endpoint does not remove Microsoft Clarity's existing recordings.
+
+## Plan 012 — Customer feature catalog
+
+`feature-catalog.tsx` groups the existing shared feature IDs into five ordered
+sections and renders their full `name` values. `/explore` is an authenticated
+customer route and a bounded API/Clarity route tag. The hamburger menu contains
+one catalog link; Admin navigation is unchanged. Native buttons expose expanded
+state/controlled panels; search filters product names locally without changing
+URLs or writing preferences. Harbor tokens supply all styling.
+
+Catalog links carry only `fromCatalog: true` in Router history for a return link.
+This is navigation state, not analytics attribution: immutable owned banner and
+discovery entry validation remains authoritative and takes precedence. Catalog
+page views use existing interaction events; product landings/CTAs use existing
+feature observations. No new event type, schema migration or collection gate.

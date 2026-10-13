@@ -106,7 +106,9 @@ does not report Android-style `maxTouchPoints`; touch is proved by delivered
 An additional intercepted-browser check proves private automation/capture headers
 are sent only to the application origin, with neither header on vendor requests.
 
-Sixteen journeys run at **360×800, 390×844, and 1440×900**: **48 Chromium checks**.
+Sixteen banking journeys run at **360×800, 390×844, and 1440×900**: **48 Chromium checks**.
+With three discovery and two catalog journeys at each size, the full routine
+browser suite now has **63 checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -151,7 +153,7 @@ npm run smoke:public
 The public smoke uses HTTPS at 360/1440px, checks Secure/HttpOnly/SameSite cookies,
 creates users, signs in, completes enrollment/goal/contribution, proves saved
 state across relogin, cycles banners on Summary reload, preserves menu return,
-uses a placeholder action, visits a feature through Explore Features, confirms its
+uses a placeholder action, visits a feature through Explore more ways to bank, confirms its
 CTA, reloads the child route, returns to Summary without advancing the banner,
 checks unchanged accounts/goals/run and separate Feature Activity, then opens the
 separate admin customer/banner pages,
@@ -315,3 +317,13 @@ another authenticated customer tab returns to Admin instead of remaining paused
 when Exit receives an error; the initiating page shows the error and stays usable.
 Typecheck/format/evaluation build and public smoke were repeated for the final
 release. Broader suites were not repeated after this isolated error-path change.
+
+## Plan 012 catalog acceptance
+
+`tests/e2e/catalog.spec.ts` adds two journeys at 360/390/1440px: catalog deep-link
+login, exact group/product order and counts, keyboard collapse/expand, search with
+no results/clear, no overflow and no premature feature events; then menu current
+state, un-attributed Skip A Pay confirmation, refresh/return and preserved balances.
+The existing all-twelve, banner attribution, discovery opt-out and SDK-stub tests
+now navigate through the catalog. `clarity:pilot` and `smoke:public` use the same
+new menu path. These navigation changes do not authorize actual capture runs.

@@ -24,7 +24,7 @@ not hide this customer-initiated catalog. No schema or collection-setting change
   search/no-result/clear behavior, accessible keyboard controls and no overflow.
 - [x] CAT-03: existing landing confirmations/attribution remain correct; update
   maintained automation navigation and regression coverage for the catalog.
-- [ ] CAT-04: typecheck, API/browser/privacy checks, build, responsive visual review,
+- [x] CAT-04: typecheck, API/browser/privacy checks, build, responsive visual review,
   production deployment and collection-free live verification; update handoff docs.
 
 ## Validation
