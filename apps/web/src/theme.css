@@ -1865,3 +1865,13 @@ summary {
   height: 100%;
   object-fit: contain;
 }
+.explorer-widget-summary {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+.explorer-delete {
+  margin-top: 20px;
+}

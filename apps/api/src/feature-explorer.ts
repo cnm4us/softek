@@ -101,6 +101,20 @@ export function registerFeatureExplorer({
     if (!widget) throw new HttpError(404, 'Explore feature widget not found.');
     res.json(publicWidget(widget));
   });
+  app.post('/api/admin/feature-explorer/:id/delete', async (req, res) => {
+    await admin(req, true);
+    const id = uuid.parse(req.params.id);
+    z.object({}).strict().parse(req.body);
+    await transaction(async (c) => {
+      await c.query(
+        'SELECT id FROM feature_explorer_widgets WHERE id=? FOR UPDATE',
+        [id],
+      );
+      // Remove this placement only. Immutable artwork and shared catalog pages remain.
+      await c.query('DELETE FROM feature_explorer_widgets WHERE id=?', [id]);
+    });
+    res.json({ ok: true });
+  });
   app.post('/api/admin/feature-explorer/:id/settings', async (req, res) => {
     await admin(req, true);
     const id = uuid.parse(req.params.id),

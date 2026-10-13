@@ -235,6 +235,46 @@ test('Feature Explorer admin configuration and immutable mobile artwork', async 
         .data;
       assert.equal(w.imageUrl, null);
     });
+    await t.test(
+      'deletion is protected, scoped, retryable and allows re-adding',
+      async () => {
+        const url = '/api/admin/feature-explorer/' + widgets[0] + '/delete';
+        assert.equal((await request(url, {}, false)).status, 403);
+        assert.equal((await request(url, {}, true, 'invalid')).status, 403);
+        assert.equal(
+          (await request(url, { section: 'account-checking' })).status,
+          400,
+        );
+        assert.equal((await request(url, {})).status, 200);
+        assert.equal(
+          (await request('/api/admin/feature-explorer/' + widgets[0])).status,
+          404,
+        );
+        const listed = (await request('/api/admin/feature-explorer')).data;
+        assert.ok(!listed.widgets.some((w: any) => w.id === widgets[0]));
+        for (const id of widgets.slice(1))
+          assert.equal(
+            (await request('/api/admin/feature-explorer/' + id)).status,
+            200,
+          );
+        for (const key of assets)
+          assert.equal((await request('/media/banners/' + key)).status, 200);
+        assert.equal((await request(url, {})).status, 200);
+        const added = await request('/api/admin/feature-explorer', {
+          section: 'summary',
+          featureId: 'easycoin',
+        });
+        assert.equal(added.status, 201);
+        widgets.push(added.data.id);
+        const fresh = (
+          await request('/api/admin/feature-explorer/' + added.data.id)
+        ).data;
+        assert.notEqual(fresh.id, widgets[0]);
+        assert.equal(fresh.imageUrl, null);
+        assert.equal(fresh.enabled, false);
+        assert.equal(listed.features.length, 12);
+      },
+    );
   } finally {
     for (const id of widgets)
       await pool.query('DELETE FROM feature_explorer_widgets WHERE id=?', [id]);

@@ -197,3 +197,112 @@ test('admin manages four banner spaces with catalog URLs and persistent mobile a
   await expect(page.locator('.explorer-section')).toHaveCount(4);
   expect(errors).toEqual([]);
 });
+
+test('widget Delete cancels, reports failure, removes only its space and permits re-adding', async ({
+  page,
+  context,
+}) => {
+  const logged = await context.request.post('/api/admin/login', {
+    headers: { Origin: 'http://127.0.0.1:5173' },
+    data: { password: process.env.DEMO_ADMIN_SECRET },
+  });
+  expect(logged.status()).toBe(200);
+  const csrf = (await logged.json()).csrf;
+  const feature = features.at(-1)!;
+  for (const section of ['summary', 'account-checking']) {
+    const created = await context.request.post('/api/admin/feature-explorer', {
+      headers: { Origin: 'http://127.0.0.1:5173', 'X-CSRF-Token': csrf },
+      data: { section, featureId: feature.id },
+    });
+    expect(created.status()).toBe(201);
+    ids.push((await created.json()).id);
+  }
+  await page.goto('/controls/feature-explorer');
+  const summary = page.locator('.explorer-section').filter({
+    has: page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  });
+  const checking = page.locator('.explorer-section').filter({
+    has: page.getByRole('heading', {
+      name: 'Everyday Checking',
+      exact: true,
+    }),
+  });
+  const remove = summary.getByRole('button', {
+    name: `Delete ${feature.name} from Account Summary`,
+    exact: true,
+  });
+  await expect(remove).toBeVisible();
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Account Summary');
+    await dialog.dismiss();
+  });
+  await remove.click();
+  await expect(
+    summary.getByRole('link', { name: feature.name, exact: true }),
+  ).toBeVisible();
+  const failed = '**/api/admin/feature-explorer/*/delete';
+  await page.route(failed, (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Test deletion unavailable. Try again.' }),
+    }),
+  );
+  page.once('dialog', (dialog) => dialog.accept());
+  await remove.click();
+  await expect(page.getByRole('alert')).toContainText(
+    'Test deletion unavailable.',
+  );
+  await expect(
+    summary.getByRole('link', { name: feature.name, exact: true }),
+  ).toBeVisible();
+  await page.unroute(failed);
+  page.once('dialog', (dialog) => dialog.accept());
+  await remove.click();
+  await expect(page.getByRole('status')).toContainText(
+    'Explore feature deleted.',
+  );
+  await expect(
+    summary.getByRole('link', { name: feature.name, exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    checking.getByRole('link', { name: feature.name, exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    summary.getByRole('link', { name: feature.name, exact: true }),
+  ).toHaveCount(0);
+  const selector = summary.getByLabel('Explore feature for Account Summary', {
+    exact: true,
+  });
+  await selector.selectOption(feature.id);
+  await summary
+    .getByRole('button', { name: 'Add Explore feature', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Delete widget', exact: true }),
+  ).toBeVisible();
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page
+    .getByRole('button', { name: 'Delete widget', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: feature.name, exact: true }),
+  ).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page
+    .getByRole('button', { name: 'Delete widget', exact: true })
+    .click();
+  await expect(page).toHaveURL('/controls/feature-explorer');
+  await expect(
+    summary.getByRole('link', { name: feature.name, exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    checking.getByRole('link', { name: feature.name, exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});

@@ -1,4 +1,4 @@
-import { type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Copy, Plus, Upload } from 'lucide-react';
 import {
@@ -27,6 +27,18 @@ export function FeatureExplorerControls() {
       navigate(`/controls/feature-explorer/${created.id}`);
     }, 'Explore feature added.');
   }
+  async function remove(widget: ExplorerWidget, space: string) {
+    if (
+      !window.confirm(
+        `Delete ${widget.title} from ${space}? This removes this widget and its settings from this banner space.`,
+      )
+    )
+      return;
+    await action(
+      () => request(`/admin/feature-explorer/${widget.id}/delete`, {}),
+      'Explore feature deleted.',
+    );
+  }
   return (
     <div className="feature-explorer-controls">
       <Feedback error={error} notice={notice} />
@@ -53,16 +65,26 @@ export function FeatureExplorerControls() {
                 <ul className="explorer-widget-list">
                   {widgets.map((w) => (
                     <li key={w.id}>
-                      <Link to={`/controls/feature-explorer/${w.id}`}>
-                        {w.title}
-                      </Link>
-                      <span className="small-note">
-                        {!w.imageUrl
-                          ? 'Needs banner'
-                          : w.enabled
-                            ? 'Ready for rotation'
-                            : 'Disabled'}
-                      </span>
+                      <div className="explorer-widget-summary">
+                        <Link to={`/controls/feature-explorer/${w.id}`}>
+                          {w.title}
+                        </Link>
+                        <span className="small-note">
+                          {!w.imageUrl
+                            ? 'Needs banner'
+                            : w.enabled
+                              ? 'Ready for rotation'
+                              : 'Disabled'}
+                        </span>
+                      </div>
+                      <button
+                        className="button danger"
+                        disabled={busy}
+                        aria-label={`Delete ${w.title} from ${section.label}`}
+                        onClick={() => void remove(w, section.label)}
+                      >
+                        Delete
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -104,6 +126,8 @@ export function FeatureExplorerControls() {
 }
 export function ExploreWidgetControls() {
   const { widgetId } = useParams();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
   const {
     data,
     loading,
@@ -116,6 +140,25 @@ export function ExploreWidgetControls() {
     setNotice,
   } = useResource<ExplorerWidget>(`/admin/feature-explorer/${widgetId}`);
   const section = explorerSections.find((s) => s.key === data?.section);
+  async function remove() {
+    if (
+      !data ||
+      deleting ||
+      !window.confirm(
+        `Delete ${data.title} from ${section?.label}? This removes this widget and its settings from this banner space.`,
+      )
+    )
+      return;
+    setDeleting(true);
+    setError('');
+    try {
+      await request(`/admin/feature-explorer/${widgetId}/delete`, {});
+      navigate('/controls/feature-explorer');
+    } catch (error) {
+      setError((error as Error).message);
+      setDeleting(false);
+    }
+  }
   async function upload(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -257,6 +300,13 @@ export function ExploreWidgetControls() {
                   Save widget
                 </button>
               </form>
+              <button
+                className="button danger explorer-delete"
+                disabled={busy || deleting}
+                onClick={() => void remove()}
+              >
+                {deleting ? 'Deleting…' : 'Delete widget'}
+              </button>
             </Card>
           </>
         )
