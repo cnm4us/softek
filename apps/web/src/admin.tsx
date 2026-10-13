@@ -9,6 +9,7 @@ import { Link, Route, Routes, useLocation, useParams } from 'react-router';
 import {
   ArrowRight,
   Image,
+  Compass,
   LockKeyhole,
   LogOut,
   Users,
@@ -28,6 +29,10 @@ import { AppShell } from './shell';
 import { Card, Alert } from './ui';
 import { ClaritySettings } from './clarity-settings';
 import { GenerateCustomers } from './generate-customers';
+import {
+  FeatureExplorerControls,
+  ExploreWidgetControls,
+} from './feature-explorer-controls';
 
 function CustomerRoute() {
   const { userId } = useParams(),
@@ -40,10 +45,11 @@ function AdminHome() {
   const descriptions = [
     'Create logins, manage access, and inspect individual activity.',
     'Upload artwork, choose destinations, and arrange banner rotation.',
+    'Configure feature invitations and mobile banners for each account page.',
     'Review enrollment and service use with clear participant counts.',
     'Control Microsoft Clarity collection for the customer demo.',
   ];
-  const icons = [Users, Image, ChartNoAxesCombined, Activity];
+  const icons = [Users, Image, Compass, ChartNoAxesCombined, Activity];
   return (
     <>
       <p className="lead">Manage the Harbor demo.</p>
@@ -218,6 +224,14 @@ export function AdminApp() {
               element={<CustomerRoute />}
             />
             <Route path="/controls/banners" element={<Banners />} />
+            <Route
+              path="/controls/feature-explorer"
+              element={<FeatureExplorerControls />}
+            />
+            <Route
+              path="/controls/feature-explorer/:widgetId"
+              element={<ExploreWidgetControls />}
+            />
             <Route path="/controls/report" element={<AdoptionReport />} />
             <Route path="/controls/clarity" element={<ClaritySettings />} />
             <Route

@@ -17,6 +17,7 @@ import { HttpError } from './errors.js';
 import { authenticatedRun, registerRevision } from './revision.js';
 import { customerToken, customerContext } from './customer-context.js';
 import { registerDiscovery } from './discovery.js';
+import { registerFeatureExplorer } from './feature-explorer.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
@@ -355,6 +356,7 @@ export function createApp(test = false) {
     checkCsrf,
     cookieOptions,
   });
+  registerFeatureExplorer({ app, pool, test, transaction, admin });
   registerDiscovery({
     app,
     transaction,

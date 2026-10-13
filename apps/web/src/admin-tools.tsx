@@ -40,7 +40,7 @@ type ConfigBanner = {
   imageUrl: string;
 };
 
-function useResource<T>(path: string) {
+export function useResource<T>(path: string) {
   const { request } = useAdmin();
   const [data, setData] = useState<T | null>(null),
     [loading, setLoading] = useState(true),
@@ -98,7 +98,7 @@ function useResource<T>(path: string) {
     request,
   };
 }
-function Feedback({ error, notice }: { error: string; notice: string }) {
+export function Feedback({ error, notice }: { error: string; notice: string }) {
   return (
     <>
       <Alert message={error} />
