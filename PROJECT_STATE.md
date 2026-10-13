@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), delivered; awaiting Explore-placement discussion**.
+Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), including savings layout follow-up delivered; awaiting Explore-placement discussion**.
 Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
-Current request: **Summary savings-options link removed; all three account widgets open read-only pages with owned balances/activity and fictional statement details.**
+Current request: **Savings balance card simplified and deployed: masked number upper-right, amount/label lower-left, redundant heading/subtitle removed.**
 Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
 
 ## Plan status registry
@@ -27,7 +27,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
-| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–04 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
+| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–05 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -131,8 +131,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T17-57-03-153Z**. Previous authenticated release:
-  **2026-10-13T17-23-41-174Z**. Both current links point to the new release.
+- Current release: **2026-10-13T18-19-30-775Z**. Previous authenticated release:
+  **2026-10-13T17-57-03-153Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -836,6 +836,21 @@ Mobile and desktop screenshots were inspected. Initial new-test navigation raced
 the logout document transition; waiting for the sign-in form resolved the harness
 failure, with six focused and all 69 routine checks passing afterward. No unresolved
 application/check failure remains. Explore links are B-015 discussion scope only.
+
+### DETAIL-05 savings layout follow-up — 2026-10-13 UTC
+
+Source **74ddd64**, release **2026-10-13T18-19-30-775Z**. Savings balance card
+removes the generic heading/subtitle/icon, positions the separately masked last-four
+number upper-right and places the balance/available-balance label lower-left.
+Typecheck, format, evaluation build and **6/6 focused account browser checks** passed
+at 360/390/1440px. Mobile/desktop savings screenshots inspected; live HTTPS at
+360/1440px verified balances/history, sample refresh, route/return/banner behavior,
+number masking and zero vendor requests/errors. Both owned fixtures deleted and
+collection settings unchanged. Ignored 0600 `artifacts/savings-layout-live.json`
+holds password-free evidence. API/DB health and matching release links verified.
+Focused SDK-stub assertions reported **3/3**; the initial npm parent exited 143
+with no test failure or remaining listeners. Direct CLI confirmation passed **3/3**
+with exit 0; no unresolved check failure remains.
 
 ## Exact resume point
 

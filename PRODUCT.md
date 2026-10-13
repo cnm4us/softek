@@ -351,7 +351,9 @@ still deferred; the footer describes the future configuration model.
 The entire checking, savings and credit card widget on Account Summary is a link
 with a chevron. The old View savings options link is removed. Each opens a
 mobile-first account page with its saved name, masked last four and live demo
-balance, account information and recent activity. Checking includes spending/
+balance, account information and recent activity. The savings balance card omits
+the generic heading/subtitle: its masked number is upper-right, with the amount
+and available-balance label lower-left. Checking includes spending/
 deposit examples; savings includes transfers/interest and an illustrative APY;
 credit includes purchases/payments, available credit and example payment terms.
 

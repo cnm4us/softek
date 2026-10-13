@@ -32,6 +32,10 @@ engagement or adoption events. Explore placements await the owner's next discuss
 - [x] DETAIL-04: build/deploy with current collection profile; live HTTPS mobile/
   desktop checks without vendor capture, cleanup owned fixtures, update docs/state.
 
+- [x] DETAIL-05 follow-up: simplify the savings balance card by removing its
+  redundant heading/subtitle, placing the masked account number upper-right and
+  keeping the amount/available-balance label lower-left. Verify masking/layout and deploy.
+
 ## Validation boundaries
 
 Use `demo_test` for routine tests with collection disabled/intercepted. Live checks
