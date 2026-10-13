@@ -46,6 +46,11 @@ engagement or adoption events. Explore placements await the owner's next discuss
   amount owed lower-left. Remove credit Account Information, use full-width activity,
   preserve owned balances, mask all credit figures, verify/deploy.
 
+- [x] DETAIL-08 follow-up: apply the compact layout to Everyday Checking: Personal
+  Checking upper-left, masked number upper-right and available balance lower-left.
+  Remove Account Information and use full-width Recent Activity; preserve owned
+  data and masking, verify responsive behavior and deploy.
+
 ## Validation boundaries
 
 Use `demo_test` for routine tests with collection disabled/intercepted. Live checks

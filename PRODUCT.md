@@ -351,7 +351,10 @@ still deferred; the footer describes the future configuration model.
 The entire checking, savings and credit card widget on Account Summary is a link
 with a chevron. The old View savings options link is removed. Each opens a
 mobile-first account page with its saved name, masked last four and live demo
-balance, account information and recent activity. The savings balance card omits
+balance and recent activity. The checking balance card shows Personal Checking
+upper-left, its masked number upper-right, and the amount/available-balance label
+lower-left. Its Account Information widget is removed and Recent Activity uses the
+full width. The savings balance card omits
 the generic heading/subtitle: Personal Savings sits upper-left, its masked number
 is upper-right, and Interest 1.25% / Compounded Monthly appears middle-left. The
 amount and available-balance label stay lower-left. Savings has no separate Account

@@ -1,9 +1,9 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), compact savings/credit follow-ups delivered; awaiting Explore-placement discussion**.
+Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), compact account-card follow-ups delivered; awaiting Explore-placement discussion**.
 Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
-Current request: **Credit card now uses the compact layout with available credit/credit limit in the middle and no Account Information widget; deployed and verified.**
+Current request: **Everyday Checking now uses the compact layout with Personal Checking upper-left, masked number upper-right and available balance lower-left; Account Information removed, deployed and verified.**
 Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
 
 ## Plan status registry
@@ -27,7 +27,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
-| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–07 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
+| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–08 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -131,8 +131,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T18-58-19-642Z**. Previous authenticated release:
-  **2026-10-13T18-35-10-471Z**. Both current links point to the new release.
+- Current release: **2026-10-13T19-57-01-817Z**. Previous authenticated release:
+  **2026-10-13T18-58-19-642Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -882,6 +882,23 @@ behavior. Zero external requests/errors, collection settings unchanged and both
 owned fixtures deleted. API/DB health and matched release links verified; no test
 listeners remain. Evidence: ignored 0600 `artifacts/credit-layout-live.json`.
 No migration or real vendor capture; Explore placements still await discussion.
+
+### DETAIL-08 checking card consolidation — 2026-10-13 UTC
+
+Source **850839f**, release **2026-10-13T19-57-01-817Z**. All three account pages
+now share compact-card styling. Personal Checking is upper-left, masked number
+upper-right and available balance/label lower-left. Its separate Account Information
+panel is removed, with full-width Recent Activity immediately below.
+Typecheck, format, evaluation build, **6/6 account browser checks** at 360/390/1440px
+and **3/3 consent/masking SDK-stub checks** passed with exit 0. Screenshots inspected.
+The initial account run caught an accidentally broadened test assertion; its original
+checking exception was restored before the successful full focused rerun.
+Live HTTPS 360/1440px verified labels, removed panel, masks, exact owned balances/
+history, stable samples and return/banner behavior. Zero external requests/errors,
+collection settings unchanged and both owned fixtures deleted. API/DB health and
+matched release links verified; no test listeners remain. Evidence: ignored 0600
+`artifacts/checking-layout-live.json`. No migration or real vendor capture;
+Explore placements still await discussion.
 
 ## Exact resume point
 
