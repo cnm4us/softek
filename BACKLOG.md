@@ -19,10 +19,11 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Bulk retention policy remains later; Plan 009 now provides explicit per-customer permanent deletion, including archived runs |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 622 kB (179 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 638 kB (182 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 | B-013 | Completed | First contextual discovery pair | [Plan 011](plans/011-contextual-feature-discovery.md) implements EasyCoin investing exploration and Skip A Pay loan-payment invitations, preferences and reporting |
+| B-015 | Next discussion | Explore links on account detail pages | Owner requested discussion after Plan 013; choose features, copy and placement before implementing invitations |
 | B-014 | Later | Broader contextual discovery | Additional placements and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011, grouped catalog is delivered in Plan 012 |
 
 `Next` means after the initial complete flow, not permission to expand M1.

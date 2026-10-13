@@ -345,3 +345,21 @@ return paths and attribution. Browsing the catalog is a page view; opening a
 landing and clicking its CTA remain separate feature observations. Discovery
 preferences do not restrict deliberate exploration. Multi-FI configuration is
 still deferred; the footer describes the future configuration model.
+
+## Account details — Plan 013
+
+The entire checking, savings and credit card widget on Account Summary is a link
+with a chevron. The old View savings options link is removed. Each opens a
+mobile-first account page with its saved name, masked last four and live demo
+balance, account information and recent activity. Checking includes spending/
+deposit examples; savings includes transfers/interest and an illustrative APY;
+credit includes purchases/payments, available credit and example payment terms.
+
+Pages are read-only. Saved ledger activity appears for that account; additional
+stable sample entries are labeled and do not modify balances or history. Rates,
+fees, limits and payment terms are explicitly fictional examples. Return to Account
+Summary preserves the banner selection; direct login and refresh retain the account
+route. Existing goal contributions appear in the appropriate checking/savings
+history and balances. These are banking page views, separate from feature/adoption
+observations. Explore links/placements on these pages require the next owner
+conversation and are not part of this release.

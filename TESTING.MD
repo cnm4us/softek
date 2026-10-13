@@ -107,8 +107,8 @@ An additional intercepted-browser check proves private automation/capture header
 are sent only to the application origin, with neither header on vendor requests.
 
 Sixteen banking journeys run at **360×800, 390×844, and 1440×900**: **48 Chromium checks**.
-With three discovery and two catalog journeys at each size, the full routine
-browser suite now has **63 checks**.
+With three discovery, two catalog and two account-detail journeys at each size,
+the full routine browser suite now has **69 checks**.
 
 | Journey | Evidence |
 | --- | --- |
@@ -327,3 +327,14 @@ state, un-attributed Skip A Pay confirmation, refresh/return and preserved balan
 The existing all-twelve, banner attribution, discovery opt-out and SDK-stub tests
 now navigate through the catalog. `clarity:pilot` and `smoke:public` use the same
 new menu path. These navigation changes do not authorize actual capture runs.
+
+## Plan 013 account details
+
+`tests/e2e/accounts.spec.ts` adds two journeys at 360/390/1440px: keyboard widget
+entry, exact owned balances/history, masking, stable sample rows, no ledger changes
+or promotional feature observations, return/banner preservation; then direct-login
+routes, real demo goal funding reflected in checking/savings, relogin/customer
+isolation and unknown-account handling. The existing Clarity consent SDK-stub case
+now visits all three details to check mask containers and bounded banking tags
+without loading a real vendor. Account information and fixture terms remain
+read-only; full history/search and Explore placements are separate future work.

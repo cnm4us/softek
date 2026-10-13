@@ -76,4 +76,7 @@ the payment flow remains a simulation. The owner accepted automated Dashboard
 activity with human saved recordings; missing automated recordings are not a blocker.
 Plan 012 replaces the feature submenu with Explore more ways to bank at `/explore`,
 a five-group searchable catalog retaining all twelve existing educational pages.
+Plan 013 links the Summary widgets to read-only checking, savings and credit card
+account pages with owned balances/activity and labeled fictional statement entries.
+Explore placements on those pages await a separate owner discussion.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

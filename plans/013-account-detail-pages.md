@@ -29,7 +29,7 @@ engagement or adoption events. Explore placements await the owner's next discuss
 - [x] DETAIL-03: verify account association, refresh/relogin persistence, distinct
   customers and changed savings/checking balances after existing goal funding;
   route tracking and existing banking/discovery/privacy regression checks.
-- [ ] DETAIL-04: build/deploy with current collection profile; live HTTPS mobile/
+- [x] DETAIL-04: build/deploy with current collection profile; live HTTPS mobile/
   desktop checks without vendor capture, cleanup owned fixtures, update docs/state.
 
 ## Validation boundaries

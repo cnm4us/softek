@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-13 UTC**.
-Current focus: **[012 — Explore more ways to bank](plans/012-grouped-feature-catalog.md), catalog and full-title follow-up delivered; awaiting next priority**.
-Latest completed implementation: **Plan 012 — grouped customer feature catalog**.
-Current request: **Four feature page titles updated to the full product names and deployed.**
-Next task: **Owner walkthrough: Customer Menu → Explore more ways to bank. Broader discovery/tenancy and automation await prioritization; automated recording investigation remains stopped.**
+Current focus: **[013 — Account detail pages](plans/013-account-detail-pages.md), delivered; awaiting Explore-placement discussion**.
+Latest completed implementation: **Plan 013 — checking, savings and credit card details**.
+Current request: **Summary savings-options link removed; all three account widgets open read-only pages with owned balances/activity and fictional statement details.**
+Next task: **Discuss which Explore links/features and placements the owner wants on the new account pages (B-015). No account-page discovery implementation is authorized yet; automated recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -27,6 +27,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 010 | [Admin customer impersonation](plans/010-admin-customer-impersonation.md) | Completed | IMP-01–06 verified/deployed; schema 8, admin-bound sessions, conditional exit, labeled local history and report/Clarity exclusion |
 | 011 | [Contextual feature discovery](plans/011-contextual-feature-discovery.md) | Completed | DISC-01–06 verified/deployed; schema 9; 83 API/migration entries, 48 existing + 9 discovery browser checks, 18 privacy checks and live HTTPS 360/1440px |
 | 012 | [Explore more ways to bank](plans/012-grouped-feature-catalog.md) | Completed | CAT-01–05 verified/deployed; ordered twelve-product catalog, search/accordions, 63 browser and 18 privacy checks; schema 9 unchanged |
+| 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–04 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 
 ## Current reality
 
@@ -71,6 +72,12 @@ Active identifies focus and does not itself authorize additional scope.
   independent. New users use the common starting accounts; omitted-profile resets
   preserve existing internal assignments and restore saved starting amounts.
 - Account Summary retains accounts/activity/goals and its padded rotating banner.
+  The View savings options link is removed; complete checking/savings/credit widgets
+  link to `/accounts/checking`, `/accounts/savings`, `/accounts/credit-card`. Pages
+  use owned balances and account-ID-associated recent activity, with stable labeled
+  statement examples and fictional terms. Viewing writes no ledger data; details
+  are masked and routes have ordinary banking page tags. Explore placements await
+  the owner discussion.
   Login and full Summary refresh advance once; menu returns/data reads/feature CTAs
   do not. Independent tabs retain their exact selection. Savings Goals enrollment,
   goals and contributions remain functional; other banking sections use demo actions.
@@ -124,8 +131,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T17-23-41-174Z**. Previous authenticated release:
-  **2026-10-13T17-01-20-049Z**. Both current links point to the new release.
+- Current release: **2026-10-13T17-57-03-153Z**. Previous authenticated release:
+  **2026-10-13T17-23-41-174Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -803,14 +810,42 @@ Automation fixtures were deleted; zero external requests/page errors, accounts
 and collection settings unchanged. Evidence: ignored 0600
 `artifacts/feature-titles-live.json`. No migration or actual vendor capture.
 
+## Plan 013 verification — 2026-10-13 UTC
+
+Source **bdd15e1**, release **2026-10-13T17-57-03-153Z**. Three read-only account
+pages use saved balances/identity, existing owned activity and deterministic labeled
+statement examples. `/api/state` adds `accountId` to transactions for association;
+no migration or retained-data seed/update. Checking, savings and credit information
+are masked, with bounded banking page-view tags; no feature/adoption event on view.
+
+| Check actually run | Result |
+| --- | --- |
+| API/rules/migration regression | **83/83 TAP entries**, including existing funding, ownership, persistence, feature separation and bounded account route context |
+| Routine browsers | **69/69** at 360/390/1440px, including six new account journeys; saved balance/activity updates after real demo goal funding, relogin/customer isolation, sample refresh stability, banner preservation and no ledger changes on view |
+| Focused privacy SDK stub | **3/3** consent/masks/withdrawal/admin/shared-browser journeys; each visits all three accounts to verify mask containers and banking-only tags; no actual vendor loaded |
+| Static/build | Typecheck, format, Git whitespace and matched evaluation build passed; main JS 638.24 kB / 182.28 kB gzip (existing B-011 advisory) |
+| Schema/hosting | Production/test schema 9, no pending/drift; matched API/web release links, active service, DB/public HTTPS health and Nginx syntax passed; no test/dev listeners remain |
+| Live HTTPS | **360/1440px**: direct-login path, all three widget/detail links, exact balances and saved activity, stable sample rows on refresh, masked information, Summary return/banner retention; no financial writes or feature observations |
+| Documentation/credentials | 88 local link targets and credential scan across 136 source/document/build files passed before deployment; final handoff links/whitespace checked |
+
+Two owned live Automation users were created/deleted through protected controls;
+owner accounts and global collection settings were untouched. External requests and
+browser errors were zero. Password-free 0600 evidence is ignored
+`artifacts/plan013-live.json`; the helper and screenshots/logs remain ignored.
+Mobile and desktop screenshots were inspected. Initial new-test navigation raced
+the logout document transition; waiting for the sign-in form resolved the harness
+failure, with six focused and all 69 routine checks passing afterward. No unresolved
+application/check failure remains. Explore links are B-015 discussion scope only.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plan 012 is complete and deployed; verify current release/schema/Git before new
-   work. Walk through Customer Menu → Explore more ways to bank: five groups,
-   search and existing feature CTAs. Plan 011 contextual invitations still have
-   a one-per-visit cap; use separate logins/customers to review both invitations.
-   Await the next owner priority; tenancy and wider discovery remain deferred.
+2. Plan 013 is complete and deployed; verify current release/schema/Git before new
+   work. Walk through the three Account Summary widgets and account details.
+   Discuss Explore features/copy/placements with the owner before implementing
+   those additions (B-015). Existing `/savings` education and `/loans` journeys
+   retain Plan 011's one-per-visit invitation cap. Tenancy/wider discovery remain
+   deferred; do not infer authorization from the supplied broader brief.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
    activity plus human saved recordings and ended the missing-recording inquiry.
    Await the next priority; do not resume consent/shutdown experiments or support
@@ -830,8 +865,8 @@ and collection settings unchanged. Evidence: ignored 0600
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012 and the current Clarity implementation/checks/docs are
-committed locally on `main`; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013 and the current Clarity implementation/checks/docs are
+committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.

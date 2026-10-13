@@ -448,3 +448,13 @@ to the catalog; banners and contextual suggestions retain their existing return
 paths. This UI release needs no migration and preserves schema version 9.
 The tracked smoke/pilot scripts now use the catalog; actual capture still requires
 explicit collection authorization and the existing private capture controls.
+
+## Customer account details — Plan 013
+
+Account Summary widgets open `/accounts/checking`, `/accounts/savings` and
+`/accounts/credit-card`. Login preserves a direct account destination. Pages use
+current owned balances/history and labeled sample statement entries; refreshing or
+viewing them does not seed or alter ledger data. No migration: schema stays 9.
+Summary's standalone View savings options link is removed. Savings & Investing
+in the menu still opens the existing educational context; new account-page Explore
+placements await the owner discussion.

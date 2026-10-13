@@ -575,3 +575,22 @@ This is navigation state, not analytics attribution: immutable owned banner and
 discovery entry validation remains authoritative and takes precedence. Catalog
 page views use existing interaction events; product landings/CTAs use existing
 feature observations. No new event type, schema migration or collection gate.
+
+## Plan 013 — Read-only account details
+
+`account-pages.ts` supplies three static paths/kinds and bounded route keys, shared
+by navigation and first-party/Clarity context. Account pages render only the
+current authenticated `State.accounts` entry for that kind, without account IDs
+in URLs or analytics tags. Existing `/api/state` additionally returns transaction
+`accountId` from its owned-run query, letting details filter by identity rather
+than a display name. Saved history remains the existing twelve-row recent-activity
+window across accounts; full account-history retrieval/search remains B-002.
+
+`account-details.tsx` supplements that saved history with explicitly labeled display
+fixtures from the demo's October 2026 period. Amounts vary deterministically by
+owned account ID and stay stable for the run. Illustrative fees/APY/credit terms
+are display fixtures as well. No new financial endpoint, schema or seeding of
+retained customers is needed; only existing authenticated reads/page observations
+occur. Balance, account information and history containers are Clarity-masked.
+Owner deferred Explore placements to a subsequent discussion; existing contextual
+journeys and collection gates remain independent.
