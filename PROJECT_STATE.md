@@ -3,8 +3,8 @@
 Last updated: **2026-10-14 UTC**.
 Current focus: **[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md), delivered**.
 Latest completed implementation: **Plan 021 — Readable banner analytics IDs**.
-Current request: **Banner values made readable for Clarity filters; internal UUIDs/reporting/history retained.**
-Next task: **Owner reloads Summary and selects new space-feature banner values in Clarity as new activity is processed; await the next priority.**
+Current request: **Read-only check of the owner-supplied Clarity export token and missing readable banner filter value.**
+Next task: **Owner rechecks the readable banner filter after Clarity's documented indexing window; exact Microsoft tag receipt remains unverified. Await the next priority.**
 
 ## Plan status registry
 
@@ -38,6 +38,26 @@ Active identifies focus and does not itself authorize additional scope.
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
 
 ## Current reality
+
+- On **2026-10-14 at 21:04 UTC**, the owner-supplied private `CLARITY_API_TOKEN`
+  successfully authenticated one read-only Data Export request (HTTP 200), for
+  the last 24 hours grouped by URL. Traffic rows include Summary (8 sessions) and
+  `/features/business-invoice` (2 sessions); grouped counts are not additive and
+  do not establish receipt of a specific tag/click. The supported export covers
+  processed dashboard metrics, not raw calls, custom-tag lookup or recording data.
+  LOCAL_SETUP owns API limits and token handling. Private response evidence is in
+  ignored, 0600 `artifacts/clarity-export-token-check.json`.
+  A read-only runtime-account audit query found the retained Human customer's
+  `set banner summary-business-invoice` invocation at **20:43:52.616 UTC**, and
+  `banner_clicked` at **20:52:43.044 UTC**, mirrored to Phoenix. The tag initially
+  entered the SDK queue; the same document subsequently had a loaded callable.
+  Neither establishes Microsoft receipt. At the check, only about 21 minutes had
+  elapsed since the tag call; Microsoft documents 30 minutes to two hours for
+  new custom tags. The owner still reports the filter value missing. No collection
+  pilot, application change, deployment, migration, service restart or setting
+  change was performed. No application tests were needed for this read-only check;
+  documentation links/whitespace were checked. Tracked changes are these diagnostic
+  notes and the setup runbook; owner `temp/` remains untracked and untouched.
 
 - Plan 021 changes the Feature Explorer Clarity banner tag to a derived readable
   space-feature alias. Current Summary values: summary-identity-protect,

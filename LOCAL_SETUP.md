@@ -579,6 +579,30 @@ are bounded counters, not a guarantee of a complete browser log. Retention is
 seven days in MariaDB and the dedicated Phoenix instance. Customer deletion
 removes local diagnostics; already exported Phoenix copies expire independently.
 
+### Clarity Data Export token and visibility
+
+The owner supplied `CLARITY_API_TOKEN` in ignored private `.env`. It was verified
+with one read-only request on October 14; see PROJECT_STATE for the actual result.
+It is a server-side inspection credential, independent of customer consent and
+the hosted JavaScript SDK. Existing application code does not use it, and it is
+not added to the production runtime allowlist or frontend. Adding it requires no
+application/Nginx restart and does not accelerate Clarity processing.
+
+The [documented Data Export API](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-data-export-api)
+returns processed dashboard metrics from
+`GET https://www.clarity.ms/export-data/api/v1/project-live-insights`, authenticated
+with a Bearer token loaded privately in process memory. Its windows are the last
+24, 48 or 72 hours (`numOfDays=1`, `2` or `3`), with up to three supported breakdowns
+such as URL, Browser and Device. Limit requests to ten per project per day; results
+are capped at 1,000 rows without pagination. Avoid repeated diagnostic polling.
+The documented interface has no raw SDK-call log, custom-tag lookup or recording
+download. URL traffic alone cannot confirm a particular banner's tag or click.
+
+Microsoft documents [30 minutes to two hours for new custom tags](https://learn.microsoft.com/en-us/clarity/filters/custom-tags#add-custom-tags-to-your-project).
+Count from an actual consented customer's invocation, not deployment or SDK-stub
+verification. Local/Phoenix evidence confirms application invocation only; the
+export response does not establish when a custom-tag value becomes filterable.
+
 Installed service and storage:
 
 | Item | Location |
