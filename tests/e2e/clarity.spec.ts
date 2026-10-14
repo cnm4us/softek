@@ -14,6 +14,7 @@ const pool = mariadb.createPool({
 });
 const ids: string[] = [];
 let saved: Record<string, any>;
+let savedTracing: Record<string, any>;
 const headers = {
   'X-Demo-Automation': process.env.AUTOMATION_SECRET!,
   'X-Demo-Capture': process.env.AUTOMATION_SECRET!,
@@ -89,6 +90,8 @@ async function feature(page: Page) {
 test.beforeEach(async ({ page }) => {
   const [row] = await pool.query('SELECT * FROM clarity_collection WHERE id=1');
   saved = row;
+  [savedTracing] = await pool.query('SELECT * FROM clarity_tracing WHERE id=1');
+  await pool.query('UPDATE clarity_tracing SET enabled=FALSE WHERE id=1');
   const csrf = await admin(page);
   await setEnabled(page, csrf, true);
   await page.route('https://**/*', async (route) => {
@@ -101,6 +104,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 test.afterEach(async ({ context }) => {
+  await pool.query(
+    'UPDATE clarity_tracing SET enabled=?,revision=?,updated_at=? WHERE id=1',
+    [savedTracing.enabled, savedTracing.revision, savedTracing.updated_at],
+  );
   await pool.query(
     'UPDATE clarity_collection SET enabled=?,revision=?,updated_at=? WHERE id=1',
     [saved.enabled, saved.revision, saved.updated_at],
@@ -116,6 +123,120 @@ test.afterEach(async ({ context }) => {
 test.afterAll(async () => {
   await cleanUsers(pool, ids);
   await pool.end();
+});
+test('Phoenix API-call audit mirrors SDK calls, respects consent and survives audit failure', async ({
+  page,
+}) => {
+  const csrf = await admin(page);
+  const settings = await (
+    await page.request.get('/api/admin/clarity-tracing')
+  ).json();
+  expect(
+    (
+      await page.request.post('/api/admin/clarity-tracing', {
+        headers: { Origin: 'http://127.0.0.1:5173', 'X-CSRF-Token': csrf },
+        data: { enabled: true, revision: settings.revision },
+      })
+    ).status(),
+  ).toBe(200);
+  const user = await fixtureUser(pool);
+  ids.push(user.id);
+  await login(page, user);
+  const recorded = async () =>
+    pool.query(
+      'SELECT a.*,x.id AS contextId FROM clarity_api_calls a JOIN clarity_trace_contexts x ON x.id=a.context_id WHERE x.user_id=? ORDER BY x.consent_at,a.sequence_number',
+      [user.id],
+    );
+  expect((await recorded()).length).toBe(0);
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('private seven-day log');
+  await dialog
+    .getByRole('button', { name: 'Allow analytics', exact: true })
+    .click();
+  await expect.poll(async () => (await recorded()).length).toBeGreaterThan(10);
+  const first = await recorded();
+  const argumentsOf = (r: any) =>
+    typeof r.arguments_json === 'string'
+      ? JSON.parse(r.arguments_json)
+      : r.arguments_json;
+  const sdk = await calls(page);
+  for (const [i, row] of first.entries())
+    expect([row.command, ...argumentsOf(row)]).toEqual(sdk[i]);
+  expect(first[0].command).toBe('consentv2');
+  expect(first[0].sdk_state).toBe('queued');
+  expect(first.some((r: any) => r.command === 'identify')).toBe(true);
+  await feature(page);
+  await page.getByRole('button', { name: /Explore Crypto Investing/i }).click();
+  await expect
+    .poll(async () =>
+      (await recorded()).some(
+        (r: any) =>
+          r.command === 'event' && argumentsOf(r)[0] === 'feature_cta_clicked',
+      ),
+    )
+    .toBe(true);
+  const beforeFailure = await customerState(page);
+  await page.route('**/api/analytics/clarity-calls', (r) =>
+    r.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: '{"error":"diagnostic unavailable"}',
+    }),
+  );
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+  await page
+    .getByRole('link', { name: 'Account Summary', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Account Summary', exact: true }),
+  ).toBeVisible();
+  expect((await customerState(page)).accounts).toEqual(beforeFailure.accounts);
+  await page.waitForTimeout(1200);
+  await page.unroute('**/api/analytics/clarity-calls');
+  await expect
+    .poll(async () =>
+      (await recorded()).some(
+        (r: any) =>
+          r.command === 'event' && argumentsOf(r)[0] === 'menu_selected',
+      ),
+    )
+    .toBe(true);
+  await page
+    .getByRole('button', { name: 'Turn off analytics', exact: true })
+    .click();
+  await expect
+    .poll(async () => (await recorded()).some((r: any) => r.command === 'stop'))
+    .toBe(true);
+  const after = await recorded();
+  expect(
+    after.some(
+      (r: any) =>
+        r.command === 'consentv2' &&
+        argumentsOf(r)[0].analytics_Storage === 'denied',
+    ),
+  ).toBe(true);
+  await page.goto('/controls/clarity');
+  await expect(
+    page.getByRole('heading', {
+      name: 'Clarity API-call tracing',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', {
+      name: 'Turn API-call tracing off',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `artifacts/phoenix-settings-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 test('consent, masks, feature events, withdrawal, admin boundary and shared-browser identity', async ({
   page,

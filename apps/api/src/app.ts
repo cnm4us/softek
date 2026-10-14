@@ -18,6 +18,7 @@ import { authenticatedRun, registerRevision } from './revision.js';
 import { customerToken, customerContext } from './customer-context.js';
 import { registerDiscovery } from './discovery.js';
 import { registerFeatureExplorer } from './feature-explorer.js';
+import { registerClarityTracing } from './clarity-tracing.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
@@ -367,6 +368,15 @@ export function createApp(test = false) {
     token,
     checkCsrf,
   });
+  registerClarityTracing({
+    app,
+    pool,
+    transaction,
+    admin,
+    active,
+    token,
+    checkCsrf,
+  });
   registerDiscovery({
     app,
     transaction,
@@ -499,6 +509,9 @@ export function createApp(test = false) {
         await c.query(
           'UPDATE clarity_collection SET enabled=?,revision=?,updated_at=UTC_TIMESTAMP(6) WHERE id=1',
           [b.enabled, randomUUID()],
+        );
+        await c.query(
+          'UPDATE clarity_trace_contexts SET closed_at=COALESCE(closed_at,UTC_TIMESTAMP(6))',
         );
         return clarityStatus(c);
       }),

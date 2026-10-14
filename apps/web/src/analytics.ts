@@ -2,6 +2,7 @@ import { renderedSummaryBanner } from './summary-explorer-context';
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
 import { analyticsContext, applyContext } from './feature-context';
+import { Demo, syncAudit, beginAuditClose, closeAudit } from './clarity-audit';
 export const eventNames = [
   'eligible',
   'promotion_visible',
@@ -43,13 +44,15 @@ export function consentChoice(state: State): 'granted' | 'denied' | null {
   }
 }
 export function stopCollection() {
+  beginAuditClose();
   if (window.clarity) {
-    window.clarity('consentv2', {
+    Demo('consentv2', {
       ad_Storage: 'denied',
       analytics_Storage: 'denied',
     });
-    window.clarity('stop');
+    Demo('stop');
   }
+  closeAudit();
   // Remove this site's first-party Clarity cookies even if the script is blocked.
   const domains = [
     location.hostname,
@@ -71,6 +74,12 @@ export function stopCollection() {
   captureUser = null;
 }
 export function syncCollectionPolicy(next: Policy) {
+  if (
+    policy &&
+    (policy.tracing?.revision !== next.tracing?.revision ||
+      !next.tracing?.enabled)
+  )
+    closeAudit();
   const changed =
     policy &&
     (policy.revision !== next.revision || policy.enabled !== next.enabled);
@@ -101,6 +110,13 @@ export function initialize(state: State) {
     return;
   }
   captureUser = state.user.id;
+  const context = analyticsContext(
+    state,
+    location.pathname,
+    window.history.state?.usr?.featureEntry,
+    location.pathname === '/' ? renderedSummaryBanner(state) : null,
+  );
+  syncAudit(state, context);
   if (!window.clarity) {
     const queue: (string | Consent)[][] = [];
     window.clarity = Object.assign(
@@ -109,7 +125,7 @@ export function initialize(state: State) {
       },
       { q: queue },
     );
-    window.clarity('consentv2', {
+    Demo('consentv2', {
       ad_Storage: 'denied',
       analytics_Storage: 'granted',
     });
@@ -120,7 +136,7 @@ export function initialize(state: State) {
   }
   // Only loaded Summary artwork supplies banner context, never retained legacy selections.
   applyContext(
-    window.clarity!,
+    Demo,
     state,
     analyticsContext(
       state,
@@ -134,7 +150,7 @@ export function confirmed(state: State, names: string[]) {
   if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
   initialize(state);
   for (const name of names)
-    if (eventNames.includes(name as Name)) window.clarity?.('event', name);
+    if (eventNames.includes(name as Name)) Demo('event', name);
 }
 export function chooseConsent(state: State, allow: boolean) {
   sessionStorage.setItem(
@@ -182,5 +198,5 @@ export function emitFeatureObservation(
 ) {
   if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
   initialize(state);
-  window.clarity?.('event', name);
+  Demo('event', name);
 }

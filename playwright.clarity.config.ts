@@ -16,13 +16,19 @@ export default defineConfig({
         VITE_CLARITY_ENABLED: 'true',
         CLARITY_CONFIG_VERIFIED: 'true',
         CLARITY_PROJECT_ID: 'yvs5hp3ivb',
+        PHOENIX_TRACING_ENABLED: 'true',
+        VITE_PHOENIX_TRACING_ENABLED: 'true',
+        SOFTEK_PHOENIX_ENDPOINT: 'http://127.0.0.1:6009/v1/traces',
       },
     },
     {
       command: 'npm run dev -w @softek/web',
       url: 'http://127.0.0.1:5173',
       reuseExistingServer: false,
-      env: { VITE_CLARITY_ENABLED: 'true' },
+      env: {
+        VITE_CLARITY_ENABLED: 'true',
+        VITE_PHOENIX_TRACING_ENABLED: 'true',
+      },
     },
   ],
 });

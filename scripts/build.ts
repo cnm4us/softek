@@ -6,7 +6,11 @@ const enabled = collectionMode(process.argv.slice(2));
 rmSync('apps/web/dist/collection-mode.json', { force: true });
 execFileSync('npm', ['run', 'build', '--workspaces'], {
   stdio: 'inherit',
-  env: { ...process.env, VITE_CLARITY_ENABLED: String(enabled) },
+  env: {
+    ...process.env,
+    VITE_CLARITY_ENABLED: String(enabled),
+    VITE_PHOENIX_TRACING_ENABLED: String(enabled),
+  },
 });
 writeFileSync(
   'apps/web/dist/collection-mode.json',

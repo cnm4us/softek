@@ -1,0 +1,37 @@
+[Unit]
+Description=Softek private Clarity API trace viewer (Phoenix)
+After=network.target
+
+[Service]
+Type=simple
+User=softek-phoenix
+Group=softek-phoenix
+WorkingDirectory=/var/lib/softek-phoenix
+Environment=PHOENIX_HOST=127.0.0.1
+Environment=PHOENIX_PORT=6006
+Environment=PHOENIX_WORKING_DIR=/var/lib/softek-phoenix
+Environment=PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=7
+Environment=PHOENIX_ALLOW_EXTERNAL_RESOURCES=false
+Environment=PHOENIX_TELEMETRY_ENABLED=false
+Environment=PHOENIX_ENABLE_MCP_SERVER=false
+Environment=PHOENIX_ALLOWED_PROVIDERS=NONE
+Environment=PHOENIX_ALLOWED_SANDBOX_PROVIDERS=NONE
+Environment=PHOENIX_DISABLE_AGENT_ASSISTANT=true
+ExecStart=/opt/softek-phoenix/venv/bin/python /opt/softek-phoenix/phoenix-http.py serve
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+MemoryMax=1G
+CPUQuota=50%
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/softek-phoenix
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

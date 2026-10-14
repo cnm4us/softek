@@ -77,6 +77,11 @@ try {
     BANNER_ASSET_DIR: '/var/lib/softek/banner-assets',
     CLARITY_ENABLED: String(collection),
     VITE_CLARITY_ENABLED: String(collection),
+    VITE_PHOENIX_TRACING_ENABLED: String(collection),
+    PHOENIX_TRACING_ENABLED:
+      process.env.PHOENIX_TRACING_ENABLED === 'true' ? 'true' : 'false',
+    SOFTEK_PHOENIX_ENDPOINT: 'http://127.0.0.1:6006/v1/traces',
+    SOFTEK_RELEASE: release,
     CLARITY_CONFIG_VERIFIED: String(collection),
     ...(collection
       ? { CLARITY_PROJECT_ID: process.env.CLARITY_PROJECT_ID! }

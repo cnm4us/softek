@@ -38,6 +38,7 @@ export type State = {
     revision: string;
     projectId: string | null;
     actor: 'human' | 'automation';
+    tracing?: { enabled: boolean; revision: string };
   };
 };
 export class ApiError extends Error {
@@ -57,6 +58,7 @@ export async function api<T>(
   path: string,
   body?: unknown,
   csrf?: string,
+  options: { keepalive?: boolean; timeoutMs?: number } = {},
 ): Promise<T> {
   let contextId: string | undefined;
   try {
@@ -69,6 +71,10 @@ export async function api<T>(
   const response = await fetch(`/api${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     credentials: 'same-origin',
+    keepalive: options.keepalive,
+    ...(options.timeoutMs
+      ? { signal: AbortSignal.timeout(options.timeoutMs) }
+      : {}),
     headers: {
       ...(body instanceof FormData
         ? {}

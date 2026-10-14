@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Check } from 'lucide-react';
 import { api, type State } from './api';
+import { Demo } from './clarity-audit';
 import {
   confirmed,
   collectionAvailable,
@@ -77,7 +78,7 @@ export function interaction(
       collectionAvailable(state) &&
       consentChoice(state) === 'granted'
     )
-      window.clarity?.('event', name);
+      Demo('event', name);
   });
 }
 export function rememberBanner(userId: string, banner: Banner | null) {

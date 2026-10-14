@@ -1,5 +1,6 @@
 import type { Pool, PoolConnection } from 'mariadb';
 import { analyticsConfig } from './config.js';
+import { customerTracing } from './clarity-tracing.js';
 export async function clarityStatus(db: Pool | PoolConnection) {
   const [row] = await db.query(
     'SELECT enabled,revision,updated_at AS updatedAt FROM clarity_collection WHERE id=1',
@@ -30,6 +31,7 @@ export async function customerAnalytics(
     !impersonating && status.enabled && (actor === 'human' || capture);
   return {
     enabled,
+    tracing: await customerTracing(db, enabled),
     projectId: enabled ? status.projectId : null,
     revision: status.revision,
     actor,

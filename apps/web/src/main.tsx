@@ -774,6 +774,8 @@ function AnalyticsChoice() {
     state?.visitId,
     state?.analytics.enabled,
     state?.analytics.revision,
+    state?.analytics.tracing?.enabled,
+    state?.analytics.tracing?.revision,
     location.pathname,
     banner?.id,
   ]);
@@ -813,6 +815,8 @@ function AnalyticsChoice() {
           Help us understand this demo with Microsoft Clarity. With your
           permission, it records how you use the site. Account details and form
           contents are masked. You can turn analytics off at any time.
+          {state.analytics.tracing?.enabled &&
+            ' We also keep a private seven-day log of the analytics commands our application sends.'}
         </p>
         <div className="analytics-modal-actions">
           <button className="button" onClick={() => choose(true)}>
@@ -830,6 +834,12 @@ function AnalyticsChoice() {
     );
   return (
     <aside className="analytics-choice" aria-label="Experience analytics">
+      {state.analytics.tracing?.enabled && (
+        <p className="small-note">
+          When analytics is allowed, we also keep a private seven-day log of our
+          analytics commands.
+        </p>
+      )}
       <p>
         {choice === 'granted'
           ? 'Experience analytics is enabled for this browser session.'
