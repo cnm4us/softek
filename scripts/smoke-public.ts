@@ -89,7 +89,9 @@ try {
         .click();
       await page.getByRole('link', { name: label, exact: true }).click();
     };
-    const placeholder = page.getByTestId('banner-placeholder');
+    const placeholder = page
+      .getByTestId('banner-placeholder')
+      .or(page.getByTestId('promotion-banner'));
     const selectionHref = () =>
       page.evaluate(
         () =>
