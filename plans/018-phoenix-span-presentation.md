@@ -24,7 +24,7 @@ and Phoenix acknowledgment never establish Microsoft receipt or recording storag
   error message without changing raw arguments, stable IDs or generic span kind.
 - [x] VIEW-02 — Verify escaped/multiargument/object/zeroargument calls and every
   outcome; inspect real isolated Phoenix REST/UI columns with no Microsoft traffic.
-- [ ] VIEW-03 — Deploy, preserve owner-enabled collection/tracing, verify health,
+- [x] VIEW-03 — Deploy, preserve owner-enabled collection/tracing, verify health,
   and update inspection instructions and durable handoff with actual evidence.
 
 Recovery: restore the preceding application release using LOCAL_SETUP's existing

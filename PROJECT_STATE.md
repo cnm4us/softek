@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[018 — Phoenix span presentation](plans/018-phoenix-span-presentation.md), implementation authorized**.
-Latest completed implementation: **Plan 017 — Clarity API-call tracing in Phoenix**.
-Current request: **Populate readable call/Input, local Output, Status and bounded Error messages; leave Kind unknown.**
-Next task: **Verify presentation in isolated Phoenix, then deploy preserving owner-enabled collection/tracing.**
+Current focus: **[018 — Phoenix span presentation](plans/018-phoenix-span-presentation.md), delivered**.
+Latest completed implementation: **Plan 018 — Phoenix span presentation**.
+Current request: **Readable call/Input, local Output, Status and bounded Error messages delivered; Kind remains unknown.**
+Next task: **Refresh the customer page, browse normally, and inspect newly exported spans in Phoenix project softek-clarity-api. Await the owner's next priority.**
 
 ## Plan status registry
 
@@ -32,9 +32,15 @@ Active identifies focus and does not itself authorize additional scope.
 | 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–06 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
 | 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
-| 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Active | VIEW-01–02 verified; deployment next |
+| 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
 
 ## Current reality
+
+- Plan 018 populates newly exported Phoenix spans with the readable call in Input
+  and `clarity.call`, local outcome in Output, OK/ERROR status and bounded Error
+  messages. Raw arguments remain intact and Kind stays unknown. Historical
+  acknowledged spans are not rewritten. No schema or collection policy change.
+
 
 - Plan 017 was deployed Off; the owner has now enabled tracing **On**, independently
   of existing Clarity collection **On**. All supported application calls use `Demo()`; consented safe
@@ -172,7 +178,7 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T15-32-53-693Z**. Previous authenticated release:
+- Current release: **2026-10-14T16-24-31-198Z**. Previous authenticated release:
   **2026-10-14T00-11-24-262Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
@@ -1085,12 +1091,31 @@ are explicitly distinct from Microsoft receipt/processing. Browser delivery is
 best effort with bounded losses; remote Phoenix copies can outlive local deletion
 or an in-flight request and expire independently. No push or rollback performed.
 
+## Plan 018 verification and release
+
+- Implementation commit **cedf9bf**; release **2026-10-14T16-24-31-198Z** deployed
+  to matching API/web current links. Schema 12 remains unchanged, no pending/drift.
+- **16 focused TAP entries passed**, including durable intake/export regression,
+  escaped/object/multiple/zero arguments and every invocation outcome. Isolated
+  Phoenix on 6008 persisted Input/Output/status/message/unknown kind; real table
+  and Attributes checks passed. The first run needed a selector update because
+  Phoenix now opens the populated Info panel; rerun passed with no failures.
+- Typecheck, formatting, evaluation build and Git diff checks passed. Build retains
+  its existing large-bundle warning. Screenshots/logs under ignored artifacts.
+- Live HTTPS health reports connected DB; API/Phoenix services active. Authenticated
+  tracing status is configured/enabled. Both owner-enabled switches and their
+  revisions matched before/after; deployed exporter fields checked without emitting
+  a production test trace. No real Microsoft pilot or historical re-export.
+- Isolated collector stopped; test-owned DB fixtures cleaned by the tests. No known
+  implementation failure. No push; owner temp files untouched.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-   Plan 017 is delivered Off. If the owner wants to inspect calls, use Admin →
-   Clarity Settings to enable the independent switch and private port-6006 forwarding
-   documented in LOCAL_SETUP. Customers still need analytics consent. Do not infer
+   Plans 017/018 are delivered; the owner has collection and tracing enabled.
+   Use private port-6006 forwarding and select softek-clarity-api. Refresh the
+   customer page and inspect new spans for readable Input/Output/status/error;
+   historical spans retain their old fields. Customers still need analytics consent. Do not infer
    raw SDK upload observation or resumed recording investigation from this delivery.
 2. Plans 013/014/015/016 are complete and deployed; verify live release/schema/Git
    before new work. Walk through Summary's three ordered feature banners and their
@@ -1123,7 +1148,7 @@ implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1*
 0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015/016/017 and the current Clarity implementation/checks/docs are
 committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
-and untouched. Plan 017 source/migration/acceptance is committed; final durable
+and untouched. Plan 018 source/tests are committed as cedf9bf; final durable
 documentation is included in the handoff commit (inspect `git log -1`). No push
 was made. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.

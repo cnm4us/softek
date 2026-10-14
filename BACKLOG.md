@@ -28,8 +28,7 @@ its backlog ID.
 | B-014 | Later | Broader contextual discovery | Additional placements and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011, grouped catalog is delivered in Plan 012 |
 | B-017 | Completed | Clarity API-call tracing in Phoenix | [Plan 017](plans/017-clarity-api-phoenix-tracing.md), PHX-01–07; mirrored safe arguments, consent-aware audit, durable export and private inspection; deployed Off |
 | B-018 | Later | Clarity upload observation and decoding | Separate from Plan 017; inspect outbound SDK payloads and available responses, preserve delivery behavior and verify decoded data/version compatibility; no implementation authorized |
-
-| B-019 | In progress | Phoenix span presentation | [Plan 018](plans/018-phoenix-span-presentation.md), VIEW-01–03; readable calls and truthful local Input/Output/Status/Error |
+| B-019 | Completed | Phoenix span presentation | [Plan 018](plans/018-phoenix-span-presentation.md), VIEW-01–03; readable calls and truthful local Input/Output/Status/Error |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

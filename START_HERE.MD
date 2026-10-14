@@ -89,7 +89,12 @@ Consult `PROJECT_STATE.md` for verified status and the exact next task.
 [017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md)
 is delivered: application calls are mirrored without replacing the hosted SDK,
 with a durable MariaDB audit/export queue and private Phoenix access on port 6006.
-The independent control is in Clarity Settings and is deployed Off. Schema is 12;
+The independent control is in Clarity Settings; current switch values are in PROJECT_STATE. Schema is 12;
 customer collection settings are preserved. LOCAL_SETUP owns the private tunnel
 and inspection runbook. Raw upload capture and the stopped missing-recording
 inquiry remain separate.
+
+[018 — Phoenix span presentation](plans/018-phoenix-span-presentation.md) adds the
+readable call in Input/Attributes, local outcome in Output and bounded Status/Error
+for newly exported spans. Kind remains unknown; acknowledged historical spans
+are not rewritten. LOCAL_SETUP explains each field and its limits.
