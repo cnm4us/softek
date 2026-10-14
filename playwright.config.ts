@@ -8,6 +8,7 @@ export default defineConfig({
     'catalog.spec.ts',
     'accounts.spec.ts',
     'feature-explorer.spec.ts',
+    'summary-banners.spec.ts',
   ],
   workers: 1,
   reporter: 'list',

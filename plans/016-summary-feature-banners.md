@@ -28,11 +28,11 @@ collection gates remain. Routine tests block/intercept Microsoft traffic.
 
 ## Tasks and acceptance
 
-- [ ] SUM-01: committed additive migration; scoped/idempotent Summary selection,
+- [x] SUM-01: committed additive migration; scoped/idempotent Summary selection,
   enabled/artwork filtering, fallback, retained snapshots and legacy separation.
-- [ ] SUM-02: compact customer banner with real links, refresh cycling, stable tab/
+- [x] SUM-02: compact customer banner with real links, refresh cycling, stable tab/
   menu return/reset handling, image-failure placeholder and accurate Clarity context.
-- [ ] SUM-03: API/browser/privacy checks for rotation/retries/ownership, metadata
+- [x] SUM-03: API/browser/privacy checks for rotation/retries/ownership, metadata
   changes, feature/CTA attribution, empty/error states, unchanged banking and inactive
   account-detail slots; mobile/desktop artwork review.
 - [ ] SUM-04: backup retained demo/ledger, apply/verify migration in test then demo,

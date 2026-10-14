@@ -1,3 +1,8 @@
+import sharp from 'sharp';
+import { unlink } from 'node:fs/promises';
+import { join } from 'node:path';
+import { assetDirectory } from '../../apps/api/src/banner-assets.js';
+import { features } from '../../apps/api/src/features.js';
 import { test, expect, type Page } from '@playwright/test';
 import mariadb from 'mariadb';
 import { createHash } from 'node:crypto';
@@ -616,4 +621,139 @@ test('impersonation errors keep admin details usable and expiry returns to admin
   expect(
     (await context.cookies()).some((c) => c.name === 'softek_impersonation'),
   ).toBe(false);
+});
+
+test('Summary artwork has consent-gated banner tags, click events and cleared account context', async ({
+  page,
+}) => {
+  const before = await pool.query(
+    "SELECT id,enabled FROM feature_explorer_widgets WHERE section_key='summary'",
+  );
+  let widgetId = '',
+    assetKey = '';
+  try {
+    await pool.query(
+      "UPDATE feature_explorer_widgets SET enabled=FALSE WHERE section_key='summary'",
+    );
+    const csrf = await admin(page),
+      origin = 'http://127.0.0.1:5173';
+    const created = await page.request.post('/api/admin/feature-explorer', {
+      headers: { Origin: origin, 'X-CSRF-Token': csrf },
+      data: { section: 'summary', featureId: 'identity-protect' },
+    });
+    expect(created.status()).toBe(201);
+    widgetId = (await created.json()).id;
+    const buffer = await sharp({
+      create: { width: 960, height: 315, channels: 3, background: '#205747' },
+    })
+      .png()
+      .toBuffer();
+    const uploaded = await page.request.post(
+      `/api/admin/feature-explorer/${widgetId}/image`,
+      {
+        headers: { Origin: origin, 'X-CSRF-Token': csrf },
+        multipart: {
+          image: { name: 'owned-privacy.png', mimeType: 'image/png', buffer },
+        },
+      },
+    );
+    expect(uploaded.status()).toBe(201);
+    assetKey = (await uploaded.json()).imageUrl.split('/').at(-1);
+    const enabled = await page.request.post(
+      `/api/admin/feature-explorer/${widgetId}/settings`,
+      {
+        headers: { Origin: origin, 'X-CSRF-Token': csrf },
+        data: {
+          altText: 'Explore identity protection',
+          enabled: true,
+          sortOrder: 0,
+        },
+      },
+    );
+    expect(enabled.status()).toBe(200);
+    const user = await fixtureUser(pool);
+    ids.push(user.id);
+    await login(page, user);
+    const modal = page.getByRole('dialog', {
+      name: 'Allow experience analytics?',
+      exact: true,
+    });
+    await modal
+      .getByRole('button', { name: 'Allow analytics', exact: true })
+      .click();
+    const tags = async () =>
+      new Map(
+        (await calls(page))
+          .filter((c: any[]) => c[0] === 'set')
+          .map((c: any[]) => [c[1], c[2]]),
+      );
+    await expect.poll(async () => (await tags()).get('banner')).toBe(widgetId);
+    expect((await tags()).get('feature')).toBe('identity-protect');
+    expect((await tags()).get('campaign')).toBe('none');
+    const banner = page.getByTestId('promotion-banner');
+    await banner.scrollIntoViewIfNeeded();
+    await expect
+      .poll(async () => JSON.stringify(await calls(page)))
+      .toContain('banner_visible');
+    await banner.click();
+    await expect(page).toHaveURL('/features/identity-protect');
+    await expect
+      .poll(async () => JSON.stringify(await calls(page)))
+      .toContain('banner_clicked');
+    await page
+      .getByRole('button', {
+        name: features.find((f) => f.id === 'identity-protect')!.cta,
+        exact: true,
+      })
+      .click();
+    await expect(page.getByRole('status')).toBeVisible();
+    await expect
+      .poll(async () => JSON.stringify(await calls(page)))
+      .toContain('feature_cta_clicked');
+    expect((await tags()).get('banner')).toBe(widgetId);
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+    await page
+      .getByRole('link', { name: 'Account Summary', exact: true })
+      .click();
+    await page
+      .getByRole('link', { name: 'Open Everyday checking', exact: true })
+      .click();
+    await expect
+      .poll(async () => (await tags()).get('route'))
+      .toBe('account-checking');
+    expect((await tags()).get('banner')).toBe('none');
+    expect((await tags()).get('feature')).toBe('none');
+    expect(JSON.stringify(await calls(page))).not.toContain(user.username);
+  } finally {
+    if (widgetId)
+      await pool.query('DELETE FROM feature_explorer_widgets WHERE id=?', [
+        widgetId,
+      ]);
+    for (const row of before)
+      await pool.query(
+        'UPDATE feature_explorer_widgets SET enabled=? WHERE id=?',
+        [row.enabled, row.id],
+      );
+    // Remove the fixture's snapshots/observations before its asset FK; user cleanup
+    // afterAll handles their remaining banking/session state.
+    if (widgetId) {
+      const presentations = await pool.query(
+        'SELECT id FROM banner_presentations WHERE banner_id=?',
+        [widgetId],
+      );
+      for (const p of presentations) {
+        await pool.query(
+          'DELETE FROM interaction_events WHERE selection_id=?',
+          [p.id],
+        );
+        await pool.query('DELETE FROM banner_presentations WHERE id=?', [p.id]);
+      }
+    }
+    if (assetKey) {
+      await pool.query('DELETE FROM banner_assets WHERE asset_key=?', [
+        assetKey,
+      ]);
+      await unlink(join(assetDirectory(true), assetKey)).catch(() => {});
+    }
+  }
 });
