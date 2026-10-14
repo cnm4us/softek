@@ -30,7 +30,7 @@ its backlog ID.
 | B-018 | Later | Clarity upload observation and decoding | Separate from Plan 017; inspect outbound SDK payloads and available responses, preserve delivery behavior and verify decoded data/version compatibility; no implementation authorized |
 | B-019 | Completed | Phoenix span presentation | [Plan 018](plans/018-phoenix-span-presentation.md), VIEW-01–03; readable calls and truthful local Input/Output/Status/Error |
 | B-020 | Completed | Clarity context deduplication | [Plan 019](plans/019-clarity-context-deduplication.md); reduce redundant tags at source, preserve event calls and inspect Phoenix |
-| B-021 | In progress | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
+| B-021 | Completed | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

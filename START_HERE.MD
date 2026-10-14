@@ -103,3 +103,8 @@ are not rewritten. LOCAL_SETUP explains each field and its limits.
 reduces unchanged identity/tag calls at source, while retaining all events and
 faithful Phoenix mirroring. Fresh documents and collection/ownership changes
 start fresh. PROJECT_STATE records the live 16-call SDK-stub reload comparison.
+
+[020 — Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md)
+omits unresolved banner context from SDK calls and audit metadata. Loaded artwork
+supplies actual values once; genuinely empty/failed slots retain absence handling.
+PROJECT_STATE records the new 13-call live SDK-stub reload comparison.

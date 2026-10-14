@@ -25,7 +25,7 @@ use an owned Automation fixture and SDK stub with real Phoenix export.
 - [x] READY-02 — Verify delayed image emits no temporary absence tags or audit
   metadata; success emits actual tags once, failure/empty resolve, and events,
   consent, SDK/audit fidelity and mobile/desktop flows remain intact.
-- [ ] READY-03 — Deploy with live settings preserved, examine a fresh reload in
+- [x] READY-03 — Deploy with live settings preserved, examine a fresh reload in
   Phoenix and update operational instructions/state with actual evidence.
 
 Recovery: restore the prior application release using LOCAL_SETUP; all retained
