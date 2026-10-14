@@ -616,6 +616,51 @@ test('Clarity tracing: consent ownership, durable audit and truthful export', as
       },
     );
     await t.test(
+      'reset retains audit history and refuses retired-run contexts',
+      async () => {
+        const s = (await admin.req('/admin/clarity-tracing')).data;
+        await admin.req('/admin/clarity-tracing', {
+          enabled: true,
+          revision: s.revision,
+        });
+        const fresh = (await a.req('/state')).data;
+        const opened = await a.req('/analytics/trace-session', {
+          ...openBody,
+          documentId: randomUUID(),
+          visitId: fresh.visitId,
+          tracingRevision: fresh.analytics.tracing.revision,
+        });
+        assert.equal(opened.status, 200);
+        const [before] = await pool.query(
+          'SELECT COUNT(*) AS n FROM clarity_api_calls WHERE context_id=?',
+          [context],
+        );
+        assert.equal(
+          (
+            await admin.req('/admin/users/' + state.user.id + '/reset', {
+              variant: 'value',
+              eligible: true,
+            })
+          ).status,
+          200,
+        );
+        const [after] = await pool.query(
+          'SELECT COUNT(*) AS n FROM clarity_api_calls WHERE context_id=?',
+          [context],
+        );
+        assert.equal(after.n, before.n);
+        assert.equal(
+          (
+            await a.req('/analytics/clarity-calls', {
+              contextId: opened.data.contextId,
+              calls: [makeCall()],
+            })
+          ).status,
+          403,
+        );
+      },
+    );
+    await t.test(
       'permanent deletion cascades diagnostic rows and prevents pending export',
       async () => {
         const [before] = await pool.query(
