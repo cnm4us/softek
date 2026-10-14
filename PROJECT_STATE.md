@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md), delivered with tracing Off**.
+Current focus: **[017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md), delivered; owner enabled tracing**.
 Latest completed implementation: **Plan 017 — Clarity API-call tracing in Phoenix**.
-Current request: **Implement Plan 017, deploy with tracing initially Off and preserve existing Clarity collection settings.**
-Next task: **Owner may enable API-call tracing in Clarity Settings and inspect private Phoenix through port forwarding. Await the next priority; raw uploads, other banner spaces and the recording inquiry remain outside this delivered scope.**
+Current request: **Owner enabled tracing and reported an empty default Phoenix project; verify live delivery without restarting services.**
+Next task: **Open Phoenix project softek-clarity-api through the private port forward. Await the next priority; raw uploads, other banner spaces and the recording inquiry remain outside this delivered scope.**
 
 ## Plan status registry
 
@@ -35,14 +35,18 @@ Active identifies focus and does not itself authorize additional scope.
 
 ## Current reality
 
-- Plan 017 is deployed with tracing **Off**, independently of existing Clarity
-  collection **On**. All supported application calls use `Demo()`; consented safe
+- Plan 017 was deployed Off; the owner has now enabled tracing **On**, independently
+  of existing Clarity collection **On**. All supported application calls use `Demo()`; consented safe
   snapshots are accepted under owned server contexts, stored in MariaDB and exported
   as custom protobuf OTLP spans. Admin Clarity Settings has the independent control,
   status/loss counters and filtered JSON download. Phoenix 20.21.3/Python 3.12.12
   runs privately as `softek-phoenix` on loopback 6006, with seven-day retention,
   isolated SQLite and HTTP-only launcher (no new gRPC listener). LOCAL_SETUP owns
   tunnel/inspection commands. Raw SDK uploads are B-018, not implemented.
+  Owner walkthrough recheck: 339 accepted calls were collector-acknowledged, with
+  no export errors; live REST readback confirmed a persisted span and the real
+  Phoenix UI lists softek-clarity-api. The default project remains empty. API and
+  Phoenix services are active; no restart, setting change or capture pilot was needed.
 
 - Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
   Admin signs in independently at `/controls` using the private `DEMO_ADMIN_SECRET`.
