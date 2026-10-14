@@ -80,3 +80,17 @@ the persistent switch.
 
 References do not imply that Clarity has been configured or its current behavior
 verified. Prefer primary documentation when selecting packages or implementing APIs.
+
+## Phoenix diagnostics — Plan 017
+
+Arize Phoenix **20.21.3** is installed privately for custom Clarity API-call spans,
+with an isolated pinned Python **3.12.12** runtime. Use the private port-6006 tunnel
+and `softek-clarity-api` project described in
+[LOCAL_SETUP](LOCAL_SETUP.md#phoenix-api-call-tracing--plan-017).
+`Demo()` preserves application calls and queues safe argument snapshots; the
+server exports explicit OTLP protobuf spans with committed audit rows and stable
+IDs. No Phoenix key or browser OTLP endpoint is exposed.
+
+[TESTING](TESTING.MD#clarity-api-call-tracing--plan-017) owns the stub and isolated
+port-6008 round-trip commands. Never redirect routine tests to the production
+collector or Microsoft. The SDK's raw upload observer/decoder remains later scope.

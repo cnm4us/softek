@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[016 — Summary feature banners](plans/016-summary-feature-banners.md), Summary activation delivered; other spaces deferred**.
-Latest completed implementation: **Plan 016 — Account Summary feature banners**.
-Current request: **The three configured Summary banners are deployed, rotate on login/refresh and link to their feature pages. Other account banner spaces remain inactive.**
-Next task: **Await owner review/next priority. Checking/savings/credit activation and further contextual placements remain deferred; recording investigation remains stopped.**
+Current focus: **[017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md), delivered with tracing Off**.
+Latest completed implementation: **Plan 017 — Clarity API-call tracing in Phoenix**.
+Current request: **Implement Plan 017, deploy with tracing initially Off and preserve existing Clarity collection settings.**
+Next task: **Owner may enable API-call tracing in Clarity Settings and inspect private Phoenix through port forwarding. Await the next priority; raw uploads, other banner spaces and the recording inquiry remain outside this delivered scope.**
 
 ## Plan status registry
 
@@ -31,8 +31,18 @@ Active identifies focus and does not itself authorize additional scope.
 | 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | Completed | STRIP-01–03 verified/deployed; 54 distinct account/banking cases, eight privacy checks, live HTTPS 360/1440px; schema 9 unchanged |
 | 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–06 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
 | 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
+| 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
 
 ## Current reality
+
+- Plan 017 is deployed with tracing **Off**, independently of existing Clarity
+  collection **On**. All supported application calls use `Demo()`; consented safe
+  snapshots are accepted under owned server contexts, stored in MariaDB and exported
+  as custom protobuf OTLP spans. Admin Clarity Settings has the independent control,
+  status/loss counters and filtered JSON download. Phoenix 20.21.3/Python 3.12.12
+  runs privately as `softek-phoenix` on loopback 6006, with seven-day retention,
+  isolated SQLite and HTTP-only launcher (no new gRPC listener). LOCAL_SETUP owns
+  tunnel/inspection commands. Raw SDK uploads are B-018, not implemented.
 
 - Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
   Admin signs in independently at `/controls` using the private `DEMO_ADMIN_SECRET`.
@@ -138,10 +148,10 @@ Active identifies focus and does not itself authorize additional scope.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0011** applied to **demo and demo_test**, version 11 with no
+- Migrations **0001–0012** applied to **demo and demo_test**, version 12 with no
   pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
   preferences; committed **7eb7290** before application. Batch/balance tables and
-  the collection switch/epoch remain intact. Next migration is **0012**. 0011 adds only the Summary cursor, committed **0cbb1cb** before application. 0010 adds only unseeded admin widget configuration, committed **c8f4204** before application. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
+  the collection switch/epoch remain intact. Next migration is **0013**. 0012 adds diagnostic configuration/contexts/calls, committed **9a167b6** before application. 0011 adds only the Summary cursor, committed **0cbb1cb** before application. 0010 adds only unseeded admin widget configuration, committed **c8f4204** before application. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
 - Root-only 0600 pre-0011 schema/data/ledger backup:
   `/var/backups/softek/demo-before-0011-20261014T000207Z.sql`.
   Additive cursor and existing immutable snapshots may remain on code rollback.
@@ -157,8 +167,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T00-11-24-262Z**. Previous authenticated release:
-  **2026-10-14T00-08-00-786Z**. Both current links point to the new release.
+- Current release: **2026-10-14T15-32-53-693Z**. Previous authenticated release:
+  **2026-10-14T00-11-24-262Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -1046,9 +1056,37 @@ banner-click pilot can find the slot again, but was not run or sent to Microsoft
 Broader banking/privacy-suite counts above are historical evidence, not additional
 reruns for this phase. Other banner spaces and the recording inquiry stay deferred.
 
+## Plan 017 verification — 2026-10-14 UTC
+
+Migration **9a167b6**; implementation **f00c785**; final acceptance **6fa782e**.
+Release **2026-10-14T15-32-53-693Z**. PHX-01–07 complete; source and runtime preserve
+Clarity calls/consent while tracing is Off. No Microsoft pilot or owner recording
+investigation was run. Earlier checks above remain historical evidence.
+
+| Check actually run | Result |
+| --- | --- |
+| API/migration | **110 TAP entries passed**, no failures/skips; adapter fidelity, strict context/ownership, consent/actor/impersonation, retries/conflicts, terminal close, reset/deletion and additive/repeat schema |
+| Browser/privacy | **12/12**, 360/390/1440px: new mirror/audit-failure journey, existing consent/masking/shared identity, impersonation stopping, Summary tags/events; hosted SDK stubbed and no real Microsoft traffic |
+| Real Phoenix | **13/13** focused checks with isolated port-6008 instance; accepted MariaDB arguments/event ID matched REST readback and generic span Attributes in real UI; HTTP failure, partial rejection, timeout and expired lease covered |
+| Capacity | 200 synthetic identities × 100 calls acknowledged/persisted in isolated SQLite; initial 20-second REST readback was incomplete while insertion drained, later read-only counts confirmed 20,000; collector-only evidence, not a full banking cohort/production throughput claim |
+| Quality | Typecheck, format check, evaluation build and diff/link checks passed; existing bundle advisory remains B-011 |
+| Schema | test/demo version **12**, no pending/drift; repeat production application no-op; private 0600 schema/data/ledger backup `demo-before-0012-20261014T153200Z.sql` |
+| Live HTTPS | 360/1440px admin control ready/Off, no overflow, customer Summary banner and feature CTA work; zero diagnostic/vendor calls/browser errors; original user/widget/collection/tracing fingerprints unchanged; two owned Automation fixtures created/deleted |
+| Host | matched API/web release links, API/DB health, active scoped API/Phoenix services, loopback-only Phoenix HTTP and no new gRPC/public ingress; isolated test collector stopped |
+
+Evidence is ignored: `artifacts/phoenix-live.json`, `phoenix-real-span.png`,
+`phoenix-volume.json` and `plan017-*.log`. Invocation/queued/collector acknowledgment
+are explicitly distinct from Microsoft receipt/processing. Browser delivery is
+best effort with bounded losses; remote Phoenix copies can outlive local deletion
+or an in-flight request and expire independently. No push or rollback performed.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
+   Plan 017 is delivered Off. If the owner wants to inspect calls, use Admin →
+   Clarity Settings to enable the independent switch and private port-6006 forwarding
+   documented in LOCAL_SETUP. Customers still need analytics consent. Do not infer
+   raw SDK upload observation or resumed recording investigation from this delivery.
 2. Plans 013/014/015/016 are complete and deployed; verify live release/schema/Git
    before new work. Walk through Summary's three ordered feature banners and their
    links/report attribution. Account detail banner slots remain inactive; discuss
@@ -1077,9 +1115,11 @@ reruns for this phase. Other banner spaces and the recording inquiry stay deferr
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015/016 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015/016/017 and the current Clarity implementation/checks/docs are
 committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
-and untouched. Ignored artifacts hold screenshots/manifests and owned checks.
+and untouched. Plan 017 source/migration/acceptance is committed; final durable
+documentation is included in the handoff commit (inspect `git log -1`). No push
+was made. Ignored artifacts hold screenshots/manifests and owned checks.
 No credentials are committed; production intentionally continues running.
 LOCAL_SETUP owns backup/rollback/renewal, TESTING owns commands and cleanup boundaries.

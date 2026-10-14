@@ -11,6 +11,22 @@ use those services.
 This is an independent evaluation. It does not establish compatibility with
 Access Softek's unknown production platform or connect to real financial systems.
 
+## Clarity API-call diagnostics — Plan 017
+
+Admin → Clarity Settings now includes an independent **Clarity API-call tracing**
+control, deployed Off. When enabled, it mirrors supported application commands and
+their safe argument values into private Arize Phoenix, after customer analytics
+consent and subject to the existing actor/admin/impersonation rules. A durable
+MariaDB audit/export queue, bounded status counters and filtered JSON download
+provide a cross-check. Phoenix is accessible through private port forwarding.
+
+The interface distinguishes application invocation, local persistence and Phoenix
+collector acknowledgment from Microsoft processing. Native SDK activity/upload
+capture remains separate scope. Diagnostics retain seven days; browser closure or
+transport failures can leave gaps, and switching tracing Off leaves existing
+Clarity collection unchanged. [Plan 017](plans/017-clarity-api-phoenix-tracing.md)
+owns the supported-call contract and verified acceptance.
+
 ## Confirmed requirements
 
 - Develop on the current EC2 instance using MariaDB, with versioned migrations.

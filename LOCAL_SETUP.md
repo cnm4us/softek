@@ -6,6 +6,9 @@ separate API ports so they can run together.
 
 ## Environment and first checkout
 
+Phoenix API-call tracing setup and inspection are documented at
+[Plan 017 operations](#phoenix-api-call-tracing--plan-017).
+
 Verified on 2026-10-11 UTC: Ubuntu 22.04.5, Node 22.21.1 through Ubuntu's NVM,
 npm 10.9.4, Git 2.34.1, MariaDB 10.6.22, Nginx 1.18, Certbot 1.21.
 Workspace: `/home/ubuntu/softek`; origin: `https://github.com/cnm4us/softek.git`.
@@ -503,3 +506,98 @@ Migration 0011 adds only a Summary cursor. Root-only 0600 prechange backup:
 Both schemas are version 11; repeat application is a no-op, next migration 0012.
 A code rollback may leave the additive cursor/snapshots intact; do not drop data.
 No rollback was performed.
+
+## Phoenix API-call tracing — Plan 017
+
+Admin Menu → **Clarity Settings → Clarity API-call tracing** has its own On/Off
+switch. The deployment is configured, but tracing starts **Off**. Turning it on
+does not enable Clarity or grant consent. After enabling, refresh the customer
+page to load the current adapter; the customer must allow analytics. Existing
+valid analytics consent can be used. Calls made before tracing starts are not
+recovered. Ordinary Automation profiles and admin/impersonation visits stay excluded.
+
+Use the **VS Code Ports** panel to forward remote port **6006** privately, then
+open `http://localhost:6006`. Alternatively, on your local machine:
+
+```bash
+ssh -N -L 6006:127.0.0.1:6006 ubuntu@demo.bawebtech.com
+```
+
+Use the same SSH identity/configuration you normally use for this EC2 host. Do not
+open port 6006 in the EC2 security group. Phoenix's UI and OTLP HTTP collector bind
+only to `127.0.0.1:6006`. The project's launcher disables Phoenix's default gRPC
+listener; the other existing telemetry listeners are untouched. The server can
+also export through loopback without a browser tunnel.
+
+After customer activity, select Phoenix project **softek-clarity-api**, then a
+`clarity.event`, `clarity.set`, `clarity.identify`, `clarity.consentv2` or
+`clarity.stop` span. **Attributes → clarity.arguments_json** contains the full
+supported safe argument array. `user.id` matches the customer's opaque Clarity
+custom user ID; `session.id` is our owned visit ID. These are custom application
+spans, so Phoenix displays their kind as **unknown**, with no LLM inputs/outputs.
+`softek.event_id` and document/sequence attributes support comparison with the
+admin JSON export. Local invocation time is not Microsoft network latency.
+
+The admin status distinguishes pending, collector-acknowledged and failed exports.
+Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish
+exporting after tracing is switched Off. Browser closure, lost authentication,
+queue overflow and offline activity can cause gaps; reported omissions/failures
+are bounded counters, not a guarantee of a complete browser log. Retention is
+seven days in MariaDB and the dedicated Phoenix instance. Customer deletion
+removes local diagnostics; already exported Phoenix copies expire independently.
+
+Installed service and storage:
+
+| Item | Location |
+| --- | --- |
+| Service | `softek-phoenix.service`, dedicated nonlogin `softek-phoenix` identity |
+| Pinned runtime | Python 3.12.12, Phoenix 20.21.3, `/opt/softek-phoenix/` |
+| Phoenix-only SQLite and persistence | `/var/lib/softek-phoenix/`, mode 0700 |
+| Install/launch definitions | `scripts/install-phoenix.py`, `deploy/phoenix-http.py`, `deploy/systemd.softek-phoenix.service` |
+| Python dependency pins | `deploy/phoenix-requirements.lock` |
+| Private API environment | `/etc/softek/runtime.env`, installed by the existing deployment script |
+
+Phoenix has external-resource access, telemetry, MCP, model providers and sandbox
+providers disabled. Its service limits are 1 GiB memory and 50% CPU, with
+loopback-only networking and writes limited to its own persistent directory.
+The HTTP-only launcher is guarded to the pinned Phoenix version; reverify it
+before upgrading. Softek's own persistence remains MariaDB.
+
+Reproducible bootstrap on this host, from the repository root:
+
+```bash
+python3 -m venv artifacts/phoenix-bootstrap
+artifacts/phoenix-bootstrap/bin/pip install uv==0.9.3
+UV_PYTHON_INSTALL_DIR=/home/ubuntu/softek/artifacts/python artifacts/phoenix-bootstrap/bin/uv python install 3.12.12
+python3 scripts/install-phoenix.py
+sudo systemctl is-active softek-phoenix
+curl --fail http://127.0.0.1:6006/
+```
+
+The installer changes only Softek's Phoenix runtime/service/storage. It needs the
+existing sudo access, installs the committed pins and leaves other Python/services
+alone. A running service must be restarted explicitly after changing its launcher
+or pins. Never recreate its SQLite store to fix a startup problem.
+
+Development defaults in `.env.example` leave both tracing gates false. The existing
+`--clarity` evaluation build includes the frontend tracing capability; the private
+runtime additionally needs `PHOENIX_TRACING_ENABLED=true`, matching
+`VITE_PHOENIX_TRACING_ENABLED=true`, and the fixed loopback collector URL. These
+readiness gates do not turn on the database switch. Verified production deployment:
+
+```bash
+CLARITY_CONFIG_VERIFIED=true npm run build -- --clarity
+PHOENIX_TRACING_ENABLED=true CLARITY_CONFIG_VERIFIED=true npm run deploy -- --clarity
+```
+
+These commands require the existing private project/credential configuration and
+applied migrations; they preserve the database collection/tracing switch values.
+Current schema is 12. Migration 0012 was committed as **9a167b6** before application.
+Private pre-upgrade schema/data/ledger backup, mode 0600:
+`/var/backups/softek/demo-before-0012-20261014T153200Z.sql`.
+
+To recover from an application issue, switch tracing Off and restore a compatible
+application release, leaving the additive tables intact. Stop only
+`softek-phoenix.service` if the collector itself needs recovery. This does not stop
+existing Clarity collection. Use the migration contract for partial-DDL recovery;
+never force a ledger entry or edit applied SQL.

@@ -163,6 +163,38 @@ remove archived demo runs; reset itself is not a schema operation.
 
 ## Analytics boundaries
 
+Implemented API-call diagnostics: [Plan 017](plans/017-clarity-api-phoenix-tracing.md).
+The owner selected Arize Phoenix and authorized implementation. `Demo()` resolves
+the current hosted Clarity callable, preserves original arguments/receiver/order/
+return/exception and independently queues safe immutable snapshots. It neither
+replaces the SDK global/initial `.q` nor observes automatic uploads. Authenticated
+bounded intake requires an owned existing visit, server-issued grant context and
+matching collection/tracing revisions. Admin/impersonation and ordinary automation
+are excluded. Only a narrow denial/stop terminal batch can close a context after
+collection changes; it cannot admit subsequent activity.
+
+Migration 0012 creates initially disabled tracing configuration, owned contexts
+and audit/export rows in MariaDB. Duplicate deliveries deduplicate by event UUID
+and document sequence; conflicting content is rejected. Calls remain client
+observations, separate from adoption. Explicit custom OTLP protobuf spans preserve
+safe argument JSON and opaque user/visit/document identity. A single bounded
+worker leases up to 25 rows, checks owner/context existence, times out after five
+seconds and retries at most ten times with backoff. Only collector acknowledgment
+marks an export acknowledged, including partial-rejection handling. Stable trace/
+span IDs survive retries, but ambiguous acknowledgments are not an exactly-once
+guarantee. A deletion race can finish a request already in flight; previously
+exported Phoenix copies expire independently of local customer deletion.
+
+Phoenix 20.21.3 uses a dedicated Python 3.12.12 environment and its own SQLite
+store, with HTTP UI/collector only on loopback 6006 and SSH/VS Code port forwarding.
+A pinned launcher disables its otherwise wildcard-bound gRPC listener, preserving
+existing host telemetry services. The service has scoped storage/network/resource
+limits; no browser keys, public collector, global auto-instrumentation or additional
+application database engine is introduced. Both stores retain diagnostics seven
+days. Browser queues/delivery are bounded and best effort; status/export reports
+known omissions without implying complete capture or Microsoft processing.
+Tracing is deployed Off independently of the unchanged Clarity collection switch.
+
 The event envelope includes event ID, event name, server receipt time, relevant
 client observation time, institution/service/campaign, assignment/variant,
 participant run, visit, customer-profile identifier, placement, actor type, and

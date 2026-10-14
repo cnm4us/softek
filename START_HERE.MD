@@ -85,3 +85,11 @@ derived URLs and mobile image configuration. Plan 016 activates the owner-config
 real feature links and owned attribution. Checking/savings/credit slots remain
 inactive; their activation and wider Explore placements await owner discussion.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.
+
+[017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md)
+is delivered: application calls are mirrored without replacing the hosted SDK,
+with a durable MariaDB audit/export queue and private Phoenix access on port 6006.
+The independent control is in Clarity Settings and is deployed Off. Schema is 12;
+customer collection settings are preserved. LOCAL_SETUP owns the private tunnel
+and inspection runbook. Raw upload capture and the stopped missing-recording
+inquiry remain separate.

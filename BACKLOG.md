@@ -26,6 +26,8 @@ its backlog ID.
 | B-016 | Partly delivered | Rotating content for compact banner slots | Plan 016 activates Summary-only ordered banners and owned reporting/Clarity context. Checking/savings/credit activation, desktop-specific artwork and wider automation remain owner-selected later scope |
 | B-015 | Next discussion | Explore links on account detail pages | Owner requested discussion after Plan 013; choose features, copy and placement before implementing invitations |
 | B-014 | Later | Broader contextual discovery | Additional placements and two-FI configuration/switching from the supplied brief; experiment assignments remain B-007; first pair is Plan 011, grouped catalog is delivered in Plan 012 |
+| B-017 | Completed | Clarity API-call tracing in Phoenix | [Plan 017](plans/017-clarity-api-phoenix-tracing.md), PHX-01–07; mirrored safe arguments, consent-aware audit, durable export and private inspection; deployed Off |
+| B-018 | Later | Clarity upload observation and decoding | Separate from Plan 017; inspect outbound SDK payloads and available responses, preserve delivery behavior and verify decoded data/version compatibility; no implementation authorized |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

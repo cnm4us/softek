@@ -378,3 +378,60 @@ and image-error placeholders at 360/390/1440px. The SDK-stub test Summary artwor
 checks granted-consent tags/events and clears context on account navigation.
 Routine tests use `demo_test`; live checks use only owned capture-disabled users,
 retain all owner configuration/artwork and delete their fixtures afterward.
+
+## Clarity API-call tracing — Plan 017
+
+With migration 0012 applied to `demo_test`:
+
+```bash
+npx tsx --test --test-concurrency=1 tests/clarity-call.test.ts tests/clarity-tracing.test.ts tests/clarity-tracing-migration.test.ts
+npm run test:clarity -- --grep 'Phoenix API-call audit|consent, masks|Summary artwork|impersonation stops'
+```
+
+The adapter checks preserve argument object identity at the SDK boundary, immutable
+snapshots, order/return/receiver, SDK queue replacement and original exceptions
+under serializer/recorder failure. API checks cover private controls, explicit
+consent context, owned existing visits, CSRF/origin, strict shapes/limits, conflicting
+retries, Automation capture gates, impersonation rejection, terminal revocation,
+tracing Off without changing Clarity, export filtering and deletion cascades.
+Migration probes apply the committed SQL to new owned test tables, verify initial
+Off/repeated no-op and leave existing event layout unchanged.
+
+Worker checks use an isolated fake collector to exercise HTTP failure, protobuf
+partial rejection, timeout, expired-lease recovery and stable trace IDs. The new
+browser journey compares accepted arrays to the SDK stub, checks initial queued
+ConsentV2, feature CTA calls, audit 503 recovery without disrupting banking,
+withdrawal/stop, and responsive admin controls. All Microsoft requests are
+intercepted or blocked. Normal browser checks send neither real Clarity traffic
+nor production Phoenix traces; the stub configuration's collector port 6009 is
+intentionally unused. Each test restores the test collection/tracing switches and
+removes only its owned users/records.
+
+For a real collector round trip, first start a separate Phoenix instance on
+loopback port **6008** with its own ignored storage, using the installed runtime:
+
+```bash
+PHOENIX_HOST=127.0.0.1 PHOENIX_PORT=6008 PHOENIX_WORKING_DIR=/home/ubuntu/softek/artifacts/test-phoenix PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=7 PHOENIX_ALLOW_EXTERNAL_RESOURCES=false PHOENIX_TELEMETRY_ENABLED=false PHOENIX_ENABLE_MCP_SERVER=false PHOENIX_ALLOWED_PROVIDERS=NONE PHOENIX_ALLOWED_SANDBOX_PROVIDERS=NONE PHOENIX_DISABLE_AGENT_ASSISTANT=true /opt/softek-phoenix/venv/bin/python deploy/phoenix-http.py serve
+```
+
+In a second terminal, from the repository root:
+
+```bash
+SOFTEK_TEST_PHOENIX=true npx tsx --test --test-concurrency=1 tests/clarity-tracing.test.ts
+```
+
+The optional test explicitly targets only port 6008, sends an accepted test-schema
+record through the durable exporter, verifies the exact arguments/event ID through
+Phoenix's REST readback, and opens a generic span's Attributes in its real UI.
+It saves `artifacts/phoenix-real-span.png`. Stop the isolated instance afterward;
+never point this test at the live port 6006 or erase a production Phoenix project.
+It sends no Microsoft requests. Phoenix copies outlive local fixture deletion
+until isolated storage is removed or retention expires.
+
+Observed collector-only capacity evidence is ignored
+`artifacts/phoenix-volume.json`: 200 synthetic identities × 100 calls were
+acknowledged and persisted in the isolated SQLite instance. An initial 20-second
+REST readback window was insufficient while insertion drained; later read-only
+SQLite counts confirmed persistence. This is not an end-to-end automated banking
+cohort, a production throughput guarantee, or proof of Microsoft processing.
+Actual checks/release results are recorded in PROJECT_STATE.
