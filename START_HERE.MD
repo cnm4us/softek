@@ -98,3 +98,8 @@ inquiry remain separate.
 readable call in Input/Attributes, local outcome in Output and bounded Status/Error
 for newly exported spans. Kind remains unknown; acknowledged historical spans
 are not rewritten. LOCAL_SETUP explains each field and its limits.
+
+[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md)
+reduces unchanged identity/tag calls at source, while retaining all events and
+faithful Phoenix mirroring. Fresh documents and collection/ownership changes
+start fresh. PROJECT_STATE records the live 16-call SDK-stub reload comparison.

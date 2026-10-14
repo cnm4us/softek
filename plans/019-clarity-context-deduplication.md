@@ -15,8 +15,8 @@ retryable. Update audit metadata on every initialization independently of whethe
 Clarity context changed. Preserve all actual event calls and consent/policy gates.
 
 No schema/queue/filter change, history deletion, re-export or owner-switch change.
-Routine tests use a Clarity stub and owned fixtures. Examine real Phoenix via
-read-only owner activity after deployment; do not run a Microsoft recording pilot.
+Routine tests use a Clarity stub and owned fixtures. Examine real Phoenix after deployment with an owned Automation fixture and SDK
+stub, plus read-only owner activity when available; no Microsoft recording pilot.
 
 ## Tasks and acceptance
 
@@ -24,7 +24,7 @@ read-only owner activity after deployment; do not run a Microsoft recording pilo
   test repeat, banner/navigation clearing, session/reset and exception behavior.
 - [x] CTX-02 — Verify one identity/stable-tag group per Summary reload while
   page/banner/feature/CTA events and SDK/audit fidelity remain intact in browser.
-- [ ] CTX-03 — Deploy preserving live settings, inspect Phoenix for new owner
+- [x] CTX-03 — Deploy preserving live settings, inspect Phoenix for new owner
   activity when available, and record release/checks and exact comparison steps.
 
 Recovery uses the normal application-release rollback in LOCAL_SETUP; retained

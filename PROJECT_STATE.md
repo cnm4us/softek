@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md), implementation authorized**.
-Latest completed implementation: **Plan 018 — Phoenix span presentation**.
-Current request: **Reduce repeated identity/tag calls, retain real events, deploy and examine Phoenix.**
-Next task: **Deploy the checked context updater, preserve live settings, then inspect a controlled SDK-stub trace in Phoenix.**
+Current focus: **[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md), delivered**.
+Latest completed implementation: **Plan 019 — Clarity context deduplication**.
+Current request: **Reduce repeated identity/tag calls and examine Phoenix; implemented, deployed and checked.**
+Next task: **Owner reloads Summary to load the new bundle, then compares that document's spans in Phoenix; await further priorities.**
 
 ## Plan status registry
 
@@ -33,9 +33,14 @@ Active identifies focus and does not itself authorize additional scope.
 | 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
-| 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Active | CTX-01–02 verified; deployment and Phoenix comparison next |
+| 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
 
 ## Current reality
+
+- Plan 019 sends identity and tags once initially, then only changed values.
+  Stable Summary tags no longer repeat through initialization/event callbacks.
+  Reload/customer/run/visit/collection restarts begin fresh; ordinary SDK queue
+  drain preserves context. Events, consent and audit metadata remain intact.
 
 - Plan 018 populates newly exported Phoenix spans with the readable call in Input
   and `clarity.call`, local outcome in Output, OK/ERROR status and bounded Error
@@ -179,7 +184,7 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T16-24-31-198Z**. Previous authenticated release:
+- Current release: **2026-10-14T18-52-04-855Z**. Previous authenticated release:
   **2026-10-14T00-11-24-262Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
@@ -1110,12 +1115,40 @@ or an in-flight request and expire independently. No push or rollback performed.
 - Isolated collector stopped; test-owned DB fixtures cleaned by the tests. No known
   implementation failure. No push; owner temp files untouched.
 
+## Plan 019 verification and release
+
+- Implementation **7f1f9ba**; release **2026-10-14T18-52-04-855Z** deployed to
+  matching API/web links. Schema 12 unchanged; deployment migration check passed.
+- **14 TAP entries passed** for context, adapter and feature/report regression.
+  **12 selected browser cases passed** across 360/390/1440px, counting the corrected
+  Summary reload case rerun at all three widths. First mobile reload checks needed
+  to scroll the banner into view before asserting visibility; no application fix
+  was needed for that test-step failure. Consent, impersonation, SDK/audit fidelity,
+  banner/feature/CTA/navigation and context clearing passed.
+- Typecheck, formatting, evaluation build and diff checks passed; existing bundle
+  size warning remains. All routine vendor requests stubbed/blocked.
+- Live owned Automation fixture + SDK stub: a full Summary reload produced **16
+  calls: one consent, one identify, twelve sets (nine initial + three loaded-artwork
+  changes), page_view and banner_visible**. Each stable tag occurred once. Exact
+  SDK/audit arrays matched; all sixteen spans were persisted in real Phoenix and
+  filtered in its actual UI. No real Microsoft uploads. Screenshot/evidence:
+  ignored `artifacts/clarity-context-phoenix.png`, `clarity-context-live.json`.
+- Checked document UUID **3cb93b79-353e-406d-9f20-ccf0351dbbad**. Its test customer
+  and linked local history were permanently cleaned up; Phoenix copies remain
+  until the existing retention policy or owner cleanup. No owner history cleared.
+  Live switches and revisions preserved; HTTPS DB health and services active.
+- Phoenix Spans filtering uses nested attribute access for dotted attributes:
+  `attributes["softek"]["document_id"] == "UUID"`. Flat REST attribute keys do
+  not imply the same bracket syntax in this version's Spans filter.
+- No known unresolved implementation failure; no push. Owner `temp/` untouched.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-   Plans 017/018 are delivered; the owner has collection and tracing enabled.
+   Plans 017/018/019 are delivered; the owner has collection and tracing enabled.
    Use private port-6006 forwarding and select softek-clarity-api. Refresh the
-   customer page and inspect new spans for readable Input/Output/status/error;
+   customer page and inspect new spans for readable Input/Output/status/error and
+   changed-only context (one identity, nine initial tags, up to three banner changes);
    historical spans retain their old fields. Customers still need analytics consent. Do not infer
    raw SDK upload observation or resumed recording investigation from this delivery.
 2. Plans 013/014/015/016 are complete and deployed; verify live release/schema/Git

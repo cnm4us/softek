@@ -550,9 +550,8 @@ After Plan 019, a Summary reload sends one identity plus nine initial context
 tags; loading artwork can additionally change feature/service/banner. Unchanged
 tags are not resent for page/banner/event callbacks. Page-view, banner-visible,
 click and CTA events remain separate calls. To compare a single reload, filter by
-`attributes["softek.document_id"] == "DOCUMENT_UUID"` from a new span. The command
-filter `attributes["clarity.command"] == "set"` works in both Spans and Traces;
-`name == "clarity.set"` is a Spans-only expression. Allow a few seconds for the
+`attributes["softek"]["document_id"] == "DOCUMENT_UUID"` from a new span. In the Spans table, use nested attribute access for dotted keys, for example
+`attributes["clarity"]["command"] == "set"`. REST span output flattens those keys. Allow a few seconds for the
 browser queue and server exporter, then refresh Phoenix if its view is stale.
 
 The admin status distinguishes pending, collector-acknowledged and failed exports.
