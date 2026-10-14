@@ -1,15 +1,14 @@
 # MariaDB schema migration contract
 
 Status: migrations `0001_demo_foundation.sql` through
-`0010_feature_explorer_widgets.sql` are committed and applied to `demo` and
-`demo_test`. Both ledgers are version 10, no pending/checksum drift. 0010 was
-committed in **c8f4204** before application. It adds only an unseeded admin widget
-configuration table, with existing asset references and per-space/catalog uniqueness;
-no existing table layouts or customer data change. Scoped root-only 0600 backup:
-`/var/backups/softek/demo-before-0010-20261013T205047Z.sql`.
-Applied files are immutable; next schema change uses `0011_<description>.sql`.
-Earlier 0009 contextual-discovery, 0008 impersonation and 0005 collection-switch
-migrations/backups remain; see PROJECT_STATE for their historical evidence.
+`0011_summary_explorer_rotation.sql` are committed and applied to `demo` and
+`demo_test`. Both ledgers are version 11, no pending/checksum drift. 0011 was
+committed in **0cbb1cb** before application. It adds only a per-user Summary widget
+cursor; existing presentations/configuration/banking layouts and ENUMs are unchanged.
+Scoped root-only 0600 schema/data/ledger backup:
+`/var/backups/softek/demo-before-0011-20261014T000207Z.sql`.
+Applied files are immutable; next schema change uses `0012_<description>.sql`.
+Earlier migrations/backups remain; see PROJECT_STATE for historical evidence.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
 backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`
@@ -95,7 +94,7 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **10**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. The actual applied version is **11**; current evidence is in `PROJECT_STATE.md`.
 
 ## Partial-failure recovery
 

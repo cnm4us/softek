@@ -486,3 +486,20 @@ No rollback was performed. Next migration number is 0011.
 Feature Explorer rows and widget configuration also provide confirmed Delete.
 This removes only that banner space's widget/settings and makes its feature
 available to add again; the shared landing page and immutable images remain.
+
+## Summary banner activation — Plan 016
+
+Account Summary now displays enabled uploaded widgets from its Feature Explorer
+space; select Include in rotation and saved order there. Other spaces remain
+configuration-only. Images are centered/contained in the compact strip; recommend
+960×315 mobile artwork. Login/full Summary refresh cycles the enabled list;
+menu returns retain the exact selection, and empty/error states show a placeholder.
+Legacy Manage Banners remains separate. The banner-click pilot can find the linked
+Summary slot again; do not run real capture without its explicit collection scope.
+Public smoke accepts a rendered banner or placeholder and retains capture-off use.
+
+Migration 0011 adds only a Summary cursor. Root-only 0600 prechange backup:
+`/var/backups/softek/demo-before-0011-20261014T000207Z.sql`.
+Both schemas are version 11; repeat application is a no-op, next migration 0012.
+A code rollback may leave the additive cursor/snapshots intact; do not drop data.
+No rollback was performed.

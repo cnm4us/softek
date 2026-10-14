@@ -627,3 +627,28 @@ upload/settings locks serialize against deletion. UI confirmation names the feat
 and banner space; row deletion reloads the list, configuration deletion returns to
 Feature Explorer, and failures retain the current UI for retry. No migration or
 customer activation is needed.
+
+## Summary feature-banner activation — Plan 016
+
+Migration 0011 adds a per-user Summary widget cursor with user-deletion cascade;
+its last widget ID intentionally has no widget FK so deletion cannot erase cursor
+history or block configuration removal. Selection serializes through the existing
+user/run lock. Enabled uploaded Summary widgets sort by order/ID, with a request
+UUID deduplicating advances. Tab/run-owned cache restores an exact presentation
+while validating current enablement/asset; disabled/deleted/replaced artwork recovers
+without reusing another customer's selection. Empty lists create no presentation.
+
+Existing `banner_presentations` stores immutable feature/widget/asset snapshots,
+identified by reserved `explorer-summary:` request keys. Legacy `/banners/current`
+excludes those snapshots, preserving the old independent cursor/API contract.
+New snapshots have no Savings Goals campaign; existing `/interactions` ownership,
+feature matching/deduplication and Feature Activity joins provide banner/CTA
+attribution without a second reporting pipeline or ENUM change.
+
+The new customer reader is mounted only in Summary. Account details remain inactive.
+The shared linked-image component gains compact contained rendering and placeholder
+recovery. Clarity context comes from loaded artwork held in scoped memory, rather
+than a cached legacy selection; route/customer transitions clear it. Confirmed
+interaction events now read the existing structured consent helper correctly.
+Collection/actor/admin/impersonation rules are preserved. Impersonation can preview
+current Summary artwork without advancing its customer's cursor.

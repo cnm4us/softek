@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-13 UTC**.
-Current focus: **[015 — Feature Explorer controls](plans/015-feature-explorer-controls.md), confirmed widget deletion delivered; customer activation deferred**.
-Latest completed implementation: **Plan 015 — Feature Explorer administration**.
-Current request: **Confirmed widget Delete is deployed on rows and configuration pages. It removes only the chosen placement/settings and allows re-adding; customer activation remains deferred.**
-Next task: **Await the next owner-selected enhancement. Customer rotation/attribution (B-016) and further contextual placements (B-015) remain deferred; recording investigation remains stopped.**
+Last updated: **2026-10-14 UTC**.
+Current focus: **[016 — Summary feature banners](plans/016-summary-feature-banners.md), Summary activation delivered; other spaces deferred**.
+Latest completed implementation: **Plan 016 — Account Summary feature banners**.
+Current request: **The three configured Summary banners are deployed, rotate on login/refresh and link to their feature pages. Other account banner spaces remain inactive.**
+Next task: **Await owner review/next priority. Checking/savings/credit activation and further contextual placements remain deferred; recording investigation remains stopped.**
 
 ## Plan status registry
 
@@ -30,6 +30,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 013 | [Account detail pages](plans/013-account-detail-pages.md) | Completed | DETAIL-01–08 verified/deployed; schema 9 unchanged; 83 API, 69 browser, three focused privacy checks and live HTTPS 360/1440px |
 | 014 | [Compact banner placeholders](plans/014-compact-banner-placeholders.md) | Completed | STRIP-01–03 verified/deployed; 54 distinct account/banking cases, eight privacy checks, live HTTPS 360/1440px; schema 9 unchanged |
 | 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–06 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
+| 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
 
 ## Current reality
 
@@ -73,11 +74,14 @@ Active identifies focus and does not itself authorize additional scope.
   history, stable user UUID and rotation cursor. Admin and customer sign-outs are
   independent. New users use the common starting accounts; omitted-profile resets
   preserve existing internal assignments and restore saved starting amounts.
-- Account Summary now starts with the three account widgets, followed by a compact
-  inactive full-width banner placeholder before Recent Activity. The same strip
-  follows each account detail balance card. The linked image is suspended; admin
-  creatives and selection/history remain. Summary analytics has no hidden banner/
-  feature/campaign context; strips emit no exposure/click events.
+- Account Summary starts with the three account widgets, then a compact 105px
+  full-width feature banner before Recent Activity. Enabled uploaded Summary
+  widgets cycle by saved order/ID on login/full refresh; menu returns preserve
+  the tab's exact selection. Proportional centered artwork links to its catalog
+  page, with qualified visibility/click and feature/CTA attribution. Empty/error
+  states show the placeholder. Other account details retain inactive strips.
+  Summary Clarity tags use loaded artwork and clear on route/customer changes;
+  these feature invitations do not feed the Savings Goals campaign.
   The View savings options link is removed; complete checking/savings/credit widgets
   link to `/accounts/checking`, `/accounts/savings`, `/accounts/credit-card`. Pages
   use owned balances and account-ID-associated recent activity, with stable labeled
@@ -127,17 +131,20 @@ Active identifies focus and does not itself authorize additional scope.
   repeat features across spaces are allowed. Image-less inclusion is rejected.
   Widget rows/configuration also have confirmed Delete; only the chosen placement
   and settings are removed. Its feature is available again; other spaces/catalog
-  and immutable artwork remain. Owner selected admin controls only; no customer reader, rotation,
-  impressions/clicks or new discovery is activated. Customer placeholders remain.
+  and immutable artwork remain. Summary activation is delivered in Plan 016;
+  checking/savings/credit spaces remain configuration-only.
 - MariaDB is authoritative. Business writes use user/run locks and READ COMMITTED;
   savings reports use consistent snapshots; feature aggregates use one SQL statement.
   Runtime has scoped CRUD; migrator has scoped DDL. Private `.env` remains ignored
   and 0600. Runtime environment is an allowlist, root:softek 0640, with no DB admin,
   migration or test credentials.
-- Migrations **0001–0010** applied to **demo and demo_test**, version 10 with no
+- Migrations **0001–0011** applied to **demo and demo_test**, version 11 with no
   pending/checksum drift; repeat application is a no-op. 0007 adds device/browser
   preferences; committed **7eb7290** before application. Batch/balance tables and
-  the collection switch/epoch remain intact. Next migration is **0011**. 0010 adds only unseeded admin widget configuration, committed **c8f4204** before application. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
+  the collection switch/epoch remain intact. Next migration is **0012**. 0011 adds only the Summary cursor, committed **0cbb1cb** before application. 0010 adds only unseeded admin widget configuration, committed **c8f4204** before application. 0008 adds session/visit-context tables without changing existing table layouts; committed **c758cc4** before application. 0009 adds discovery preferences/presentations/attribution; committed **b3305a6** before application.
+- Root-only 0600 pre-0011 schema/data/ledger backup:
+  `/var/backups/softek/demo-before-0011-20261014T000207Z.sql`.
+  Additive cursor and existing immutable snapshots may remain on code rollback.
 - Root-only 0600 pre-0010 schema/data/ledger backup:
   `/var/backups/softek/demo-before-0010-20261013T205047Z.sql`.
   Prior code can ignore the additive table on code rollback; no rollback performed.
@@ -150,8 +157,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-13T21-16-17-030Z**. Previous authenticated release:
-  **2026-10-13T20-55-23-121Z**. Both current links point to the new release.
+- Current release: **2026-10-14T00-11-24-262Z**. Previous authenticated release:
+  **2026-10-14T00-08-00-786Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
@@ -1006,23 +1013,56 @@ health, active service and matched release links verified. Schema stays **10**;
 no migration/customer activation. Ignored 0600 evidence:
 `artifacts/explorer-delete-live.json`; checks/logs/screenshots remain ignored.
 
+## Plan 016 verification — 2026-10-14 UTC
+
+Source/migration **0cbb1cb**, acceptance tests **fe66eea**, public smoke adaptation
+**e204138**, admin-preview cursor preservation **ba786dd**. Current release
+**2026-10-14T00-11-24-262Z**. Owner's three enabled Summary widgets (Identity
+Protection, Small Business Invoicing, Youth Banking) now appear one at a time in
+saved order, with login/refresh rotation and exact menu/tab selection restoration.
+Actual uploaded artwork stays proportional in the compact strip. Customer account
+pages retain placeholders. Reporting reuses owned immutable snapshots/feature
+observations without Savings Goals campaign attribution; Clarity context uses loaded
+artwork, clears on exit, and respects existing consent/collection gates.
+
+| Check actually run | Result |
+| --- | --- |
+| API/migration suite | **94 TAP entries passed**, no failures/skips; ordering/concurrent retry, ownership/tabs, legacy separation, deleted/disabled/empty recovery, immutable CTA attribution and unchanged banking |
+| Browser | **18/18** at 360/390/1440px: Summary rotation/link/visibility/CTA/fallback, existing account journeys and Feature Explorer creation/deletion; screenshots inspected |
+| Privacy | **6/6** SDK-stub checks at all three widths: existing consent/masks/admin/shared identity plus loaded Summary tags/events and account-route clearing; no real Microsoft requests |
+| Build/quality | Typecheck, formatting and evaluation build passed; existing bundle advisory remains B-011; documentation links/diff checked |
+| Schema | 0011 committed before applying to test/demo; both version **11**, no pending/drift, repeat production application no-op; root-only 0600 backup `demo-before-0011-20261014T000207Z.sql` includes schema/data/ledger |
+| Live HTTPS | 360/1440px: all three owner images loaded, exact order/wraparound, correct feature links/CTA attribution, qualified visibility, stable returns, inactive account slots and unchanged banking |
+| Admin preview | Live impersonation of own fixtures retained the current banner/cursor and returned correctly to Admin; capture excluded |
+
+No owner widget/settings/image was changed; before/after configuration/global Clarity
+settings and all three artwork SHA-256 values matched. Only two new Automation
+customers were used and deleted, with their banking/events/presentations/cursors.
+Zero external requests/browser errors in live checks; matched release links, active
+service and API/DB health verified; no test listeners remain. Ignored 0600 evidence:
+`artifacts/summary-banners-live.json`; logs/helpers/screenshots remain ignored.
+Public smoke accepts the active compact banner or empty placeholder. The generic
+banner-click pilot can find the slot again, but was not run or sent to Microsoft.
+Broader banking/privacy-suite counts above are historical evidence, not additional
+reruns for this phase. Other banner spaces and the recording inquiry stay deferred.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-2. Plans 013/014/015 are complete and deployed; verify current release/schema/Git before
-   new work. Walk through Feature Explorer admin spaces/configuration and the
-   four customer pages with inactive strips. Owner explicitly chose admin-only
-   configuration; discuss rotation/attribution (B-016) and further contextual Explore
-   placements (B-015) before activating them. Existing `/savings` education and `/loans` journeys
-   retain Plan 011's one-per-visit invitation cap. Tenancy/wider discovery remain
-   deferred; do not infer authorization from the supplied broader brief.
+2. Plans 013/014/015/016 are complete and deployed; verify live release/schema/Git
+   before new work. Walk through Summary's three ordered feature banners and their
+   links/report attribution. Account detail banner slots remain inactive; discuss
+   their activation and wider Explore placements (B-016/B-015) before implementing.
+   Existing `/savings` education and `/loans` journeys retain their one-per-visit
+   invitation cap, independent of Summary banners. Wider institution configuration
+   remains deferred; do not infer authorization from the broader supplied brief.
 3. Both feature-menu captures are complete. Owner accepts automated Dashboard
    activity plus human saved recordings and ended the missing-recording inquiry.
    Await the next priority; do not resume consent/shutdown experiments or support
    escalation unless explicitly reopened. Plan 003 and broader profile validation
    remain deferred. Keep existing presets; no OS selector is requested.
-4. Plan 014 suspends the visible image: adapt the banner-click pilot before reuse
-   (B-016). If owner requests recording evaluation after that adaptation, use
+4. Plan 016 restores the linked Summary slot; the generic banner-click pilot can
+   find it again. If owner explicitly requests recording evaluation, use
    `clarity:pilot -- --collect` with
    explicit pair flags or `--customer=UUID` and private PILOT_CUSTOMER_PASSWORD.
    Verify actual dashboard classification/recordings/masks/heatmaps, not just
@@ -1037,7 +1077,7 @@ no migration/customer activation. Ignored 0600 evidence:
 
 Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
 implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015 and the current Clarity implementation/checks/docs are
+0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015/016 and the current Clarity implementation/checks/docs are
 committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
 `https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
 and untouched. Ignored artifacts hold screenshots/manifests and owned checks.

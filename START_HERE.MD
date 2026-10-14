@@ -81,6 +81,7 @@ account pages with owned balances/activity and labeled fictional statement entri
 Plan 014 replaces the large Summary image with a compact inactive banner placeholder
 below the three accounts and adds the same strip between balance/activity on each
 account page. Plan 015 adds Feature Explorer admin-only banner spaces, catalog-selected widgets,
-derived URLs and mobile image configuration. Customer activation remains deferred
-by the owner. Future rotation and Explore placements await owner discussion.
+derived URLs and mobile image configuration. Plan 016 activates the owner-configured Summary widgets with refresh rotation,
+real feature links and owned attribution. Checking/savings/credit slots remain
+inactive; their activation and wider Explore placements await owner discussion.
 Consult `PROJECT_STATE.md` for verified status and the exact next task.

@@ -366,3 +366,15 @@ EXP-06 extends the Feature Explorer API/browser checks with protected and
 idempotent deletion, cancelled confirmation, failure/retry, independent spaces,
 configuration return navigation and fresh re-adds. Existing image references
 remain readable; routine checks use only owned `demo_test` fixtures.
+
+## Summary feature banners — Plan 016
+
+`tests/summary-banners.test.ts` covers ordered/idempotent selection, independent
+user/tab ownership, legacy separation, immutable feature/CTA attribution, deleted/
+disabled widget recovery, empty lists and unchanged banking. `summary-banners.spec.ts`
+checks actual compact geometry, proportions, links, qualified impressions/CTA
+association, refresh wraparound, stable menu returns, inactive account-detail slots
+and image-error placeholders at 360/390/1440px. The SDK-stub test Summary artwork
+checks granted-consent tags/events and clears context on account navigation.
+Routine tests use `demo_test`; live checks use only owned capture-disabled users,
+retain all owner configuration/artwork and delete their fixtures afterward.

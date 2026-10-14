@@ -34,7 +34,8 @@ acceptance remains in Plan 002:
 - Logged-in screens use the section title at the top; the home title is
   **Account Summary**. Hamburger navigation is in the upper-right.
 - Immediately below that title, show the three account widgets, then a compact
-  full-width banner placeholder before recent activity and goals (Plan 014).
+  full-width configured feature banner before recent activity and goals (Plan 016;
+  placeholder when empty).
   The same placeholder follows the balance widget on each account detail page.
 - Banking menu sections use themed placeholder pages initially, while existing
   savings goals continues to work.
@@ -415,3 +416,23 @@ Feature Explorer widget rows and configuration pages have confirmed Delete actio
 Deletion permanently removes only that space's widget and settings; the catalog
 feature/landing page, matching widgets in other spaces and immutable artwork remain.
 The feature becomes available to add again in that space, with fresh settings.
+
+## Account Summary feature banners — Plan 016
+
+Account Summary now uses enabled, uploaded widgets from its Feature Explorer space
+in the compact strip beneath the account widgets and above Recent Activity. One
+image appears at a time, in saved order (stable ID breaks ties). Login and full
+Summary refresh advance once per document; menu returns/data refetches preserve
+that tab's selection. Admin impersonation previews preserve the cursor. Images
+stay proportional and centered within the 105px full-width strip, including desktop.
+Empty, disabled and failed-image slots show the normal placeholder.
+
+Each image opens its catalog feature page. Qualified impressions, banner clicks,
+feature views and CTA confirmations retain the customer's immutable presentation
+attribution in existing reporting. These feature invitations do not feed the Savings
+Goals adoption campaign or change financial state. Consent-gated Clarity receives
+only loaded/rendered artwork context; leaving Summary clears that context.
+
+Only Summary activation is authorized in this phase. Checking, savings and credit
+card detail spaces remain inactive placeholders, with configuration available in
+Admin. Existing owner images, titles, ordering and enabled settings are preserved.

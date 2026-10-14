@@ -35,7 +35,7 @@ collection gates remain. Routine tests block/intercept Microsoft traffic.
 - [x] SUM-03: API/browser/privacy checks for rotation/retries/ownership, metadata
   changes, feature/CTA attribution, empty/error states, unchanged banking and inactive
   account-detail slots; mobile/desktop artwork review.
-- [ ] SUM-04: backup retained demo/ledger, apply/verify migration in test then demo,
+- [x] SUM-04: backup retained demo/ledger, apply/verify migration in test then demo,
   evaluation build/deploy and live HTTPS checks using owned capture-disabled customers;
   retain all owner widgets/assets/settings, delete only fixtures and update handoff.
 
