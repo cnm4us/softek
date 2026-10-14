@@ -26,6 +26,6 @@ entries led to confirmed CTAs, not exact click totals or ordered event pairings.
   preserve the generic event and safe tracing.
 - [x] CTA-02 — Verify ownership/route/value restrictions, no tag before acknowledgement,
   response-loss retry, actual audit acceptance, and unrelated menu CTA exclusion.
-- [ ] CTA-03 — Deploy preserving owner switches; verify public release/health and
+- [x] CTA-03 — Deploy preserving owner switches; verify public release/health and
   SDK-stub call + real Phoenix readback without Microsoft test traffic. Update
   product/filter/testing guidance and handoff with actual evidence.

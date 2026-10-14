@@ -19,7 +19,7 @@ its backlog ID.
 | B-007 | Next | Full experiment controls and deliberate friction | Labeled variants, stable assignment, report segmentation, reproducible reset |
 | B-008 | Later | Retention/cleanup of archived demo runs | Bulk retention policy remains later; Plan 009 now provides explicit per-customer permanent deletion, including archived runs |
 | B-009 | Later | Embedded-service fidelity evaluation | Verified iframe/canvas behavior using current Clarity guidance and a concrete sample |
-| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 638 kB (182 kB gzip); Vite emits a size advisory |
+| B-011 | Later | Split frontend bundles as scope grows | Current minified main bundle is about 659 kB (187 kB gzip); Vite emits a size advisory |
 | B-012 | Later | Automation scheduler and scenario-builder UI | [Plan 003](plans/003-automation-journeys.md) outlines assigned-user scheduling/scenarios; Plans 001/002 prepare a small harness first |
 | B-010 | Later | Presentation narrative and findings | Repeatable walkthrough with evidence and stated evaluation limits |
 | B-013 | Completed | First contextual discovery pair | [Plan 011](plans/011-contextual-feature-discovery.md) implements EasyCoin investing exploration and Skip A Pay loan-payment invitations, preferences and reporting |
@@ -32,7 +32,7 @@ its backlog ID.
 | B-020 | Completed | Clarity context deduplication | [Plan 019](plans/019-clarity-context-deduplication.md); reduce redundant tags at source, preserve event calls and inspect Phoenix |
 | B-021 | Completed | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
 | B-022 | Completed | Readable banner analytics IDs | [Plan 021](plans/021-readable-banner-analytics-ids.md); space-feature aliases for filters, preserve UUID reporting |
-| B-023 | In progress | Banner-attributed CTA custom tag | [Plan 022](plans/022-banner-cta-custom-tag.md); confirmed CTA tag using owned readable entry |
+| B-023 | Completed | Banner-attributed CTA custom tag | [Plan 022](plans/022-banner-cta-custom-tag.md); confirmed CTA tag using owned readable entry, strict audit acceptance and live Phoenix readback |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[022 — Banner CTA custom tag](plans/022-banner-cta-custom-tag.md), implementation**.
-Latest completed implementation: **Plan 021 — Readable banner analytics IDs**.
-Current request: **Add the requested cta-clicked tag for a feature CTA reached through a Summary banner.**
-Next task: **Finish focused acceptance checks and deploy Plan 022 preserving owner collection/tracing settings.**
+Current focus: **[022 — Banner CTA custom tag](plans/022-banner-cta-custom-tag.md), delivered**.
+Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
+Current request: **Requested cta-clicked tag delivered for an acknowledged feature CTA reached through a Summary banner.**
+Next task: **Owner reloads, follows a Summary banner and confirms its CTA; filter cta-clicked by its readable value after Microsoft indexing. Await the next priority.**
 
 ## Plan status registry
 
@@ -36,7 +36,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Completed | READY-01–03 verified/deployed; 16 TAP entries, 12 browser cases, 13-call live stub reload visible in Phoenix |
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
-| 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Active | CTA-01/02 checked: 13 focused unit entries and 12 browser cases passed; deployment/live readback pending |
+| 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Completed | CTA-01–03: 13 unit entries, 12 browser cases, deployed exact tag visible in Phoenix; no Microsoft test traffic |
 
 ## Current reality
 
@@ -47,8 +47,23 @@ Active identifies focus and does not itself authorize additional scope.
   **13 focused TAP entries** and **12 browser cases at 360/390/1440px** passed,
   including lost-response retry, no pre-acknowledgement tag, real audit acceptance,
   unrelated menu CTA exclusion, consent/admin/impersonation and audit-failure checks.
-  Typecheck, format and Git whitespace passed. Build/deployment/live SDK-stub
-  Phoenix readback are next; all verification so far blocked/stubbed Microsoft.
+  Typecheck, format, evaluation build, Git whitespace and documentation links passed.
+  Build retains the existing >500 kB chunk advisory (659 kB / 187 kB gzip).
+  Release **2026-10-14T22-49-13-460Z** deployed; API/Phoenix active and public health
+  reports DB connected. No migration; schema remains 12. Owner collection/tracing
+  switches and revisions matched before/after deployment and acceptance.
+  Live SDK-stub check at **22:50:07 UTC** verified 13 initial calls, then 20 total
+  through banner/feature/CTA, including exactly one
+  `clarity("set", "cta-clicked", "summary-business-invoice");` with matching
+  route/banner context in actual Phoenix REST readback. CTA trace:
+  `86a3adc6f35d530268cf2f41e7d5d8ec`; private 0600 evidence:
+  `artifacts/banner-cta-live.json`. Its owned Automation fixture was deleted;
+  existing customers/configuration were untouched, and Microsoft uploads were zero.
+  First live CTA readback raced asynchronous Phoenix visibility; adding the same
+  bounded polling already used for initial spans resolved the harness check.
+  No application fix or additional deployment was needed. No failing check remains.
+  Implementation committed locally as **0a4b247**; final handoff notes committed
+  separately, no push. Only owner `temp/` remains untracked and untouched.
 
 - On **2026-10-14 at 21:04 UTC**, the owner-supplied private `CLARITY_API_TOKEN`
   successfully authenticated one read-only Data Export request (HTTP 200), for
@@ -230,8 +245,8 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T20-37-46-275Z**. Previous authenticated release:
-  **2026-10-14T00-11-24-262Z**. Both current links point to the new release.
+- Current release: **2026-10-14T22-49-13-460Z**. Previous authenticated release:
+  **2026-10-14T20-37-46-275Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
