@@ -4,7 +4,7 @@ Last updated: **2026-10-14 UTC**.
 Current focus: **[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md), delivered**.
 Latest completed implementation: **Plan 019 — Clarity context deduplication**.
 Current request: **Reduce repeated identity/tag calls and examine Phoenix; implemented, deployed and checked.**
-Next task: **Owner reloads Summary to load the new bundle, then compares that document's spans in Phoenix; await further priorities.**
+Next task: **Owner reload comparison verified; use a document filter for isolated observations, then await further priorities.**
 
 ## Plan status registry
 
@@ -1133,6 +1133,13 @@ or an in-flight request and expire independently. No push or rollback performed.
   SDK/audit arrays matched; all sixteen spans were persisted in real Phoenix and
   filtered in its actual UI. No real Microsoft uploads. Screenshot/evidence:
   ignored `artifacts/clarity-context-phoenix.png`, `clarity-context-live.json`.
+- Owner's real Summary reload at 18:58:21 UTC also persisted **16 calls**, including
+  twelve sets and one identity, under document `13e6cb4a-870d-41a5-8e56-f20b4a1ea70d`.
+  Its feature changes from none to business-invoice. Identity-protect spans two
+  seconds earlier belong to the preceding document, initialized at 18:41 before
+  deployment; clearing Phoenix does not stop open-page emissions. These are human
+  owner spans, separate from the controlled Automation fixture. No cross-document
+  feature leakage was observed; filter by document to isolate a reload.
 - Checked document UUID **3cb93b79-353e-406d-9f20-ccf0351dbbad**. Its test customer
   and linked local history were permanently cleaned up; Phoenix copies remain
   until the existing retention policy or owner cleanup. No owner history cleared.
