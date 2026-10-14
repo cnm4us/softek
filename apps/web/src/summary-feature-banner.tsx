@@ -25,7 +25,10 @@ export function SummaryFeatureBanner({ state }: { state: State }) {
         saved?.userId === state.user.id && saved.runId === state.runId
           ? saved.banner
           : null;
-      const advance = !summaryInitialized && (startsOnSummary || !owned);
+      const advance =
+        !state.impersonation &&
+        !summaryInitialized &&
+        (startsOnSummary || !owned);
       summaryInitialized = true;
       selection.current = api<Banner | null>(
         '/feature-explorer/summary/select',
