@@ -1,5 +1,6 @@
 import { features } from './features.js';
 import { accountPages } from './account-pages.js';
+import { explorerBannerAnalyticsIds } from './feature-explorer-config.js';
 
 export const traceCommands = [
   'event',
@@ -74,7 +75,9 @@ export function safeTag(key: string, value: unknown): boolean {
       return (
         ['none', 'harbor-goals', 'harbor-bill-pay', 'harbor-cards'].includes(
           value,
-        ) || traceUuid(value)
+        ) ||
+        explorerBannerAnalyticsIds.includes(value) ||
+        traceUuid(value)
       );
     default:
       return false;

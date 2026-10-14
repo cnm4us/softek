@@ -21,6 +21,7 @@ import { BannerPlaceholder } from './ui';
 export type Banner = {
   id: string;
   bannerId: string | null;
+  analyticsId?: string;
   imageUrl: string | null;
   title: string;
   altText: string;
@@ -198,6 +199,7 @@ export function ImageBanner({
                 featureId: banner.destination,
                 selectionId: banner.id,
                 bannerId: banner.bannerId,
+                bannerAnalyticsId: banner.analyticsId,
               },
             }
           : null

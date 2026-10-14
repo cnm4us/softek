@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[020 — Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md), delivered**.
+Current focus: **[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md), implementation**.
 Latest completed implementation: **Plan 020 — Summary banner analytics readiness**.
-Current request: **Loading-placeholder banner tags removed; actual values sent once, genuine absence retained.**
-Next task: **Owner reloads Summary to load the new bundle and reviews the new document's nine tag calls in Phoenix; await the next priority.**
+Current request: **Make banner values usable in Clarity filters; retain internal UUID/reporting/history.**
+Next task: **Deploy checked aliases, verify in Phoenix and preserve live settings/history.**
 
 ## Plan status registry
 
@@ -35,6 +35,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Completed | READY-01–03 verified/deployed; 16 TAP entries, 12 browser cases, 13-call live stub reload visible in Phoenix |
+| 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Active | LABEL-01–02 verified; deployment and Phoenix readback next |
 
 ## Current reality
 

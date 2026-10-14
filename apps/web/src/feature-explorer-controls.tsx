@@ -201,6 +201,10 @@ export function ExploreWidgetControls() {
             <Card title={data.title}>
               <p className="section-caption">Banner space: {section?.label}</p>
               <label>
+                Clarity banner value
+                <input readOnly value={data.analyticsId} />
+              </label>
+              <label>
                 Feature URL
                 <input
                   readOnly

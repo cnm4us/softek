@@ -9,6 +9,7 @@ import { HttpError } from './errors.js';
 import { features, getFeature } from './features.js';
 import {
   explorerSections,
+  explorerBannerAnalyticsId,
   type ExplorerWidget,
 } from './feature-explorer-config.js';
 import { assetDirectory, decodeBanner, publishAsset } from './banner-assets.js';
@@ -35,6 +36,7 @@ const publicWidget = (row: Row): ExplorerWidget => {
   const feature = getFeature(row.feature_id)!;
   return {
     id: row.id,
+    analyticsId: explorerBannerAnalyticsId(row.section_key, feature.id),
     section: row.section_key,
     featureId: feature.id,
     title: feature.name,
@@ -73,6 +75,7 @@ export function registerFeatureExplorer({
       const render = (p: Row) => ({
         id: p.id,
         bannerId: p.banner_id,
+        analyticsId: explorerBannerAnalyticsId('summary', p.destination),
         imageUrl: `/media/banners/${p.asset_key}`,
         title: p.title,
         altText: p.alt_text,

@@ -478,3 +478,13 @@ once the image resolves. Successfully loaded artwork supplies its actual values;
 confirmed empty/failed artwork retains accurate absence handling. Qualified banner
 visibility and all real events retain their existing rules. Pending banner fields
 are omitted from Phoenix metadata too. Individual Clarity calls remain unchanged.
+
+## Readable banner filter values — Plan 021
+
+Feature Explorer banners use readable space-feature values in Clarity's existing
+banner tag: summary-identity-protect, summary-business-invoice and summary-youth-banking
+for the current enabled Summary set. Admin configuration shows a read-only Clarity
+banner value. The same value follows a new banner entry onto its feature page.
+UUID-based first-party ownership, reporting and historical snapshots stay intact;
+legacy remote values remain. Alias identity follows space/feature rather than artwork
+or title. No additional tag/call or activation of another banner space is introduced.

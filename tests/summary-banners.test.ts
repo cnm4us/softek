@@ -118,6 +118,8 @@ test('owned Summary feature banner rotation and attribution', async (t) => {
         assert.equal(results[0]!.status, 200);
         first = results[0]!.data;
         assert.equal(first.destination, 'easycoin');
+        assert.equal(first.analyticsId, 'summary-easycoin');
+        assert.equal(first.bannerId, widgets[0]);
         assert.deepEqual(results[1]!.data, first);
         assert.equal((await a.select()).data.destination, 'business-invoice');
         assert.equal((await a.select()).data.destination, 'youth-banking');
@@ -207,11 +209,12 @@ test('owned Summary feature banner rotation and attribution', async (t) => {
           200,
         );
         const [snapshot] = await pool.query(
-          'SELECT asset_key,destination FROM banner_presentations WHERE id=?',
+          'SELECT banner_id,asset_key,destination FROM banner_presentations WHERE id=?',
           [first.id],
         );
         assert.equal(snapshot.asset_key, key);
         assert.equal(snapshot.destination, 'easycoin');
+        assert.equal(snapshot.banner_id, first.bannerId);
         await pool.query(
           "UPDATE feature_explorer_widgets SET enabled=FALSE WHERE section_key='summary'",
         );

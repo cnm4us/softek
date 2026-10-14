@@ -200,3 +200,59 @@ test('Summary readiness distinguishes pending/ready/empty/failed and rejects ano
   assert.equal(empty.service, 'banking');
   clearRenderedSummaryBanner();
 });
+
+test('readable banner value carries to its owned landing entry while internal attribution stays UUID-based', async () => {
+  const { featureEntry } = await import('../apps/web/src/feature-context.js');
+  const s = state(),
+    uuid = randomUUID();
+  const banner = {
+    bannerId: uuid,
+    analyticsId: 'summary-business-invoice',
+    destination: 'business-invoice',
+    campaignId: null,
+  };
+  assert.equal(
+    analyticsContext(s, '/', null, banner).banner,
+    'summary-business-invoice',
+  );
+  const entry = {
+    userId: s.user.id,
+    runId: s.runId,
+    featureId: 'business-invoice',
+    selectionId: randomUUID(),
+    bannerId: uuid,
+    bannerAnalyticsId: banner.analyticsId,
+  };
+  const owned = featureEntry(s, 'business-invoice', entry);
+  assert(owned);
+  assert.equal(owned.bannerId, uuid);
+  assert.equal(owned.selectionId, entry.selectionId);
+  assert.equal(
+    analyticsContext(s, '/features/business-invoice', entry).banner,
+    banner.analyticsId,
+  );
+  assert.equal(
+    analyticsContext(s, '/features/business-invoice', null).banner,
+    'none',
+  );
+  assert.equal(
+    featureEntry(s, 'business-invoice', {
+      ...entry,
+      bannerAnalyticsId: 'summary-identity-protect',
+    }),
+    null,
+  );
+  assert.equal(
+    featureEntry(
+      { ...s, user: { ...s.user, id: randomUUID() } },
+      'business-invoice',
+      entry,
+    ),
+    null,
+  );
+  const { bannerAnalyticsId, ...legacy } = entry;
+  assert.equal(
+    analyticsContext(s, '/features/business-invoice', legacy).banner,
+    uuid,
+  );
+});

@@ -213,6 +213,17 @@ Image readiness is keyed to its URL to avoid treating a replacement as loaded.
 Partial context updates reuse the existing changed-only tracker. Each supported
 key still uses its ordinary individual Clarity call; no multi-set API is invented.
 
+[Plan 021](plans/021-readable-banner-analytics-ids.md) uses derived space-feature
+aliases for the existing Clarity banner tag, such as summary-business-invoice.
+API widget/selection responses supply the alias; new banner-linked feature entries
+carry it alongside the original UUID. The strict trace contract accepts only known
+catalog/space aliases and retains legacy banner values for compatibility. Internal
+selection, ownership, event and report IDs remain UUIDs. Admin widget configuration
+shows the exact Clarity filter value. No new SDK call or database column is added.
+Aliases group a space/feature across artwork/title changes and widget recreation;
+UUID/asset snapshots remain the authority for distinguishing historical creatives.
+Existing remote history keeps the values originally emitted.
+
 Phoenix 20.21.3 uses a dedicated Python 3.12.12 environment and its own SQLite
 store, with HTTP UI/collector only on loopback 6006 and SSH/VS Code port forwarding.
 A pinned launcher disables its otherwise wildcard-bound gRPC listener, preserving

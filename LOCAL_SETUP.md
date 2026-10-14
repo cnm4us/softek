@@ -561,6 +561,16 @@ REST output flattens those keys. Allow a few seconds for browser/server queues,
 then refresh Phoenix if stale. Clearing Phoenix does not stop open-page timers
 or discard queued calls; document filtering isolates the new reload.
 
+For current Feature Explorer activity, Clarity custom tag **banner** uses readable
+space-feature values. In the current Summary set, choose summary-business-invoice,
+summary-identity-protect or summary-youth-banking. The exact value is also shown in
+Admin → Feature Explorer → widget → Clarity banner value. The alias remains on its
+banner-linked landing page; direct/menu entries retain their normal absence context.
+Old Clarity/Phoenix history retains UUID values. Values identify a space/feature,
+while first-party UUID/asset snapshots distinguish widgets and creative revisions.
+Combine the tag with the exact Summary URL to find relevant Clarity sessions;
+rotation within a session means those filters are not exact per-banner hit counts.
+
 The admin status distinguishes pending, collector-acknowledged and failed exports.
 Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish
 exporting after tracing is switched Off. Browser closure, lost authentication,

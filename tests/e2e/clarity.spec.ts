@@ -820,7 +820,9 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
           .filter((c: any[]) => c[0] === 'set')
           .map((c: any[]) => [c[1], c[2]]),
       );
-    await expect.poll(async () => (await tags()).get('banner')).toBe(widgetId);
+    await expect
+      .poll(async () => (await tags()).get('banner'))
+      .toBe('summary-identity-protect');
     expect((await tags()).get('feature')).toBe('identity-protect');
     expect((await tags()).get('campaign')).toBe('none');
     const banner = page.getByTestId('promotion-banner');
@@ -913,7 +915,9 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
       expect(pendingView.metadata).not.toHaveProperty(key);
     releaseImage!();
     await page.unroute('**/media/banners/*');
-    await expect.poll(async () => (await tags()).get('banner')).toBe(widgetId);
+    await expect
+      .poll(async () => (await tags()).get('banner'))
+      .toBe('summary-identity-protect');
     await banner.scrollIntoViewIfNeeded();
     await expect
       .poll(async () => JSON.stringify(await calls(page)))
@@ -939,7 +943,7 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
     await expect
       .poll(async () => JSON.stringify(await calls(page)))
       .toContain('feature_cta_clicked');
-    expect((await tags()).get('banner')).toBe(widgetId);
+    expect((await tags()).get('banner')).toBe('summary-identity-protect');
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
       .getByRole('link', { name: 'Account Summary', exact: true })

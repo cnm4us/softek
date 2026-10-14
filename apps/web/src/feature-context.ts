@@ -1,12 +1,14 @@
 import { accountPageAtPath } from '../../api/src/account-pages.js';
 import type { State } from './api.js';
 import { featureAtPath, getFeature } from '../../api/src/features.js';
+import { explorerBannerAnalyticsId } from '../../api/src/feature-explorer-config.js';
 export type FeatureEntry = {
   userId: string;
   runId: string;
   featureId: string;
   selectionId: string;
   bannerId: string;
+  bannerAnalyticsId?: string;
 };
 export function featureEntry(
   state: State,
@@ -21,13 +23,16 @@ export function featureEntry(
     typeof v.selectionId === 'string' &&
     /^[a-f0-9-]{36}$/i.test(v.selectionId) &&
     typeof v.bannerId === 'string' &&
-    /^[a-z0-9-]{1,40}$/.test(v.bannerId)
+    /^[a-z0-9-]{1,40}$/.test(v.bannerId) &&
+    (v.bannerAnalyticsId === undefined ||
+      v.bannerAnalyticsId === explorerBannerAnalyticsId('summary', featureId))
     ? v
     : null;
 }
 type ContextTags = { route: string } & Record<string, string>;
 export type ContextBanner = {
   bannerId: string | null;
+  analyticsId?: string;
   destination: string;
   campaignId: string | null;
 };
@@ -82,9 +87,9 @@ export function analyticsContext(
         ? 'savings-launch'
         : 'none',
     banner: feature
-      ? (entry?.bannerId ?? 'none')
+      ? (entry?.bannerAnalyticsId ?? entry?.bannerId ?? 'none')
       : path === '/'
-        ? (banner?.bannerId ?? 'none')
+        ? (banner?.analyticsId ?? banner?.bannerId ?? 'none')
         : 'none',
   };
   if (path === '/' && bannerPending) {

@@ -494,3 +494,20 @@ Aborted artwork and a confirmed empty configuration resolve to absence values
 without a banner-visible event. Existing click/CTA/navigation/consent/mirror checks
 remain active across 360/390/1440px; Microsoft is stubbed/blocked. Live acceptance
 uses only an owned Automation fixture with SDK stub and records its actual evidence.
+
+## Readable banner analytics IDs — Plan 021
+
+```bash
+npx tsx --test --test-concurrency=1 tests/clarity-context.test.ts tests/clarity-call.test.ts tests/features.test.ts tests/summary-banners.test.ts
+npm run test:clarity -- --grep 'Phoenix API-call audit|consent, masks|Summary artwork|impersonation stops'
+```
+
+Alias checks cover unique known space/catalog combinations, unknown/credential
+rejection, legacy UUID compatibility, owned landing-entry validation and retained
+internal selection/banner UUIDs. Summary API checks verify the readable alias while
+its database snapshot keeps the UUID. Browser checks expect summary-identity-protect
+on the rendered banner and linked feature page, then correct absence on ordinary
+banking navigation. Reload readiness, nine tag calls, consent, qualified events,
+CTA/report attribution and SDK/audit fidelity stay covered at all three widths.
+Routine Microsoft traffic is blocked/stubbed; live checks use only owned Automation
+fixtures with SDK stub, keeping owner switches and existing history intact.

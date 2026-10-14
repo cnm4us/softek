@@ -31,6 +31,7 @@ its backlog ID.
 | B-019 | Completed | Phoenix span presentation | [Plan 018](plans/018-phoenix-span-presentation.md), VIEW-01–03; readable calls and truthful local Input/Output/Status/Error |
 | B-020 | Completed | Clarity context deduplication | [Plan 019](plans/019-clarity-context-deduplication.md); reduce redundant tags at source, preserve event calls and inspect Phoenix |
 | B-021 | Completed | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
+| B-022 | In progress | Readable banner analytics IDs | [Plan 021](plans/021-readable-banner-analytics-ids.md); space-feature aliases for filters, preserve UUID reporting |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

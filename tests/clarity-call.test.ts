@@ -104,3 +104,20 @@ test('safe contract rejects credentials, arbitrary metadata and unsupported comm
   );
   assert(!safeCall('unknown', []));
 });
+
+test('readable banner tags are limited to known space-feature pairs and retain legacy values', async () => {
+  const { explorerBannerAnalyticsIds } =
+    await import('../apps/api/src/feature-explorer-config.js');
+  assert.equal(
+    new Set(explorerBannerAnalyticsIds).size,
+    explorerBannerAnalyticsIds.length,
+  );
+  for (const value of explorerBannerAnalyticsIds)
+    assert(safeCall('set', ['banner', value]));
+  assert(safeCall('set', ['banner', 'summary-business-invoice']));
+  assert(safeCall('set', ['banner', '6af92924-6860-49e7-948c-88ad4e360547']));
+  assert(safeCall('set', ['banner', 'none']));
+  assert(!safeCall('set', ['banner', 'summary-missing']));
+  assert(!safeCall('set', ['banner', 'unsupported-space-business-invoice']));
+  assert(!safeCall('set', ['banner', 'person@example.com']));
+});
