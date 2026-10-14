@@ -108,3 +108,8 @@ start fresh. PROJECT_STATE records the live 16-call SDK-stub reload comparison.
 omits unresolved banner context from SDK calls and audit metadata. Loaded artwork
 supplies actual values once; genuinely empty/failed slots retain absence handling.
 PROJECT_STATE records the new 13-call live SDK-stub reload comparison.
+
+[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md)
+uses space-feature aliases in Clarity/Phoenix banner values and admin configuration.
+UUIDs remain internal, and previous remote history is retained. Current mapping and
+actual release/check evidence are in PROJECT_STATE/LOCAL_SETUP.

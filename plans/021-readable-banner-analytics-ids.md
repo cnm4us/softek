@@ -23,7 +23,7 @@ are not rewritten. No schema change or activation of other banner spaces.
   entries, update strict trace validation; preserve UUID reporting and readiness.
 - [x] LABEL-02 — Verify known/invalid aliases, legacy compatibility, internal UUID
   attribution, reload and banner/feature/CTA/navigation behavior with SDK stub.
-- [ ] LABEL-03 — Deploy preserving live settings, verify readable calls in Phoenix
+- [x] LABEL-03 — Deploy preserving live settings, verify readable calls in Phoenix
   with an owned SDK-stub fixture and record evidence/runbook/handoff.
 
 Recovery: restore the preceding application release using LOCAL_SETUP. No data

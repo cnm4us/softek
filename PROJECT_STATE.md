@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md), implementation**.
-Latest completed implementation: **Plan 020 — Summary banner analytics readiness**.
-Current request: **Make banner values usable in Clarity filters; retain internal UUID/reporting/history.**
-Next task: **Deploy checked aliases, verify in Phoenix and preserve live settings/history.**
+Current focus: **[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md), delivered**.
+Latest completed implementation: **Plan 021 — Readable banner analytics IDs**.
+Current request: **Banner values made readable for Clarity filters; internal UUIDs/reporting/history retained.**
+Next task: **Owner reloads Summary and selects new space-feature banner values in Clarity as new activity is processed; await the next priority.**
 
 ## Plan status registry
 
@@ -35,9 +35,16 @@ Active identifies focus and does not itself authorize additional scope.
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Completed | READY-01–03 verified/deployed; 16 TAP entries, 12 browser cases, 13-call live stub reload visible in Phoenix |
-| 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Active | LABEL-01–02 verified; deployment and Phoenix readback next |
+| 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
 
 ## Current reality
+
+- Plan 021 changes the Feature Explorer Clarity banner tag to a derived readable
+  space-feature alias. Current Summary values: summary-identity-protect,
+  summary-business-invoice and summary-youth-banking. Admin widget configuration
+  shows the exact value; new banner-linked landing entries carry it. UUIDs remain
+  in ownership, selections and local reports; existing remote values are retained.
+  No additional SDK call or activation of another space.
 
 - Plan 020 defers Summary feature/service/campaign/banner tags and audit metadata
   while selection/artwork is pending. Resolved artwork supplies actual tags once;
@@ -192,7 +199,7 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T19-23-25-623Z**. Previous authenticated release:
+- Current release: **2026-10-14T20-37-46-275Z**. Previous authenticated release:
   **2026-10-14T00-11-24-262Z**. Both current links point to the new release.
   Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
   connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
@@ -1183,13 +1190,34 @@ or an in-flight request and expire independently. No push or rollback performed.
 - Owner-enabled live switches/revisions preserved; HTTPS DB health and both
   services active. No push; owner `temp/` untouched.
 
+## Plan 021 verification and release
+
+- Implementation **d0b7794**; release **2026-10-14T20-37-46-275Z** deployed to matching
+  API/web links. Schema 12 unchanged; deployment migration check passed.
+- **23 focused TAP entries and 12 SDK-stub browser cases passed**. Checks cover known
+  aliases/unknown rejection, legacy compatibility, owned feature entry and UUID
+  snapshot preservation, Summary rotation/readiness/nine set calls, banner/CTA
+  attribution, consent and impersonation across 360/390/1440px. Typecheck, formatting,
+  evaluation build and diff checks passed; existing bundle warning remains.
+- Live owned Automation fixture + SDK stub: 13-call Summary reload (one consent,
+  identity, nine tags and two events). SDK/audit arrays matched; real Phoenix REST
+  and UI show `clarity("set", "banner", "summary-business-invoice");`. Its internal
+  banner ID remains `b6184060-7f86-40c3-bc23-4026f0f3a37b`; admin API exposes both.
+  No real Microsoft uploads, history clearing or owner setting changes.
+- Checked document **9173fb07-9e3c-483c-827b-3bc276dc5c19**; ignored evidence:
+  `artifacts/readable-banner-live.json`, `readable-banner-phoenix.png`,
+  `readable-banner-tests.log`, `readable-banner-browser.log`. Owned customer and linked
+  local records removed; Phoenix copies retain their ordinary expiration/owner cleanup.
+- Live switches/revisions preserved; public health reports connected DB; API/Phoenix
+  services active. No unresolved failure, no push; owner `temp/` untouched.
+
 ## Exact resume point
 
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
-   Plans 017/018/019/020 are delivered; the owner has collection and tracing enabled.
+   Plans 017/018/019/020/021 are delivered; the owner has collection and tracing enabled.
    Use private port-6006 forwarding and select softek-clarity-api. Refresh the
    customer page and inspect new spans for readable Input/Output/status/error and
-   resolved context (one identity, nine tags sent once, no loading placeholders);
+   resolved context (one identity, nine tags sent once, readable banner alias);
    historical spans retain their old fields. Customers still need analytics consent. Do not infer
    raw SDK upload observation or resumed recording investigation from this delivery.
 2. Plans 013/014/015/016 are complete and deployed; verify live release/schema/Git
