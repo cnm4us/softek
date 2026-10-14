@@ -27,11 +27,12 @@ verification evidence, and the resume point live in
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | PHX-01–07; mirrored application calls, durable audit/export and private Phoenix; depends on existing consent and 005/010/011/016 |
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | VIEW-01–03; readable calls, local outcomes and Phoenix columns; depends on 017 |
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | CTX-01–03; changed-only identity/tags, events preserved; depends on 017/018 |
+| 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | READY-01–03; defer unresolved banner tags, preserve actual events; depends on 016/019 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
 Plan numbers reflect creation order. The current execution sequence is
-**000 → 001 → 004 → 005 → 006 → 007 → 008 → 009 → 010 → 011 → 012 → 013 → 014 → 015 → 016 → 017 → 018 → 019 → remaining 002 → 003**; existing IDs and completed task evidence are
+**000 → 001 → 004 → 005 → 006 → 007 → 008 → 009 → 010 → 011 → 012 → 013 → 014 → 015 → 016 → 017 → 018 → 019 → 020 → remaining 002 → 003**; existing IDs and completed task evidence are
 preserved. Plans 004/005 implement the final menu and feature surfaces. Remaining
 Plan 002 capture acceptance follows their verified release; completed settings and
 hosting evidence is retained. See PROJECT_STATE for release/check results.

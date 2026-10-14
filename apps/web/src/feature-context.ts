@@ -25,16 +25,19 @@ export function featureEntry(
     ? v
     : null;
 }
+type ContextTags = { route: string } & Record<string, string>;
+export type ContextBanner = {
+  bannerId: string | null;
+  destination: string;
+  campaignId: string | null;
+};
 export function analyticsContext(
   state: State,
   path: string,
   value: unknown,
-  banner: {
-    bannerId: string | null;
-    destination: string;
-    campaignId: string | null;
-  } | null = null,
-) {
+  banner: ContextBanner | null = null,
+  bannerPending = false,
+): ContextTags {
   const feature = featureAtPath(path),
     entry = feature ? featureEntry(state, feature.id, value) : null;
   const savings = ['/savings-goals', '/enroll', '/goals'].includes(path);
@@ -55,7 +58,7 @@ export function analyticsContext(
     'discovery-preferences',
     'explore',
   ];
-  return {
+  const tags = {
     institution: 'harbor',
     actor: state.analytics.actor,
     variant: state.variant,
@@ -84,6 +87,11 @@ export function analyticsContext(
         ? (banner?.bannerId ?? 'none')
         : 'none',
   };
+  if (path === '/' && bannerPending) {
+    const { feature, service, campaign, banner, ...known } = tags;
+    return known;
+  }
+  return tags;
 }
 export function applyContext(
   clarity: (command: string, ...args: string[]) => void,

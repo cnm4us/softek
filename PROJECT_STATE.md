@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md), delivered**.
+Current focus: **[020 — Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md), implementation authorized**.
 Latest completed implementation: **Plan 019 — Clarity context deduplication**.
-Current request: **Reduce repeated identity/tag calls and examine Phoenix; implemented, deployed and checked.**
-Next task: **Owner reload comparison verified; use a document filter for isolated observations, then await further priorities.**
+Current request: **Omit loading-placeholder banner context, send resolved tags once, keep genuine absence handling.**
+Next task: **Deploy the checked readiness update and verify a fresh SDK-stub reload in Phoenix.**
 
 ## Plan status registry
 
@@ -34,6 +34,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
+| 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Active | READY-01–02 verified; deploy and live Phoenix check next |
 
 ## Current reality
 

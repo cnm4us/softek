@@ -477,3 +477,20 @@ page/banner/feature/CTA observations. SDK/audit, consent and impersonation cover
 remains active at 360/390/1440px. Microsoft endpoints are stubbed/blocked; routine
 checks keep production Phoenix untouched. Live acceptance, if performed, uses
 only an owned Automation fixture with the SDK stub and documented trace IDs.
+
+## Summary banner analytics readiness — Plan 020
+
+```bash
+npx tsx --test --test-concurrency=1 tests/clarity-context.test.ts tests/clarity-call.test.ts tests/features.test.ts
+npm run test:clarity -- --grep 'Phoenix API-call audit|consent, masks|Summary artwork|impersonation stops'
+```
+
+Context unit checks additionally distinguish pending/ready/empty/failed artwork,
+owner boundaries and omitted fields followed by changed-only resolved values.
+Summary artwork browser checks hold the image response across a full reload:
+identity/page context and page_view proceed, dependent set calls and audit metadata
+are absent until release, then every tag appears exactly once (nine set calls).
+Aborted artwork and a confirmed empty configuration resolve to absence values
+without a banner-visible event. Existing click/CTA/navigation/consent/mirror checks
+remain active across 360/390/1440px; Microsoft is stubbed/blocked. Live acceptance
+uses only an owned Automation fixture with SDK stub and records its actual evidence.

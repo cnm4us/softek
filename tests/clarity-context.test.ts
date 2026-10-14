@@ -117,3 +117,86 @@ test('a throwing call is retried, preserving its exception and previously succes
   updater.apply(invoke, s, tags);
   assert.equal(calls.length, 11);
 });
+
+test('pending Summary omits dependent tags; ready image supplies them once and account navigation clears them', () => {
+  const s = state(),
+    updater = createContextUpdater(),
+    calls: string[][] = [];
+  const invoke = (command: string, ...args: string[]) => {
+    calls.push([command, ...args]);
+  };
+  const pending = analyticsContext(s, '/', null, null, true);
+  assert.deepEqual(Object.keys(pending).sort(), [
+    'actor',
+    'institution',
+    'route',
+    'variant',
+  ]);
+  updater.apply(invoke, s, pending);
+  assert.equal(calls.length, 6);
+  updater.apply(invoke, s, pending);
+  assert.equal(calls.length, 6);
+  const banner = {
+    bannerId: randomUUID(),
+    destination: 'business-invoice',
+    campaignId: null,
+  };
+  updater.apply(invoke, s, analyticsContext(s, '/', null, banner));
+  assert.equal(calls.length, 10);
+  assert(
+    !calls.some(
+      (c) =>
+        c[0] === 'set' &&
+        ['feature', 'banner'].includes(c[1]!) &&
+        c[2] === 'none',
+    ),
+  );
+  assert(
+    !calls.some(
+      (c) => c[0] === 'set' && c[1] === 'service' && c[2] === 'banking',
+    ),
+  );
+  updater.apply(invoke, s, analyticsContext(s, '/', null, banner));
+  assert.equal(calls.length, 10);
+  updater.apply(invoke, s, analyticsContext(s, '/accounts/checking', null));
+  assert.deepEqual(calls.at(-1), ['set', 'banner', 'none']);
+});
+
+test('Summary readiness distinguishes pending/ready/empty/failed and rejects another owner', async () => {
+  const {
+    clearRenderedSummaryBanner,
+    setRenderedSummaryBanner,
+    renderedSummaryBanner,
+    summaryBannerPending,
+  } = await import('../apps/web/src/summary-explorer-context.js');
+  const s = state();
+  clearRenderedSummaryBanner();
+  assert.equal(summaryBannerPending(s), true);
+  setRenderedSummaryBanner(s, null, false);
+  assert.equal(summaryBannerPending(s), true);
+  assert.equal(renderedSummaryBanner(s), null);
+  const banner = {
+    id: randomUUID(),
+    bannerId: randomUUID(),
+    imageUrl: '/example.webp',
+  } as any;
+  setRenderedSummaryBanner(s, banner);
+  assert.equal(summaryBannerPending(s), false);
+  assert.equal(renderedSummaryBanner(s), banner);
+  assert.equal(summaryBannerPending(state()), true);
+  // A resolved empty slot or failed image is genuinely absent, rather than pending.
+  setRenderedSummaryBanner(s, null, true);
+  assert.equal(summaryBannerPending(s), false);
+  assert.equal(renderedSummaryBanner(s), null);
+  const empty = analyticsContext(
+    s,
+    '/',
+    null,
+    renderedSummaryBanner(s),
+    summaryBannerPending(s),
+  );
+  assert.equal(empty.banner, 'none');
+  assert.equal(empty.feature, 'none');
+  assert.equal(empty.service, 'banking');
+  clearRenderedSummaryBanner();
+});

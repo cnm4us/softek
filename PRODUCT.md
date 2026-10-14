@@ -469,3 +469,12 @@ changed identity/tags as the customer navigates or banner artwork becomes ready.
 Fresh documents, customer/run/visit changes and collection restarts resend the
 complete context. Repeated events remain separate calls. Phoenix continues to
 mirror every actual supported application invocation; its history is retained.
+
+## Summary banner readiness — Plan 020
+
+While Summary artwork loads, send identity and known page context without temporary
+banner/feature absence or service/campaign defaults. Send the four dependent tags
+once the image resolves. Successfully loaded artwork supplies its actual values;
+confirmed empty/failed artwork retains accurate absence handling. Qualified banner
+visibility and all real events retain their existing rules. Pending banner fields
+are omitted from Phoenix metadata too. Individual Clarity calls remain unchanged.

@@ -1,4 +1,7 @@
-import { renderedSummaryBanner } from './summary-explorer-context';
+import {
+  renderedSummaryBanner,
+  summaryBannerPending,
+} from './summary-explorer-context';
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
 import { analyticsContext, createContextUpdater } from './feature-context';
@@ -117,6 +120,7 @@ export function initialize(state: State) {
     location.pathname,
     window.history.state?.usr?.featureEntry,
     location.pathname === '/' ? renderedSummaryBanner(state) : null,
+    location.pathname === '/' && summaryBannerPending(state),
   );
   syncAudit(state, context);
   if (!window.clarity) {

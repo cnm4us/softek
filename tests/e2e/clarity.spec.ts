@@ -752,12 +752,24 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
   );
   let widgetId = '',
     assetKey = '';
+  let releaseImage = () => {};
   try {
     await pool.query(
       "UPDATE feature_explorer_widgets SET enabled=FALSE WHERE section_key='summary'",
     );
     const csrf = await admin(page),
       origin = 'http://127.0.0.1:5173';
+    const tracing = await (
+      await page.request.get('/api/admin/clarity-tracing')
+    ).json();
+    expect(
+      (
+        await page.request.post('/api/admin/clarity-tracing', {
+          headers: { Origin: origin, 'X-CSRF-Token': csrf },
+          data: { enabled: true, revision: tracing.revision },
+        })
+      ).status(),
+    ).toBe(200);
     const created = await page.request.post('/api/admin/feature-explorer', {
       headers: { Origin: origin, 'X-CSRF-Token': csrf },
       data: { section: 'summary', featureId: 'identity-protect' },
@@ -828,18 +840,79 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
         'variant',
         'route',
         'campaign',
+        'feature',
+        'service',
+        'banner',
       ])
         expect(
           recorded.filter((c: any[]) => c[0] === 'set' && c[1] === key),
         ).toHaveLength(1);
-      // Loading real artwork can legitimately change feature, service and banner.
+      expect(recorded.filter((c: any[]) => c[0] === 'set').length).toBe(9);
       expect(
-        recorded.filter((c: any[]) => c[0] === 'set').length,
-      ).toBeLessThanOrEqual(12);
+        recorded.some(
+          (c: any[]) =>
+            c[0] === 'set' &&
+            ['feature', 'banner'].includes(c[1]) &&
+            c[2] === 'none',
+        ),
+      ).toBe(false);
+      expect(
+        recorded.some(
+          (c: any[]) =>
+            c[0] === 'set' && c[1] === 'service' && c[2] === 'banking',
+        ),
+      ).toBe(false);
     };
     await expectSummaryContextOnce();
+    const batches: any[] = [];
+    page.on('request', (req) => {
+      if (new URL(req.url()).pathname === '/api/analytics/clarity-calls')
+        batches.push(req.postDataJSON());
+    });
+    const heldImage = new Promise<void>((resolve) => {
+      releaseImage = resolve;
+    });
+    await page.route('**/media/banners/*', async (route) => {
+      await heldImage;
+      await route.continue();
+    });
     await page.evaluate(() => sessionStorage.removeItem('test_clarity_calls'));
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect
+      .poll(async () => JSON.stringify(await calls(page)))
+      .toContain('page_view');
+    const pendingCalls = await calls(page);
+    expect(
+      pendingCalls.filter(
+        (c: any[]) =>
+          c[0] === 'set' &&
+          ['feature', 'service', 'campaign', 'banner'].includes(c[1]),
+      ),
+    ).toEqual([]);
+    await expect
+      .poll(() =>
+        batches
+          .flatMap((b) => b.calls)
+          .some(
+            (c) =>
+              c.command === 'event' &&
+              c.args[0] === 'page_view' &&
+              !('banner' in c.metadata),
+          ),
+      )
+      .toBe(true);
+    const pendingView = batches
+      .flatMap((b) => b.calls)
+      .find(
+        (c) =>
+          c.command === 'event' &&
+          c.args[0] === 'page_view' &&
+          !('banner' in c.metadata),
+      );
+    for (const key of ['banner', 'feature', 'service', 'campaign'])
+      expect(pendingView.metadata).not.toHaveProperty(key);
+    releaseImage!();
+    await page.unroute('**/media/banners/*');
     await expect.poll(async () => (await tags()).get('banner')).toBe(widgetId);
     await banner.scrollIntoViewIfNeeded();
     await expect
@@ -880,7 +953,34 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
     expect((await tags()).get('banner')).toBe('none');
     expect((await tags()).get('feature')).toBe('none');
     expect(JSON.stringify(await calls(page))).not.toContain(user.username);
+    await page.route('**/media/banners/*', (route) => route.abort());
+    await page.evaluate(() => sessionStorage.removeItem('test_clarity_calls'));
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect.poll(async () => (await tags()).get('banner')).toBe('none');
+    expect((await tags()).get('feature')).toBe('none');
+    expect((await tags()).get('service')).toBe('banking');
+    expect(
+      (await calls(page)).filter(
+        (c: any[]) => c[0] === 'set' && c[1] === 'banner',
+      ),
+    ).toEqual([['set', 'banner', 'none']]);
+    expect(
+      (await calls(page)).some(
+        (c: any[]) => c[0] === 'event' && c[1] === 'banner_visible',
+      ),
+    ).toBe(false);
+    await page.unroute('**/media/banners/*');
+    await pool.query(
+      'UPDATE feature_explorer_widgets SET enabled=FALSE WHERE id=?',
+      [widgetId],
+    );
+    await page.evaluate(() => sessionStorage.removeItem('test_clarity_calls'));
+    await page.reload();
+    await expect.poll(async () => (await tags()).get('banner')).toBe('none');
+    expect((await tags()).get('feature')).toBe('none');
+    expect((await tags()).get('service')).toBe('banking');
   } finally {
+    releaseImage?.();
     if (widgetId)
       await pool.query('DELETE FROM feature_explorer_widgets WHERE id=?', [
         widgetId,

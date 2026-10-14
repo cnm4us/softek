@@ -7,6 +7,7 @@ let summaryInitialized = false;
 const storage = 'softek_explorer_summary';
 export function SummaryFeatureBanner({ state }: { state: State }) {
   const [banner, setBanner] = useState<Banner | null>(null);
+  const [resolved, setResolved] = useState(false);
   const selection = useRef<Promise<Banner | null> | null>(null);
   useEffect(() => {
     let current = true;
@@ -53,14 +54,22 @@ export function SummaryFeatureBanner({ state }: { state: State }) {
         .catch(() => null);
     }
     void selection.current.then((selected) => {
-      if (current) setBanner(selected);
+      if (current) {
+        setBanner(selected);
+        setResolved(true);
+      }
     });
     return () => {
       current = false;
     };
   }, [state.user.id, state.runId]);
-  return banner?.imageUrl ? (
-    <ImageBanner key={banner.id} state={state} banner={banner} compact />
+  return resolved ? (
+    <ImageBanner
+      key={banner?.id ?? 'empty'}
+      state={state}
+      banner={banner}
+      compact
+    />
   ) : (
     <BannerPlaceholder />
   );

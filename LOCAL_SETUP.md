@@ -546,13 +546,20 @@ owned visit ID. Kind remains **unknown** for these ordinary application spans.
 admin JSON export. Local invocation time is not Microsoft network latency, and OK
 is not confirmation of Microsoft receipt or recording storage.
 
-After Plan 019, a Summary reload sends one identity plus nine initial context
-tags; loading artwork can additionally change feature/service/banner. Unchanged
-tags are not resent for page/banner/event callbacks. Page-view, banner-visible,
-click and CTA events remain separate calls. To compare a single reload, filter by
-`attributes["softek"]["document_id"] == "DOCUMENT_UUID"` from a new span. In the Spans table, use nested attribute access for dotted keys, for example
-`attributes["clarity"]["command"] == "set"`. REST span output flattens those keys. Allow a few seconds for the
-browser queue and server exporter, then refresh Phoenix if its view is stale.
+After Plans 019/020, a successful Summary reload sends one identity and nine
+context tags once each. Identity, run/institution/actor/variant/route proceed while
+the image loads; feature/service/campaign/banner wait for resolved artwork. No
+loading-placeholder feature/banner none or service banking is emitted. Pending
+banner-dependent audit metadata is omitted. Genuine empty/failed slots and pages
+without banners retain appropriate absence context. Consent, page-view,
+banner-visible, click and CTA calls remain separate; SDK upload batching is independent.
+
+To compare one reload in Spans, filter by
+`attributes["softek"]["document_id"] == "DOCUMENT_UUID"` from a new span. Use nested
+attribute access for dotted keys, such as `attributes["clarity"]["command"] == "set"`;
+REST output flattens those keys. Allow a few seconds for browser/server queues,
+then refresh Phoenix if stale. Clearing Phoenix does not stop open-page timers
+or discard queued calls; document filtering isolates the new reload.
 
 The admin status distinguishes pending, collector-acknowledged and failed exports.
 Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish

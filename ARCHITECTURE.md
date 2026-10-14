@@ -204,6 +204,15 @@ every initialization even when no context call is needed. All event invocations,
 consent controls and mirror/export fidelity remain independent of this cache.
 This is an owner-authorized call reduction, not Phoenix-side suppression.
 
+[Plan 020](plans/020-summary-banner-analytics-readiness.md) distinguishes pending
+Summary artwork from a resolved empty/failed slot. Owner-bound readiness gates
+feature/service/campaign/banner tags and audit metadata, while identity, run and
+stable page tags and real events proceed normally. Only loaded artwork supplies
+banner context; a resolved empty or failed image uses existing absence values.
+Image readiness is keyed to its URL to avoid treating a replacement as loaded.
+Partial context updates reuse the existing changed-only tracker. Each supported
+key still uses its ordinary individual Clarity call; no multi-set API is invented.
+
 Phoenix 20.21.3 uses a dedicated Python 3.12.12 environment and its own SQLite
 store, with HTTP UI/collector only on loopback 6006 and SSH/VS Code port forwarding.
 A pinned launcher disables its otherwise wildcard-bound gRPC listener, preserving

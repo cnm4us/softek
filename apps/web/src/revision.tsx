@@ -123,20 +123,30 @@ export function ImageBanner({
   compact?: boolean;
 }) {
   const element = useRef<HTMLAnchorElement>(null),
-    [loaded, setLoaded] = useState(false),
-    [failed, setFailed] = useState(false);
+    [loadedUrl, setLoadedUrl] = useState<string | null>(null),
+    [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const loaded = Boolean(banner?.imageUrl && loadedUrl === banner.imageUrl),
+    failed = Boolean(banner?.imageUrl && failedUrl === banner.imageUrl);
   useEffect(() => {
     if (!compact) return;
-    setRenderedSummaryBanner(state, loaded && !failed ? banner : null);
+    setRenderedSummaryBanner(
+      state,
+      loaded && !failed ? banner : null,
+      loaded || failed || !banner?.imageUrl,
+    );
     initialize(state);
     return () => {
       clearRenderedSummaryBanner();
     };
-  }, [compact, banner?.id, loaded, failed, state.user.id, state.runId]);
-  useEffect(() => {
-    setLoaded(false);
-    setFailed(false);
-  }, [banner?.id]);
+  }, [
+    compact,
+    banner?.id,
+    banner?.imageUrl,
+    loaded,
+    failed,
+    state.user.id,
+    state.runId,
+  ]);
   useEffect(() => {
     if (!element.current || !loaded || failed || !banner?.bannerId) return;
     let timer: ReturnType<typeof setTimeout> | undefined,
@@ -202,8 +212,8 @@ export function ImageBanner({
       <img
         src={banner.imageUrl}
         alt={banner.altText}
-        onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
+        onLoad={() => setLoadedUrl(banner.imageUrl)}
+        onError={() => setFailedUrl(banner.imageUrl)}
         width="1200"
         height="400"
       />
