@@ -1,7 +1,7 @@
 import { renderedSummaryBanner } from './summary-explorer-context';
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
-import { analyticsContext, applyContext } from './feature-context';
+import { analyticsContext, createContextUpdater } from './feature-context';
 import { Demo, syncAudit, beginAuditClose, closeAudit } from './clarity-audit';
 export const eventNames = [
   'eligible',
@@ -29,6 +29,7 @@ declare global {
 type Policy = State['analytics'];
 let policy: Policy | null = null;
 let captureUser: string | null = null;
+const contextUpdater = createContextUpdater();
 export function consentChoice(state: State): 'granted' | 'denied' | null {
   try {
     const value = JSON.parse(
@@ -44,6 +45,7 @@ export function consentChoice(state: State): 'granted' | 'denied' | null {
   }
 }
 export function stopCollection() {
+  contextUpdater.reset();
   beginAuditClose();
   if (window.clarity) {
     Demo('consentv2', {
@@ -118,6 +120,7 @@ export function initialize(state: State) {
   );
   syncAudit(state, context);
   if (!window.clarity) {
+    contextUpdater.reset();
     const queue: (string | Consent)[][] = [];
     window.clarity = Object.assign(
       (command: string, ...args: (string | Consent)[]) => {
@@ -135,16 +138,7 @@ export function initialize(state: State) {
     document.head.append(script);
   }
   // Only loaded Summary artwork supplies banner context, never retained legacy selections.
-  applyContext(
-    Demo,
-    state,
-    analyticsContext(
-      state,
-      location.pathname,
-      window.history.state?.usr?.featureEntry,
-      location.pathname === '/' ? renderedSummaryBanner(state) : null,
-    ),
-  );
+  contextUpdater.apply(Demo, state, context);
 }
 export function confirmed(state: State, names: string[]) {
   if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;

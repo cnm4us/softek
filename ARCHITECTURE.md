@@ -194,6 +194,16 @@ status message, without exception details. Kind remains unknown. These owner-req
 fields describe local invocation, never Microsoft delivery. Existing arguments and
 IDs are preserved, with no migration or historical re-export.
 
+[Plan 019](plans/019-clarity-context-deduplication.md) reduces redundant calls at
+the application source. A document-local context updater remembers successfully
+invoked identity and tag values. Identity changes follow customer/visit/route;
+only changed tags are sent. Customer/run/visit changes, a collection stop or a new
+SDK bootstrap clear the cache. Normal startup-queue drain into the hosted SDK
+preserves it. Throwing calls remain retryable, and audit metadata is refreshed on
+every initialization even when no context call is needed. All event invocations,
+consent controls and mirror/export fidelity remain independent of this cache.
+This is an owner-authorized call reduction, not Phoenix-side suppression.
+
 Phoenix 20.21.3 uses a dedicated Python 3.12.12 environment and its own SQLite
 store, with HTTP UI/collector only on loopback 6006 and SSH/VS Code port forwarding.
 A pinned launcher disables its otherwise wildcard-bound gRPC listener, preserving

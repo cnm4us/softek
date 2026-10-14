@@ -94,3 +94,50 @@ export function applyContext(
   clarity('set', 'run', state.runId);
   for (const [key, value] of Object.entries(tags)) clarity('set', key, value);
 }
+
+// One updater per browser document. Only successfully invoked context is cached.
+export function createContextUpdater() {
+  let owner = '',
+    identity = '';
+  const values = new Map<string, string>();
+  const reset = () => {
+    owner = '';
+    identity = '';
+    values.clear();
+  };
+  return {
+    reset,
+    apply(
+      clarity: (command: string, ...args: string[]) => void,
+      state: State,
+      tags: ReturnType<typeof analyticsContext>,
+    ) {
+      const nextOwner = JSON.stringify([
+        state.user.id,
+        state.runId,
+        state.visitId,
+      ]);
+      if (owner !== nextOwner) {
+        reset();
+        owner = nextOwner;
+      }
+      applyContext(
+        (command, ...args) => {
+          if (command === 'identify') {
+            const nextIdentity = JSON.stringify(args);
+            if (identity === nextIdentity) return;
+            clarity(command, ...args);
+            identity = nextIdentity;
+          } else {
+            const [key, value] = args as [string, string];
+            if (values.get(key) === value) return;
+            clarity(command, ...args);
+            values.set(key, value);
+          }
+        },
+        state,
+        tags,
+      );
+    },
+  };
+}

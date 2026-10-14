@@ -816,6 +816,41 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
     await expect
       .poll(async () => JSON.stringify(await calls(page)))
       .toContain('banner_visible');
+    const expectSummaryContextOnce = async () => {
+      const recorded = await calls(page);
+      expect(recorded.filter((c: any[]) => c[0] === 'identify')).toHaveLength(
+        1,
+      );
+      for (const key of [
+        'run',
+        'institution',
+        'actor',
+        'variant',
+        'route',
+        'campaign',
+      ])
+        expect(
+          recorded.filter((c: any[]) => c[0] === 'set' && c[1] === key),
+        ).toHaveLength(1);
+      // Loading real artwork can legitimately change feature, service and banner.
+      expect(
+        recorded.filter((c: any[]) => c[0] === 'set').length,
+      ).toBeLessThanOrEqual(12);
+    };
+    await expectSummaryContextOnce();
+    await page.evaluate(() => sessionStorage.removeItem('test_clarity_calls'));
+    await page.reload();
+    await expect.poll(async () => (await tags()).get('banner')).toBe(widgetId);
+    await banner.scrollIntoViewIfNeeded();
+    await expect
+      .poll(async () => JSON.stringify(await calls(page)))
+      .toContain('banner_visible');
+    await expectSummaryContextOnce();
+    expect(
+      (await calls(page))
+        .filter((c: any[]) => c[0] === 'event')
+        .map((c: any[]) => c[1]),
+    ).toEqual(expect.arrayContaining(['page_view', 'banner_visible']));
     await banner.click();
     await expect(page).toHaveURL('/features/identity-protect');
     await expect

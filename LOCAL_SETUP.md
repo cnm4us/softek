@@ -546,6 +546,15 @@ owned visit ID. Kind remains **unknown** for these ordinary application spans.
 admin JSON export. Local invocation time is not Microsoft network latency, and OK
 is not confirmation of Microsoft receipt or recording storage.
 
+After Plan 019, a Summary reload sends one identity plus nine initial context
+tags; loading artwork can additionally change feature/service/banner. Unchanged
+tags are not resent for page/banner/event callbacks. Page-view, banner-visible,
+click and CTA events remain separate calls. To compare a single reload, filter by
+`attributes["softek.document_id"] == "DOCUMENT_UUID"` from a new span. The command
+filter `attributes["clarity.command"] == "set"` works in both Spans and Traces;
+`name == "clarity.set"` is a Spans-only expression. Allow a few seconds for the
+browser queue and server exporter, then refresh Phoenix if its view is stale.
+
 The admin status distinguishes pending, collector-acknowledged and failed exports.
 Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish
 exporting after tracing is switched Off. Browser closure, lost authentication,

@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[018 — Phoenix span presentation](plans/018-phoenix-span-presentation.md), delivered**.
+Current focus: **[019 — Clarity context deduplication](plans/019-clarity-context-deduplication.md), implementation authorized**.
 Latest completed implementation: **Plan 018 — Phoenix span presentation**.
-Current request: **Readable call/Input, local Output, Status and bounded Error messages delivered; Kind remains unknown.**
-Next task: **Refresh the customer page, browse normally, and inspect newly exported spans in Phoenix project softek-clarity-api. Await the owner's next priority.**
+Current request: **Reduce repeated identity/tag calls, retain real events, deploy and examine Phoenix.**
+Next task: **Deploy the checked context updater, preserve live settings, then inspect a controlled SDK-stub trace in Phoenix.**
 
 ## Plan status registry
 
@@ -33,6 +33,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
 | 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Completed | VIEW-01–03 verified/deployed; 16 focused entries, real isolated REST/UI presentation, live settings preserved |
+| 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Active | CTX-01–02 verified; deployment and Phoenix comparison next |
 
 ## Current reality
 

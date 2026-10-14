@@ -461,3 +461,11 @@ outcome in Output. OK means the local callable returned (including the initial
 SDK queue); ERROR and its message identify unavailable/throwing calls. Kind stays
 unknown. These fields provide inspection context without establishing Microsoft
 receipt or recording retention. Existing acknowledged spans are not rewritten.
+
+## Clarity context updates — Plan 019
+
+Send a complete initial identity/tag context per customer document, then only
+changed identity/tags as the customer navigates or banner artwork becomes ready.
+Fresh documents, customer/run/visit changes and collection restarts resend the
+complete context. Repeated events remain separate calls. Phoenix continues to
+mirror every actual supported application invocation; its history is retained.

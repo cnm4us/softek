@@ -460,3 +460,20 @@ Phoenix table and call attribute. Screenshots are ignored
 `artifacts/phoenix-presentation-columns.png` and
 `artifacts/phoenix-presentation-detail.png`. Production port 6006 and Microsoft
 are never targeted. Stop only the isolated test process afterward.
+
+## Clarity context deduplication — Plan 019
+
+```bash
+npx tsx --test --test-concurrency=1 tests/clarity-context.test.ts tests/clarity-call.test.ts tests/features.test.ts
+npm run test:clarity -- --grep 'Phoenix API-call audit|consent, masks|Summary artwork|impersonation stops'
+```
+
+Context checks cover unchanged repeats, startup callable replacement, changed
+banner tags, account navigation/clearing and return, customer/run/visit changes,
+explicit reset and exception retries. Summary artwork browser coverage asserts
+one identity and one copy of each stable tag both initially and after reload,
+at most twelve set calls including legitimate loaded-artwork changes, and intact
+page/banner/feature/CTA observations. SDK/audit, consent and impersonation coverage
+remains active at 360/390/1440px. Microsoft endpoints are stubbed/blocked; routine
+checks keep production Phoenix untouched. Live acceptance, if performed, uses
+only an owned Automation fixture with the SDK stub and documented trace IDs.
