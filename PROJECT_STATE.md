@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[017 — Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md), delivered; owner enabled tracing**.
+Current focus: **[018 — Phoenix span presentation](plans/018-phoenix-span-presentation.md), implementation authorized**.
 Latest completed implementation: **Plan 017 — Clarity API-call tracing in Phoenix**.
-Current request: **Owner enabled tracing and reported an empty default Phoenix project; verify live delivery without restarting services.**
-Next task: **Open Phoenix project softek-clarity-api through the private port forward. Await the next priority; raw uploads, other banner spaces and the recording inquiry remain outside this delivered scope.**
+Current request: **Populate readable call/Input, local Output, Status and bounded Error messages; leave Kind unknown.**
+Next task: **Verify presentation in isolated Phoenix, then deploy preserving owner-enabled collection/tracing.**
 
 ## Plan status registry
 
@@ -32,6 +32,7 @@ Active identifies focus and does not itself authorize additional scope.
 | 015 | [Feature Explorer controls](plans/015-feature-explorer-controls.md) | Completed | EXP-01–06 verified/deployed; schema 10; 88 API/migration entries, nine browser checks, three SDK-stub privacy checks and live HTTPS 360/1440px; customer activation deferred |
 | 016 | [Summary feature banners](plans/016-summary-feature-banners.md) | Completed | SUM-01–04 verified/deployed; schema 11; 94 API/migration entries, 18 browser checks, six SDK-stub privacy checks and live HTTPS 360/1440px; Summary only |
 | 017 | [Clarity API-call tracing in Phoenix](plans/017-clarity-api-phoenix-tracing.md) | Completed | PHX-01–07 verified/deployed Off; schema 12; 110 API/migration entries, 12 browser checks, 13 isolated collector checks and live HTTPS 360/1440px |
+| 018 | [Phoenix span presentation](plans/018-phoenix-span-presentation.md) | Active | VIEW-01–02 verified; deployment next |
 
 ## Current reality
 

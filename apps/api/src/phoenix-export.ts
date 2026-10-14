@@ -20,6 +20,17 @@ export function callSpan(r: Row): ReadableSpan {
   const start = new Date(r.observed_at).getTime(),
     end = start + r.duration_us / 1000;
   const meta = json(r.metadata_json);
+  const args = json(r.arguments_json);
+  const call = `clarity(${[r.command, ...args].map((v) => JSON.stringify(v)).join(', ')});`;
+  const absent = r.outcome === 'absent' || r.sdk_state === 'absent';
+  const threw = r.outcome === 'threw';
+  const output = absent
+    ? 'Clarity SDK callable was unavailable'
+    : threw
+      ? 'Invocation threw'
+      : r.sdk_state === 'queued'
+        ? 'Queued for SDK'
+        : 'SDK invocation returned';
   return {
     name: `clarity.${r.command}`,
     kind: SpanKind.INTERNAL,
@@ -33,11 +44,23 @@ export function callSpan(r: Row): ReadableSpan {
     duration: time(r.duration_us / 1000),
     ended: true,
     status: {
-      code: r.outcome === 'threw' ? SpanStatusCode.ERROR : SpanStatusCode.UNSET,
+      code: absent || threw ? SpanStatusCode.ERROR : SpanStatusCode.OK,
+      ...(absent || threw
+        ? {
+            message: absent
+              ? 'Clarity SDK callable was unavailable'
+              : 'Clarity SDK invocation threw an exception',
+          }
+        : {}),
     },
     attributes: {
+      'input.value': call,
+      'input.mime_type': 'text/plain',
+      'output.value': output,
+      'output.mime_type': 'text/plain',
       'clarity.command': r.command,
-      'clarity.arguments_json': JSON.stringify(json(r.arguments_json)),
+      'clarity.call': call,
+      'clarity.arguments_json': JSON.stringify(args),
       'clarity.sdk_state': r.sdk_state,
       'clarity.invocation_outcome': r.outcome,
       'softek.event_id': r.id,

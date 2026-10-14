@@ -452,3 +452,12 @@ only loaded/rendered artwork context; leaving Summary clears that context.
 Only Summary activation is authorized in this phase. Checking, savings and credit
 card detail spaces remain inactive placeholders, with configuration available in
 Admin. Existing owner images, titles, ordering and enabled settings are preserved.
+
+## Phoenix call presentation — Plan 018
+
+Newly exported diagnostic spans show the full application Clarity call in Input
+and `clarity.call`, retain raw safe arguments, and show a bounded local invocation
+outcome in Output. OK means the local callable returned (including the initial
+SDK queue); ERROR and its message identify unavailable/throwing calls. Kind stays
+unknown. These fields provide inspection context without establishing Microsoft
+receipt or recording retention. Existing acknowledged spans are not rewritten.

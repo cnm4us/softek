@@ -484,6 +484,9 @@ test('Clarity tracing: consent ownership, durable audit and truthful export', as
               .first()
               .click();
             await page
+              .getByRole('tab', { name: 'Attributes', exact: true })
+              .click();
+            await page
               .getByText('clarity.arguments_json', { exact: true })
               .waitFor();
             await page.screenshot({

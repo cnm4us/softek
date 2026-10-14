@@ -185,6 +185,15 @@ span IDs survive retries, but ambiguous acknowledgments are not an exactly-once
 guarantee. A deletion race can finish a request already in flight; previously
 exported Phoenix copies expire independently of local customer deletion.
 
+[Plan 018](plans/018-phoenix-span-presentation.md) adds exporter-derived presentation:
+`input.value` and `clarity.call` contain the complete JSON-escaped application
+call; `output.value` describes queued, returned, thrown or unavailable local
+invocation. Text MIME types populate Phoenix's ordinary Input/Output columns.
+Returned calls have OK status; unavailable/throwing calls have ERROR and a bounded
+status message, without exception details. Kind remains unknown. These owner-requested
+fields describe local invocation, never Microsoft delivery. Existing arguments and
+IDs are preserved, with no migration or historical re-export.
+
 Phoenix 20.21.3 uses a dedicated Python 3.12.12 environment and its own SQLite
 store, with HTTP UI/collector only on loopback 6006 and SSH/VS Code port forwarding.
 A pinned launcher disables its otherwise wildcard-bound gRPC listener, preserving

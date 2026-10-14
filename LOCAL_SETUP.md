@@ -531,12 +531,20 @@ also export through loopback without a browser tunnel.
 
 After customer activity, select Phoenix project **softek-clarity-api**, then a
 `clarity.event`, `clarity.set`, `clarity.identify`, `clarity.consentv2` or
-`clarity.stop` span. **Attributes → clarity.arguments_json** contains the full
-supported safe argument array. `user.id` matches the customer's opaque Clarity
-custom user ID; `session.id` is our owned visit ID. These are custom application
-spans, so Phoenix displays their kind as **unknown**, with no LLM inputs/outputs.
+`clarity.stop` span. **Input** shows the full readable call, for example
+`clarity("event", "banner_clicked");`. It is also available under
+**Attributes → clarity.call**; `clarity.arguments_json` retains the full supported
+safe argument array. **Output** reports Queued for SDK, SDK invocation returned,
+Invocation threw or Clarity SDK callable was unavailable. **Status** is OK when the
+local invocation returned, including a queued call; ERROR covers thrown/unavailable
+calls. **Error** shows the bounded status message only for ERROR. These fields apply
+to newly exported spans; previously acknowledged spans retain their old presentation.
+
+`user.id` matches the customer's opaque Clarity custom user ID; `session.id` is our
+owned visit ID. Kind remains **unknown** for these ordinary application spans.
 `softek.event_id` and document/sequence attributes support comparison with the
-admin JSON export. Local invocation time is not Microsoft network latency.
+admin JSON export. Local invocation time is not Microsoft network latency, and OK
+is not confirmation of Microsoft receipt or recording storage.
 
 The admin status distinguishes pending, collector-acknowledged and failed exports.
 Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish

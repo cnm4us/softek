@@ -435,3 +435,28 @@ REST readback window was insufficient while insertion drained; later read-only
 SQLite counts confirmed persistence. This is not an end-to-end automated banking
 cohort, a production throughput guarantee, or proof of Microsoft processing.
 Actual checks/release results are recorded in PROJECT_STATE.
+
+## Phoenix span presentation — Plan 018
+
+Exporter formatting/outcome checks run with the normal test suite or alone:
+
+```bash
+npx tsx --test tests/phoenix-export.test.ts
+```
+
+They cover parsed/string JSON, quoted/newline/backslash values, object arguments,
+multiple/zero arguments, generic kind, stable IDs and queued/returned/thrown/absent
+outcomes. No collector or Microsoft network traffic is needed for these checks.
+With the isolated port-6008 instance described above running, verify actual REST
+and UI presentation:
+
+```bash
+SOFTEK_TEST_PHOENIX=true npx tsx --test --test-concurrency=1 tests/clarity-tracing.test.ts tests/phoenix-export.test.ts
+```
+
+The optional presentation test sends four fictional collector-only spans to 6008,
+checks persisted Input/Output/status/message/unknown kind, then checks the real
+Phoenix table and call attribute. Screenshots are ignored
+`artifacts/phoenix-presentation-columns.png` and
+`artifacts/phoenix-presentation-detail.png`. Production port 6006 and Microsoft
+are never targeted. Stop only the isolated test process afterward.
