@@ -71,6 +71,11 @@ export function safeTag(key: string, value: unknown): boolean {
       return ['none', 'savings-launch'].includes(value);
     case 'run':
       return traceUuid(value);
+    case 'cta-clicked':
+      return (
+        explorerBannerAnalyticsIds.includes(value) &&
+        value.startsWith('summary-')
+      );
     case 'banner':
       return (
         ['none', 'harbor-goals', 'harbor-bill-pay', 'harbor-cards'].includes(

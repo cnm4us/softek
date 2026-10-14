@@ -256,3 +256,37 @@ test('readable banner value carries to its owned landing entry while internal at
     uuid,
   );
 });
+
+test('banner CTA attribution requires a readable entry owned by the current customer/run/feature', async () => {
+  const { bannerCtaAnalyticsId } =
+    await import('../apps/web/src/feature-context.js');
+  const s = state();
+  const entry = {
+    userId: s.user.id,
+    runId: s.runId,
+    featureId: 'business-invoice',
+    selectionId: randomUUID(),
+    bannerId: randomUUID(),
+    bannerAnalyticsId: 'summary-business-invoice',
+  };
+  const path = '/features/business-invoice';
+  assert.equal(
+    bannerCtaAnalyticsId(s, path, entry),
+    'summary-business-invoice',
+  );
+  for (const value of [
+    null,
+    {},
+    { ...entry, userId: randomUUID() },
+    { ...entry, runId: randomUUID() },
+    { ...entry, selectionId: 'invalid' },
+    { ...entry, bannerAnalyticsId: 'summary-identity-protect' },
+    { ...entry, bannerAnalyticsId: undefined },
+  ])
+    assert.equal(bannerCtaAnalyticsId(s, path, value), null);
+  assert.equal(
+    bannerCtaAnalyticsId(s, '/features/identity-protect', entry),
+    null,
+  );
+  assert.equal(bannerCtaAnalyticsId(s, '/', entry), null);
+});

@@ -571,6 +571,17 @@ while first-party UUID/asset snapshots distinguish widgets and creative revision
 Combine the tag with the exact Summary URL to find relevant Clarity sessions;
 rotation within a session means those filters are not exact per-banner hit counts.
 
+Plan 022 adds the action tag **cta-clicked**. In Clarity Filters → Custom tags,
+select cta-clicked = summary-business-invoice (or summary-identity-protect /
+summary-youth-banking) to find sessions with an acknowledged CTA reached through
+that banner. This avoids combining a seen-banner tag with an unrelated generic
+CTA elsewhere in the session. Values accumulate; saved filters identify sessions,
+not exact click counts. The generic feature_cta_clicked event remains. A tag is
+emitted only after backend acknowledgement, from an owned readable landing entry,
+and is mirrored to Phoenix. Direct/menu/discovery entries and legacy entries
+without the readable alias produce no cta-clicked tag. Refresh for the current
+release; new filter values follow Microsoft's indexing window below.
+
 The admin status distinguishes pending, collector-acknowledged and failed exports.
 Acknowledgment is to Phoenix, not Microsoft. Accepted historical records finish
 exporting after tracing is switched Off. Browser closure, lost authentication,

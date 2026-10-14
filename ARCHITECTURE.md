@@ -333,6 +333,19 @@ their original cohorts. This is one campaign, not a general analytics platform.
 
 ## Clarity and deployment boundaries
 
+Plan 022 adds the owner-requested `cta-clicked` custom tag using the validated
+readable Summary banner entry captured by the landing page. It is sent alongside
+the generic CTA event only after the existing interaction API acknowledges the
+CTA; lost responses/retries retain that API's idempotency and per-page emission
+guard. Direct/menu/discovery entries, invalid ownership/route, and legacy entries
+without a readable alias do not supply the new tag. This is an action observation,
+not a persistent context field: do not initialize it on page loads or reset it to
+none on navigation. Session values accumulate, representing confirmed CTA origins
+without linking unrelated sessions' tag/event combinations. Strict tracing admits
+only known Summary aliases and mirrors the actual call to Phoenix. Existing
+UUID-based reporting remains authoritative for per-action counts/attribution.
+No schema change, collection-policy change or export importer is introduced.
+
 The adapter allows only named events and fixed institution/service/campaign/
 variant/actor/route/banner tags. Identify uses the stable opaque user UUID, with
 visit/session and allowlisted route/page context; run ID is a separate tag. Banking text, goal

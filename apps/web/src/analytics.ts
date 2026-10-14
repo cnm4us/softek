@@ -4,7 +4,12 @@ import {
 } from './summary-explorer-context';
 import { api, type State } from './api';
 import { isAdminRoute } from './routes';
-import { analyticsContext, createContextUpdater } from './feature-context';
+import {
+  analyticsContext,
+  bannerCtaAnalyticsId,
+  createContextUpdater,
+  type FeatureEntry,
+} from './feature-context';
 import { Demo, syncAudit, beginAuditClose, closeAudit } from './clarity-audit';
 export const eventNames = [
   'eligible',
@@ -193,8 +198,13 @@ export async function observe(
 export function emitFeatureObservation(
   state: State,
   name: 'feature_viewed' | 'feature_cta_clicked',
+  entry?: FeatureEntry | null,
 ) {
   if (!collectionAvailable(state) || consentChoice(state) !== 'granted') return;
   initialize(state);
+  if (name === 'feature_cta_clicked') {
+    const banner = bannerCtaAnalyticsId(state, location.pathname, entry);
+    if (banner) Demo('set', 'cta-clicked', banner);
+  }
   Demo('event', name);
 }

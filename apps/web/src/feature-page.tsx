@@ -68,7 +68,7 @@ function Landing({ state, feature }: { state: State; feature: Feature }) {
     );
     if (active.current && result.acknowledged && !emitted.current.has(name)) {
       emitted.current.add(name);
-      emitFeatureObservation(state, name);
+      emitFeatureObservation(state, name, entry);
     }
   }
   useEffect(() => {

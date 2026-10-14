@@ -1,10 +1,10 @@
 # Project state
 
 Last updated: **2026-10-14 UTC**.
-Current focus: **[021 — Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md), delivered**.
+Current focus: **[022 — Banner CTA custom tag](plans/022-banner-cta-custom-tag.md), implementation**.
 Latest completed implementation: **Plan 021 — Readable banner analytics IDs**.
-Current request: **Read-only check of the owner-supplied Clarity export token and missing readable banner filter value.**
-Next task: **Owner rechecks the readable banner filter after Clarity's documented indexing window; exact Microsoft tag receipt remains unverified. Await the next priority.**
+Current request: **Add the requested cta-clicked tag for a feature CTA reached through a Summary banner.**
+Next task: **Finish focused acceptance checks and deploy Plan 022 preserving owner collection/tracing settings.**
 
 ## Plan status registry
 
@@ -36,8 +36,19 @@ Active identifies focus and does not itself authorize additional scope.
 | 019 | [Clarity context deduplication](plans/019-clarity-context-deduplication.md) | Completed | CTX-01–03 verified/deployed; 14 TAP entries, 12 browser cases, 16-call live stub reload visible in Phoenix |
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Completed | READY-01–03 verified/deployed; 16 TAP entries, 12 browser cases, 13-call live stub reload visible in Phoenix |
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
+| 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Active | CTA-01/02 checked: 13 focused unit entries and 12 browser cases passed; deployment/live readback pending |
 
 ## Current reality
+
+- Plan 022 adds cta-clicked only after an acknowledged CTA from an owned readable
+  Summary banner entry, alongside the existing generic event. Strict trace values
+  exclude absence, arbitrary identifiers and inactive account spaces. Direct/menu/
+  discovery entries do not inherit earlier banner values. No schema change.
+  **13 focused TAP entries** and **12 browser cases at 360/390/1440px** passed,
+  including lost-response retry, no pre-acknowledgement tag, real audit acceptance,
+  unrelated menu CTA exclusion, consent/admin/impersonation and audit-failure checks.
+  Typecheck, format and Git whitespace passed. Build/deployment/live SDK-stub
+  Phoenix readback are next; all verification so far blocked/stubbed Microsoft.
 
 - On **2026-10-14 at 21:04 UTC**, the owner-supplied private `CLARITY_API_TOKEN`
   successfully authenticated one read-only Data Export request (HTTP 200), for

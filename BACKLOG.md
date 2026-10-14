@@ -32,6 +32,7 @@ its backlog ID.
 | B-020 | Completed | Clarity context deduplication | [Plan 019](plans/019-clarity-context-deduplication.md); reduce redundant tags at source, preserve event calls and inspect Phoenix |
 | B-021 | Completed | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
 | B-022 | Completed | Readable banner analytics IDs | [Plan 021](plans/021-readable-banner-analytics-ids.md); space-feature aliases for filters, preserve UUID reporting |
+| B-023 | In progress | Banner-attributed CTA custom tag | [Plan 022](plans/022-banner-cta-custom-tag.md); confirmed CTA tag using owned readable entry |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 

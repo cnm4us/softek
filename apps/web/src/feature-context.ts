@@ -29,6 +29,16 @@ export function featureEntry(
     ? v
     : null;
 }
+export function bannerCtaAnalyticsId(
+  state: State,
+  path: string,
+  value: unknown,
+): string | null {
+  const feature = featureAtPath(path);
+  return feature
+    ? (featureEntry(state, feature.id, value)?.bannerAnalyticsId ?? null)
+    : null;
+}
 type ContextTags = { route: string } & Record<string, string>;
 export type ContextBanner = {
   bannerId: string | null;

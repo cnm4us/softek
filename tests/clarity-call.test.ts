@@ -121,3 +121,17 @@ test('readable banner tags are limited to known space-feature pairs and retain l
   assert(!safeCall('set', ['banner', 'unsupported-space-business-invoice']));
   assert(!safeCall('set', ['banner', 'person@example.com']));
 });
+
+test('CTA tags accept only known active-space aliases, never arbitrary identifiers or absence values', () => {
+  assert(safeCall('set', ['cta-clicked', 'summary-business-invoice']));
+  assert(safeCall('set', ['cta-clicked', 'summary-identity-protect']));
+  assert(safeCall('set', ['cta-clicked', 'summary-youth-banking']));
+  for (const value of [
+    'none',
+    'summary-missing',
+    'account-checking-business-invoice',
+    'person@example.com',
+    '6af92924-6860-49e7-948c-88ad4e360547',
+  ])
+    assert(!safeCall('set', ['cta-clicked', value]));
+});

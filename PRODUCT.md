@@ -488,3 +488,16 @@ banner value. The same value follows a new banner entry onto its feature page.
 UUID-based first-party ownership, reporting and historical snapshots stay intact;
 legacy remote values remain. Alias identity follows space/feature rather than artwork
 or title. No additional tag/call or activation of another banner space is introduced.
+
+## Banner CTA filter — Plan 022
+
+After the backend acknowledges a feature CTA reached through a Summary banner,
+send `clarity("set", "cta-clicked", "summary-business-invoice")` (or that entry's
+matching readable feature alias), alongside `feature_cta_clicked`. The new tag
+means a confirmed CTA originated from that banner entry. Banner display/click,
+landing-page views and menu/direct/discovery CTA entries do not add it. Existing
+consent and admin/impersonation exclusions apply. The tag is not cleared on
+navigation: Clarity session values accumulate. Filter the `cta-clicked` value
+directly to find matching sessions; use first-party reporting for exact counts
+and creative revisions. New tag indexing and Microsoft receipt remain separate
+from local/Phoenix verification.

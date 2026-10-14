@@ -113,3 +113,8 @@ PROJECT_STATE records the new 13-call live SDK-stub reload comparison.
 uses space-feature aliases in Clarity/Phoenix banner values and admin configuration.
 UUIDs remain internal, and previous remote history is retained. Current mapping and
 actual release/check evidence are in PROJECT_STATE/LOCAL_SETUP.
+
+[022 — Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) adds cta-clicked
+for acknowledged CTAs reached through an owned readable Summary banner entry.
+Generic CTA events and first-party attribution remain. PROJECT_STATE owns current
+verification/deployment status; LOCAL_SETUP explains the new direct filter.

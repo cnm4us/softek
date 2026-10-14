@@ -511,3 +511,21 @@ banking navigation. Reload readiness, nine tag calls, consent, qualified events,
 CTA/report attribution and SDK/audit fidelity stay covered at all three widths.
 Routine Microsoft traffic is blocked/stubbed; live checks use only owned Automation
 fixtures with SDK stub, keeping owner switches and existing history intact.
+
+## Banner CTA custom tag — Plan 022
+
+```bash
+npx tsx --test --test-concurrency=1 tests/clarity-context.test.ts tests/clarity-call.test.ts
+npm run test:clarity -- --grep 'Phoenix API-call audit|consent, masks|Summary artwork|impersonation stops'
+```
+
+Focused unit checks verify customer/run/route/alias ownership and restrict the
+new cta-clicked tag to known Summary aliases. The existing Summary artwork journey
+asserts no tag on display/view/banner click, records a CTA but loses its response,
+asserts no tag until retry acknowledgement, then expects one exact tag immediately
+before the generic CTA event and checks real MariaDB audit acceptance. A different
+feature's subsequent menu CTA must not inherit the banner origin. Existing
+consent/admin/impersonation and SDK/audit-failure coverage remains at 360/390/1440px.
+Microsoft stays stubbed/blocked; production Phoenix is excluded from routine tests.
+An owned live SDK-stub acceptance may verify actual deployed call/export readback;
+that does not validate Microsoft ingestion or new-tag indexing.

@@ -175,6 +175,11 @@ test('Phoenix API-call audit mirrors SDK calls, respects consent and survives au
       ),
     )
     .toBe(true);
+  expect(
+    (await calls(page)).some(
+      (c: any[]) => c[0] === 'set' && c[1] === 'cta-clicked',
+    ),
+  ).toBe(false);
   const beforeFailure = await customerState(page);
   await page.route('**/api/analytics/clarity-calls', (r) =>
     r.fulfill({
@@ -933,6 +938,37 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
     await expect
       .poll(async () => JSON.stringify(await calls(page)))
       .toContain('banner_clicked');
+    const ctaTags = async () =>
+      (await calls(page)).filter(
+        (c: any[]) => c[0] === 'set' && c[1] === 'cta-clicked',
+      );
+    expect(await ctaTags()).toEqual([]);
+    // The server records this CTA, but its lost response must not emit the tag.
+    await page.route('**/api/interactions', async (route) => {
+      if (route.request().postDataJSON().name === 'feature_cta_clicked') {
+        const upstream = await route.fetch();
+        expect(upstream.status()).toBe(200);
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: '{"error":"CTA response lost"}',
+        });
+      } else await route.continue();
+    });
+    await page
+      .getByRole('button', {
+        name: features.find((f) => f.id === 'identity-protect')!.cta,
+        exact: true,
+      })
+      .click();
+    await expect(page.getByRole('alert')).toContainText('CTA response lost');
+    expect(await ctaTags()).toEqual([]);
+    expect(
+      (await calls(page)).some(
+        (c: any[]) => c[0] === 'event' && c[1] === 'feature_cta_clicked',
+      ),
+    ).toBe(false);
+    await page.unroute('**/api/interactions');
     await page
       .getByRole('button', {
         name: features.find((f) => f.id === 'identity-protect')!.cta,
@@ -944,6 +980,32 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
       .poll(async () => JSON.stringify(await calls(page)))
       .toContain('feature_cta_clicked');
     expect((await tags()).get('banner')).toBe('summary-identity-protect');
+    expect(await ctaTags()).toEqual([
+      ['set', 'cta-clicked', 'summary-identity-protect'],
+    ]);
+    const acknowledgedCalls = await calls(page);
+    const tagIndex = acknowledgedCalls.findIndex(
+      (c: any[]) => c[0] === 'set' && c[1] === 'cta-clicked',
+    );
+    expect(acknowledgedCalls[tagIndex + 1]).toEqual([
+      'event',
+      'feature_cta_clicked',
+    ]);
+    await expect
+      .poll(async () => {
+        const rows = await pool.query(
+          `SELECT a.arguments_json,a.metadata_json FROM clarity_api_calls a
+         JOIN clarity_trace_contexts x ON x.id=a.context_id WHERE x.user_id=?
+         AND a.command='set' AND JSON_UNQUOTE(JSON_EXTRACT(a.arguments_json,'$[0]'))='cta-clicked'`,
+          [user.id],
+        );
+        return rows.map((r: any) =>
+          typeof r.arguments_json === 'string'
+            ? JSON.parse(r.arguments_json)
+            : r.arguments_json,
+        );
+      })
+      .toEqual([['cta-clicked', 'summary-identity-protect']]);
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     await page
       .getByRole('link', { name: 'Account Summary', exact: true })
@@ -956,6 +1018,23 @@ test('Summary artwork has consent-gated banner tags, click events and cleared ac
       .toBe('account-checking');
     expect((await tags()).get('banner')).toBe('none');
     expect((await tags()).get('feature')).toBe('none');
+    // A different feature's menu CTA must not inherit the retained banner tag.
+    await feature(page);
+    await page
+      .getByRole('button', { name: /Explore Crypto Investing/i })
+      .click();
+    await expect(page.getByRole('status')).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          (await calls(page)).filter(
+            (c: any[]) => c[0] === 'event' && c[1] === 'feature_cta_clicked',
+          ).length,
+      )
+      .toBe(2);
+    expect(await ctaTags()).toEqual([
+      ['set', 'cta-clicked', 'summary-identity-protect'],
+    ]);
     expect(JSON.stringify(await calls(page))).not.toContain(user.username);
     await page.route('**/media/banners/*', (route) => route.abort());
     await page.evaluate(() => sessionStorage.removeItem('test_clarity_calls'));
