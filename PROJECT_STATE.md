@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-14 UTC**.
-Current focus: **[022 — Banner CTA custom tag](plans/022-banner-cta-custom-tag.md), delivered**.
+Last updated: **2026-10-17 UTC**.
+Current focus: **Owner-requested application shutdown, completed.**
 Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
-Current request: **Requested cta-clicked tag delivered for an acknowledged feature CTA reached through a Summary banner.**
-Next task: **Owner reloads, follows a Summary banner and confirms its CTA; filter cta-clicked by its readable value after Microsoft indexing. Await the next priority.**
+Current request: **Stop the app on demo.bawebtech.com.**
+Next task: **Keep the demo stopped until the owner requests resumption. LOCAL_SETUP owns the exact restore steps. Do not deploy, start services or run public smoke/capture checks as routine verification while stopped.**
 
 ## Plan status registry
 
@@ -39,6 +39,25 @@ Active identifies focus and does not itself authorize additional scope.
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Completed | CTA-01–03: 13 unit entries, 12 browser cases, deployed exact tag visible in Phoenix; no Microsoft test traffic |
 
 ## Current reality
+
+- **Owner-requested shutdown on 2026-10-17 at 09:03 PDT / 16:03 UTC.**
+  `softek-api.service` and the project's private `softek-phoenix.service` are
+  inactive and disabled, verified with systemctl; loopback 3100 and 6006 are closed.
+  Only this project's Nginx site was replaced with the committed maintenance
+  configuration. Root, admin, API, assets and banner paths return HTTPS **503**
+  with a plain stopped message; HTTP still redirects to HTTPS, TLS remains valid,
+  and the ACME challenge location remains available (missing probe returned 404).
+  Shared Nginx/MariaDB remain active. Hashes and symlink targets for all unrelated
+  Nginx sites/conf.d/main configuration matched before/after. The prior live site
+  and original service states are backed up under root-only
+  `/var/backups/softek/shutdown-20261017T160358Z/`; LOCAL_SETUP owns restoration.
+  No database changes, data deletion, release changes or collection-setting changes.
+  Application/data/assets/Phoenix history remain on disk, subject to their existing
+  retention behavior after services resume. Operational checks above plus Nginx
+  syntax and Git whitespace passed; application tests were not needed. Shutdown
+  source/runbook/state changes are recorded in the local shutdown commit; no push.
+  Owner `temp/` remains untracked and untouched. Prior delivery evidence below is
+  historical; the shutdown overrides its running-service/public-availability claims.
 
 - Plan 022 adds cta-clicked only after an acknowledged CTA from an owned readable
   Summary banner entry, alongside the existing generic event. Strict trace values
@@ -122,7 +141,8 @@ Active identifies focus and does not itself authorize additional scope.
   Phoenix UI lists softek-clarity-api. The default project remains empty. API and
   Phoenix services are active; no restart, setting change or capture pilot was needed.
 
-- Live: **https://demo.bawebtech.com**. Branded username/password login; no signup.
+- Deployment URL: **https://demo.bawebtech.com**, currently stopped as recorded above.
+  Retained application has branded username/password login; no signup.
   Admin signs in independently at `/controls` using the private `DEMO_ADMIN_SECRET`.
   Email-style usernames within the 3–40-character limit are supported.
 - Manage Customers → **Generate customers** creates 1–200 fictional users with
@@ -245,10 +265,11 @@ Active identifies focus and does not itself authorize additional scope.
   `/var/backups/softek/demo-before-0007-20261012T004021Z.sql`.
   Earlier pre-0002/pre-0004/pre-0005/pre-0006 backups remain. All ten original runs and retained
   counts survived; anonymous ownership remains NULL; upload public hash unchanged.
-- Current release: **2026-10-14T22-49-13-460Z**. Previous authenticated release:
+- Retained release: **2026-10-14T22-49-13-460Z**. Previous authenticated release:
   **2026-10-14T20-37-46-275Z**. Both current links point to the new release.
-  Service enabled/active as nonlogin `softek` on loopback **3100**, health 200/DB
-  connected. Evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
+  API now stopped/disabled; its configured identity is nonlogin `softek`, loopback
+  **3100**. Health/DB connectivity was verified before shutdown, not while stopped.
+  Retained evaluation flags On, project `yvs5hp3ivb`, database switch **On**.
   Matching build/deploy profiles and site-specific Clarity CSP are installed.
   Private development flags remain off. No development/test listeners remain.
 - Earlier authenticated API **2026-10-11T19-49-23-608Z** was explicitly tested

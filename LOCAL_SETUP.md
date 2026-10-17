@@ -379,6 +379,36 @@ integration/browser tests use `demo_test` and remove only their own fixture user
 
 ## Rollback and renewal
 
+### Owner-requested shutdown and restoration
+
+The owner requested the demo stop on October 17, 2026. Current operational state
+and verification are in [PROJECT_STATE](PROJECT_STATE.md#current-reality).
+`deploy/nginx/demo.bawebtech.com.maintenance.conf` returns a plain HTTPS 503 for
+application/API/assets, retaining HTTP redirects, TLS and ACME challenges. Only
+`/etc/nginx/sites-available/012_demo.bawebtech.com` was replaced; shared Nginx and
+MariaDB remain running. The dedicated API and Phoenix services were stopped and
+disabled to preserve shutdown across reboots. No data or releases were deleted.
+
+The exact prior live Nginx configuration and before-shutdown service/configuration
+manifest are root-only under `/var/backups/softek/shutdown-20261017T160358Z/`.
+After an owner request to resume, restore the retained release without rebuilding:
+
+```bash
+sudo systemctl enable --now softek-api.service softek-phoenix.service
+curl --fail http://127.0.0.1:3100/api/health
+sudo install -o root -g root -m 0644 /var/backups/softek/shutdown-20261017T160358Z/nginx.conf /etc/nginx/sites-available/012_demo.bawebtech.com
+sudo nginx -t
+sudo systemctl reload nginx
+curl --fail https://demo.bawebtech.com/api/health
+```
+
+These restore commands are documented, not executed during shutdown. If the API
+health check fails, keep the public maintenance configuration installed while
+investigating. Existing collection/tracing switches are retained; review current
+owner instructions before resuming customer collection. A regular deployment
+replaces the maintenance site and starts the API, so do not deploy or run public
+smoke/capture tests merely as a check while the owner wants the demo stopped.
+
 Keep the prior API/frontend release paths from `readlink` before a deployment.
 Prefer `npm run build` followed by `npm run deploy` to return the current code to
 collection-off mode. Before pointing at an older release that lacks the database

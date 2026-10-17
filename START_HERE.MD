@@ -49,7 +49,9 @@ The GitHub remote is `https://github.com/cnm4us/softek.git`.
 The site must be mobile first, use a uniform theme throughout, and adapt well to
 desktop. Database changes must use versioned migrations.
 
-The banking demo is live at `https://demo.bawebtech.com` through Nginx/Certbot.
+The banking demo is deployed at `https://demo.bawebtech.com` through Nginx/Certbot.
+Read PROJECT_STATE for current availability and owner-requested shutdown state
+before starting services or running public checks.
 M1 and Plan 001 include real demo-user login, persistent user-owned runs,
 protected user/banner administration, ordered image rotation, savings goals,
 reset, and adoption reporting. Plan 004 separates the Admin Menu and Customer
