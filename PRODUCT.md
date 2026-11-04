@@ -501,3 +501,30 @@ navigation: Clarity session values accumulate. Filter the `cta-clicked` value
 directly to find matching sessions; use first-party reporting for exact counts
 and creative revisions. New tag indexing and Microsoft receipt remain separate
 from local/Phoenix verification.
+
+## iOS POC — Plan 023
+
+Access Softek's next exploratory direction is user-interaction capture for FI
+testing before rollout and for customer-help/error analysis. The first milestone
+provides an installable iPhone testbed while preserving the browser website.
+Reuse the fictional banking screens and backend through an Expo/React Native
+WebView loading `https://demo.bawebtech.com`; a native screen rewrite is not
+required for this milestone.
+
+The owner has an iPhone 17 Pro Max, Apple Developer Program membership, Expo Go
+and an existing EAS workflow on this Ubuntu server. Deliver a separate signed
+internal preview app that opens without Metro or Expo Go, with usable login,
+navigation, safe areas and connection-error recovery. The banking pages require
+connectivity. Scope, tasks and device acceptance are in
+[Plan 023](plans/023-expo-ios-webview-poc.md).
+
+Recording, gesture/error instrumentation, recording approval controls and support
+review/sharing workflows require a later phase. The WebView POC establishes a
+hybrid-app testbed; it does not validate capture of native banking controls.
+
+The owner subsequently requested fresh sign-in after force-close/relaunch.
+The updated app's session lasts only while its current web view survives;
+ordinary Reload and brief backgrounding retain it, while a new app process or
+recreated web view requires login. Saved banking data persists on the server.
+The normal browser website keeps its independent login policy. Native update
+and device acceptance are IOS-09/10 in Plan 023 (B-027).

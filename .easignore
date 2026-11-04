@@ -1,0 +1,53 @@
+# EAS uses this file instead of .gitignore; include its private-file exclusions.
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.vite/
+.expo/
+.env
+.env.*
+*.pem
+*.key
+*.p8
+*.p12
+*.mobileprovision
+credentials.json
+playwright-report/
+test-results/
+artifacts/
+*.log
+*.dump
+*.sql
+*.sql.gz
+backups/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+temp/
+
+# The native app loads the hosted site; no server sources/data belong in its upload.
+/apps/api/*
+!/apps/api/package.json
+/apps/web/*
+!/apps/web/package.json
+/db/
+/deploy/
+/scripts/
+/tests/
+/agents/
+/plans/
+*.md
+*.MD
+playwright*.ts
+tsconfig*.json
+apps/mobile/ios/
+apps/mobile/android/
+
+# Keep mobile TypeScript configuration; root manifests/lockfile remain included.
+!apps/mobile/tsconfig.json
+
+# The shallow Git copy may contain historical server files; it is not a build input.
+.git/

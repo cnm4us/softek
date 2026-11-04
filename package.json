@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "apps/web",
-    "apps/api"
+    "apps/api",
+    "apps/mobile"
   ],
   "engines": {
     "node": ">=22.12.0"

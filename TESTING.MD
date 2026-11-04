@@ -529,3 +529,102 @@ consent/admin/impersonation and SDK/audit-failure coverage remains at 360/390/14
 Microsoft stays stubbed/blocked; production Phoenix is excluded from routine tests.
 An owned live SDK-stub acceptance may verify actual deployed call/export readback;
 that does not validate Microsoft ingestion or new-tag indexing.
+
+## Expo iOS shell — Plan 023
+
+Use the root `npm ci` and then run:
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+npm run typecheck
+npm test
+EXPO_NO_DOTENV=1 npm run doctor
+EXPO_NO_DOTENV=1 npm run export:ios
+npm run archive:check
+```
+
+The seven policy/state tests cover exact-origin matching, external click versus
+redirect behavior, malformed/scheme/credentialed URLs, subframe handling,
+main-document versus API errors, and failure preservation after loadEnd.
+Four rendered-component tests exercise the actual App handlers with controlled
+native boundaries: Back/Reload, main-document HTTP failure and fresh-home Retry,
+load timeout/process termination without auto-reload, and external/popup handling.
+They run without a WebView/network, customer credentials, database writes or
+Clarity requests. Their mocked native ports are not iOS behavior/layout evidence.
+The renderer emits its upstream deprecation notice and Node's mocked timers
+emit an experimental notice; neither is a failed test.
+
+The archive check validates the real EAS upload contents. A dry-run npm install
+was also checked against an inspected archive, establishing that the retained
+workspace manifests/lockfile resolve without shipping server sources. The iOS
+export validates Metro/Hermes bundling, not Apple compilation, signing or phone
+installation. Expo Doctor must pass configuration, SDK and native dependency
+checks; the implementation uses SDK 58 to match the website's existing React.
+
+For changes to this shell or build integration also run the existing root
+`npm run typecheck`, `npm run build`, and `npm run format:check`; include
+`npx prettier --check 'apps/mobile/scripts/*.cjs' 'apps/mobile/tests/rendered/*.cjs'`
+for the mobile helper/test files. No API/database suite is needed solely for
+shell changes. If a backend or hosted-page change becomes necessary, run that
+area's existing meaningful regression checks before deploying it.
+
+The signed-preview matrix in [Plan 023](plans/023-expo-ios-webview-poc.md) remains
+required on the owner's iPhone 17 Pro Max: cold launch without Metro/Expo Go,
+login validation, navigation, keyboard/safe areas, lifecycle/session/sign-out,
+Airplane Mode recovery, external destinations and Safari coexistence. Keep raw
+phone/build evidence private and record exact results in PROJECT_STATE. Use
+fictional fixture accounts and decline web analytics consent during routine
+checks; do not enable native capture or change collection switches. At this
+handoff, consult PROJECT_STATE for current cloud-build/artifact evidence and
+remaining actual-device acceptance.
+
+## Shared layout focus bounds — Plan 023 / B-026
+
+```bash
+npx playwright test -c playwright.layout.config.ts
+```
+
+This dedicated suite starts the normal isolated test API/frontend, blocks all
+external requests and uses/removes only its own `demo_test` fixtures and admin
+sessions. Two cases run in five projects: WebKit at 360/440/1440px and Chromium
+at 440/1440px. They cover login and six signed-in routes, keyboard skip-link
+focus, menu open/Escape restoration, vertical scrolling and real contained
+Adoption Report table scrolling. Root `scrollWidth` and attempted `scrollX` are
+checked alongside the focused main's painted outline bounds; root width alone
+misses an outward outline. The normal interactive-control focus indicator must
+remain visible, and document-wide overflow clipping is not used.
+
+The pre-fix WebKit 440px cases failed on the focus outline extending 7px beyond
+each screen edge. Both desktop browser engines still reported scrollX 0 before
+the correction, so these checks establish focus-paint containment, not an
+independent reproduction of iPhone WebView sideways movement. The installed
+phone must be checked after Reload. PROJECT_STATE owns that result and the
+public HTTPS stylesheet/hash verification. No Clarity collection pilot or
+fixture-creating production smoke is needed for this CSS-only correction.
+
+After the owner confirmed pinching out resolves the apparent width problem,
+the same suite was extended to require at least 16px computed text in login and
+report controls and to reject viewport settings that disable user zoom. Two
+pre-change WebKit cases failed on 15px controls; all ten cases pass at 16px.
+This verifies the input-zoom prevention precondition and retained layout, not
+the iPhone's software-keyboard zoom behavior. Phone acceptance must reset any
+existing zoom once, then repeat sign-out/sign-in without pinching afterward.
+Card widths/margins remain unchanged. PROJECT_STATE owns the actual phone result.
+
+## Temporary iOS sessions — Plan 023 / B-027
+
+Use the mobile typecheck, `npm test`, Expo Doctor, iOS export and `archive:check`
+commands above. The rendered shell check asserts that the actual WebView receives
+`incognito: true` and `sharedCookiesEnabled: false`, along with existing normal
+navigation/Reload handling. These checks verify wiring; they do not emulate a
+native persistent/temporary cookie store or prove OS process lifetime behavior.
+The installed WebView iOS implementation was inspected to confirm it selects
+`WKWebsiteDataStore.nonPersistentDataStore` for this prop.
+
+IOS-10 requires the actual signed **0.1.1 (2)** update over the old app: fresh
+launch requires login, normal Reload and a brief app switch retain it, and full
+force-close/reopen returns to login. Re-login must restore the same saved banking
+state, and explicit sign-out must remain effective. Existing view-remount recovery
+also starts a new session. Safari's independent website session must remain
+untouched. The previously passed force-close login persistence on build 1 is
+historical and intentionally superseded by this owner-requested policy.

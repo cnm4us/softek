@@ -30,6 +30,7 @@ verification evidence, and the resume point live in
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | READY-01–03; defer unresolved banner tags, preserve actual events; depends on 016/019 |
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | LABEL-01–03; readable analytics values, internal UUIDs retained; depends on 015/016/017/020 |
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | CTA-01–03; directly filter banner-attributed confirmed CTAs; depends on 005/016/017/021 |
+| 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | IOS-01–06; separate Expo app around the hosted website, EAS preview build and iPhone acceptance; reuses existing web/API, no recording in this phase |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
@@ -40,6 +41,12 @@ Plan 002 capture acceptance follows their verified release; completed settings a
 hosting evidence is retained. See PROJECT_STATE for release/check results.
 Plan 017 is delivered with tracing Off. It does not depend on reopening the
 accepted missing-recording limitation; raw SDK upload capture remains B-018.
+
+Plan 023 is the owner's current implementation priority, ahead of deferred Plans
+002/003. It depends on the existing website and the owner's Expo/Apple build
+access, not completion of the deferred Clarity work. The owner authorized
+implementation after reviewing the plan. Later mobile recording/gesture/error evaluation is tracked separately
+in BACKLOG and does not extend this first app milestone.
 
 ## Later banking scope
 

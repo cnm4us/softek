@@ -33,6 +33,10 @@ its backlog ID.
 | B-021 | Completed | Summary banner analytics readiness | [Plan 020](plans/020-summary-banner-analytics-readiness.md); omit transient absence context, send actual banner fields once |
 | B-022 | Completed | Readable banner analytics IDs | [Plan 021](plans/021-readable-banner-analytics-ids.md); space-feature aliases for filters, preserve UUID reporting |
 | B-023 | Completed | Banner-attributed CTA custom tag | [Plan 022](plans/022-banner-cta-custom-tag.md); confirmed CTA tag using owned readable entry, strict audit acceptance and live Phoenix readback |
+| B-024 | In progress | Expo iOS WebView POC | [Plan 023](plans/023-expo-ios-webview-poc.md); IOS-01–04 verified, including owner-confirmed iPhone installation/login/navigation. Remaining IOS-05 device checks and IOS-06 final handoff are open |
+| B-025 | Later | Mobile capture and customer-help evaluation | After Plan 023, separately scope user-approved recording, scroll/swipe/tap/error events, SDK/WebView/native-control fidelity, masking, upload/retention and review/help workflows for FI testing and customer support; no capture implementation authorized |
+| B-026 | Completed | Whole-page horizontal movement in installed iOS app | [Plan 023](plans/023-expo-ios-webview-poc.md), IOS-07/08: 16px shared form text prevents unwanted focus zoom; owner confirms Summary/account detail fit after fresh sign-in without pinching. Card dimensions/user zoom retained; no native rebuild |
+| B-027 | Completed | Require app login after force-close | [Plan 023](plans/023-expo-ios-webview-poc.md), signed 0.1.1 (2): owner confirms Reload/app switching retain login while force-close/reopen requires it. IOS-10's remaining data/sign-out/layout/Safari checks stay open in the plan |
 
 `Next` means after the initial complete flow, not permission to expand M1.
 
@@ -43,6 +47,7 @@ its backlog ID.
 | Q-003 | Which collection, consent, and masking settings apply to Clarity project `yvs5hp3ivb`? | M2-01 | Owner reported Balanced masking, cookies on, Bot Detection Off as of 2026-10-12, consent required; owner-only playback/heatmaps pending; admin collection control authorized |
 | Q-004 | Which institution names/copy should appear in the presentation? | Before final M1 polish | Use clearly fictional working names; user can refine later |
 | Q-005 | Which optional services reflect the intended business story? | Plan 005 / later service expansion | User supplied twelve campaigns, captured in Plan 005; page/CTA engagement is scoped, real service models and independent product verification remain outside this phase |
+| Q-007 | Which Expo owner/Apple team, distinct app identifiers and iPhone provisioning apply to Softek? | IOS-01 | Resolved: distinct EAS project/bundle ID and active Softek ad hoc profile; existing team certificate reused and owner's iPhone included. Owner confirms installation/login/navigation; PROJECT_STATE owns evidence. No credentials or UDID in committed docs |
 
 M1 and Plan 001 are complete. [Plan 004](plans/004-admin-and-customer-menus.md)
 covers the completed Admin/Customer menu organization and focused protected pages.

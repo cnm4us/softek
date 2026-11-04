@@ -28,3 +28,12 @@ backups/
 Thumbs.db
 *.swp
 *.swo
+
+# Expo generated state and private Apple signing files
+.expo/
+apps/mobile/ios/
+apps/mobile/android/
+credentials.json
+*.p8
+*.p12
+*.mobileprovision

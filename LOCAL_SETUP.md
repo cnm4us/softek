@@ -381,8 +381,9 @@ integration/browser tests use `demo_test` and remove only their own fixture user
 
 ### Owner-requested shutdown and restoration
 
-The owner requested the demo stop on October 17, 2026. Current operational state
-and verification are in [PROJECT_STATE](PROJECT_STATE.md#current-reality).
+The owner requested the demo stop on October 17, 2026 and resume on November 2,
+2026. The retained release is running again. Current operational state and
+verification are in [PROJECT_STATE](PROJECT_STATE.md#current-reality).
 `deploy/nginx/demo.bawebtech.com.maintenance.conf` returns a plain HTTPS 503 for
 application/API/assets, retaining HTTP redirects, TLS and ACME challenges. Only
 `/etc/nginx/sites-available/012_demo.bawebtech.com` was replaced; shared Nginx and
@@ -402,9 +403,12 @@ sudo systemctl reload nginx
 curl --fail https://demo.bawebtech.com/api/health
 ```
 
-These restore commands are documented, not executed during shutdown. If the API
-health check fails, keep the public maintenance configuration installed while
-investigating. Existing collection/tracing switches are retained; review current
+These restore steps were executed for the November 2 resumption. The replaced
+maintenance site is retained at
+`/var/backups/softek/resume-20261102T203120Z/maintenance-nginx.conf`.
+If the API health check fails during a future restoration, keep the public
+maintenance configuration installed while investigating. Existing
+collection/tracing switches are retained; review current
 owner instructions before resuming customer collection. A regular deployment
 replaces the maintenance site and starts the API, so do not deploy or run public
 smoke/capture tests merely as a check while the owner wants the demo stopped.
@@ -699,3 +703,226 @@ application release, leaving the additive tables intact. Stop only
 `softek-phoenix.service` if the collector itself needs recovery. This does not stop
 existing Clarity collection. Use the migration contract for partial-DDL recovery;
 never force a ledger entry or edit applied SQL.
+
+## Expo iOS app — Plan 023
+
+The Expo shell lives in `apps/mobile` and opens the existing HTTPS website. Its
+native JavaScript is bundled in a signed preview; banking pages require network
+access. The browser site and server sessions remain authoritative. Safari and
+app cookies are separate. This phase adds no native recording SDK or recording
+permissions. [Plan 023](plans/023-expo-ios-webview-poc.md) owns acceptance;
+[PROJECT_STATE](PROJECT_STATE.md#current-reality) owns current signing/build status.
+
+Use the existing Node 22.21.1 runtime. Install from the repository root with
+`npm ci`; dependencies remain in the single root lockfile. The current Expo SDK
+is 58, so an Expo Go preview requires an SDK-58-compatible Expo Go installation.
+A signed preview does not require Expo Go. Mobile commands below are executable;
+they do not imply signing/device acceptance has been completed.
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+npm run typecheck
+npm test
+EXPO_NO_DOTENV=1 npm run doctor
+EXPO_NO_DOTENV=1 npm run export:ios
+```
+
+For an optional live Expo Go preview from this remote EC2 server:
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+EXPO_NO_DOTENV=1 npm run start:tunnel
+```
+
+This uses dedicated Metro port **8083**. Check availability before starting a
+second instance. The terminal prints a changing Expo tunnel URL/QR; open it with
+Expo Go on the phone. If opening the browser launch page, append `?platform=ios`
+to `/_expo/loading` (the bare page returned a missing-platform error in this
+setup). The tunnel `/status` endpoint should report `packager-status:running`.
+Stop this development preview with Ctrl+C in its own terminal. It is not a
+production service and does not survive host restarts. Do not stop the AWS
+project's Metro/build processes. `start:dev-client` is available for a separately
+built development client; it is not needed by the signed preview app.
+
+An agent-started detached preview records its process-group leader in ignored
+`artifacts/mobile-preview.pid` and writes `artifacts/mobile-metro.log`. For that
+case, verify the recorded process is still running from this project's
+`apps/mobile` directory before terminating its process group. PROJECT_STATE
+records the currently observed PID and ephemeral URL; do not assume an old PID
+still belongs to the preview.
+
+### EAS identity and source upload
+
+The app uses the separate Expo project `@mbcollins2/softek-ios-poc` and Apple
+bundle ID `com.bawebtech.softek.poc`. `app.json` records the nonsecret project/team
+identifiers. The `preview` profile is Release/internal with a bundled JS app and
+`developmentClient: false`; `development` is an independent internal dev-client
+profile for future SDK work. No TestFlight or App Store submission is configured.
+
+`npm run eas -- ...` runs pinned EAS CLI 25.2.0, following the existing server
+workflow. The wrapper uses ignored `artifacts/npm-cache` because the shared npx
+cache failed during setup. It disables dotenv loading and uses EAS no-VCS mode
+with the Softek repository root, so the upload omits Git history. Project identity
+comes from `app.json`, not an upload of Git metadata. Authentication uses the
+owner's existing Expo/Apple sessions; no credentials are copied into the app.
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+npm run eas -- whoami
+npm run archive:check
+```
+
+`archive:check` runs the actual EAS archive stage and checks every file against
+an allowlist. It leaves an inspectable copy under ignored
+`artifacts/mobile-archive-*/source`. The upload contains the mobile source,
+artwork, root package/lockfile and web/API package manifests for npm workspace
+resolution; it excludes web/API implementation, database/deployment files,
+`.env`, signing files, `temp/`, artifacts and Git history. Run the archive check
+again after changing build inputs, before a cloud build. The root website build
+continues to build only web/API workspaces; it never invokes EAS.
+
+### Apple signing and first installed preview
+
+The owner completed Apple sign-in/2FA and configured a distinct Softek ad hoc
+provisioning profile on November 4. It uses the existing team distribution
+certificate and includes the owner's registered iPhone. Future signing maintenance
+can use the following menu; keep passwords/codes in the terminal and out of chat
+and committed files:
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+npm run eas -- credentials --platform ios
+```
+
+Select `preview` and configure Build Credentials for this app under the selected
+Apple team. Reuse a compatible distribution certificate if offered; do not revoke
+or replace credentials belonging to the AWS app. EAS found one registered iPhone;
+include the owner's intended phone in this app's ad hoc provisioning profile.
+If enrollment is needed, `npm run eas -- device:create` provides the device flow.
+Device UDIDs and raw device-list output belong only in ignored/private evidence.
+
+Once signing is ready, check the upload and request the preview:
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+npm run archive:check
+npm run eas -- build --platform ios --profile preview --non-interactive --no-wait
+```
+
+The non-interactive build invocation now succeeds in submitting the preview;
+PROJECT_STATE records its actual build status and installation evidence.
+Use the returned ID to inspect progress:
+
+```bash
+npm run eas -- build:view a67d553b-02fd-4e28-ba45-9159d8a4ba11
+```
+
+Exiting the credential menu with Ctrl+C after successful setup produces npm
+exit code 130; saved remote credentials remain available. Record the actual
+build result before calling it delivered.
+Install a successful internal build from its EAS link on the provisioned iPhone,
+then perform the plan's device matrix with Metro stopped. Initial build 1 retained
+valid cookies across relaunch. The owner-requested update 0.1.1 (2) uses temporary
+web storage and must require sign-in after a fresh app launch; follow IOS-10 for
+its actual device checks. Explicit sign-out must remain effective. An expired session should return to website login without a
+loop. Do not substitute Expo Go/export results for signed-device acceptance.
+
+The account currently reports pay-as-you-go build usage; inspect current EAS
+billing for actual rates/limits rather than assuming included credits remain.
+The website release, MariaDB schema and server collection/tracing switches were
+not changed by this mobile work. Decline the existing website analytics consent
+for routine phone testing; do not enable collection as part of app setup.
+
+### Focus-outline CSS-only release and rollback — B-026
+
+The focused November 4 release changes only main's focus-outline offset in the
+served CSS, plus the HTML stylesheet reference. First focus-outline frontend
+(retained, superseded by the input-zoom release below):
+`/var/www/softek/releases/2026-11-04T18-56-14Z-focus-outline`.
+It was cloned from the retained prior frontend, and the compiled CSS was checked
+byte-for-byte to differ only by `#main:focus-visible{outline-offset:-7px}`.
+Existing JavaScript, collection-profile marker, API process/release, runtime
+settings and Nginx were retained. A normal full `deploy` was not used because
+this correction requires no API restart or collection-profile change.
+
+The installed native app loads the live website; use its Reload action to pick
+up this stylesheet. No new IPA is required. The new stylesheet is
+`/assets/index-C0yCtRro.css`; the previous CSS remains available to documents
+loaded before the update. PROJECT_STATE records check evidence and pending
+actual-phone acceptance. The build directory is a normal collection-off build;
+do not infer its JavaScript/profile was deployed in this CSS-only operation.
+
+The previous frontend and root-only operation manifest are retained at:
+
+- `/var/www/softek/releases/2026-10-14T22-49-13-460Z`
+- `/var/backups/softek/focus-outline-2026-11-04T18-56-14Z/state.json`
+
+If reverting this CSS release is necessary, atomically restore only the public
+frontend symlink using the retained path. The following is a recovery procedure,
+not an operation performed during acceptance:
+
+```bash
+sudo python3 - <<'PY'
+import os
+from pathlib import Path
+previous = Path('/var/www/softek/releases/2026-10-14T22-49-13-460Z')
+link = Path('/var/www/softek/current')
+assert (previous / 'index.html').is_file()
+temporary = link.with_name('current.focus-rollback')
+assert not temporary.exists() and not temporary.is_symlink()
+os.symlink(previous, temporary)
+os.replace(temporary, link)
+PY
+curl --fail https://demo.bawebtech.com/api/health
+```
+
+No service restart, API symlink change, Nginx edit or database reset is part of
+that rollback. Use the existing full deployment runbook for future application
+releases; preserve the owner-authorized collection profile explicitly.
+
+### Input-zoom CSS follow-up — B-026
+
+The outline-only release did not resolve the phone symptom. The owner confirmed
+that pinching out restored the signed-in page's fit. The follow-up changes shared
+input/select text from 15px to 16px to avoid small-input iPhone focus zoom; card
+widths/margins and native settings remain unchanged. User pinch zoom is retained.
+
+Current frontend: `/var/www/softek/releases/2026-11-04T19-17-29Z-input-zoom`,
+stylesheet `/assets/index-DblOOSg2.css`. The copied frontend was verified to differ
+only in that compiled CSS rule and its HTML stylesheet URL; JavaScript, collection
+marker, API process/runtime and Nginx were retained. Manifest:
+`/var/backups/softek/input-zoom-2026-11-04T19-17-29Z/state.json`.
+
+To roll back only this follow-up, use the atomic frontend-symlink recovery
+procedure above with `previous` set to
+`/var/www/softek/releases/2026-11-04T18-56-14Z-focus-outline`.
+That procedure was not executed during verification.
+
+Phone acceptance: tap Reload for the new CSS, pinch out once to clear existing
+zoom, then sign out and sign in again without pinching afterward. Check Summary
+and an account detail page. Existing zoom can outlive a stylesheet reload;
+preventing new input zoom is distinct from resetting an already enlarged view.
+PROJECT_STATE records the owner's result. This follow-up requires no new IPA.
+
+### Temporary iOS sessions — B-027
+
+Native update **0.1.1 (2)** uses an in-memory WebKit website data store and disables
+shared native-cookie import. It must be installed as an EAS app update; a website
+Reload cannot change the installed wrapper's session policy. Keep the same bundle
+ID so the update installs over Softek POC. PROJECT_STATE owns the current build ID,
+installation link and actual phone acceptance. Prior build 0.1.0 (1) is retained
+for history; its login-persistence result is not the updated acceptance criterion.
+
+Within the same WebView, normal navigation/Reload and brief backgrounding retain
+valid login. A fresh process after force-close requires sign-in. Recovery that
+recreates a failed WebView also starts a fresh session; this is expected with the
+current shell's Retry implementation. Browser-local storage, including web-only
+consent/preferences, starts fresh too. Saved banking state remains in MariaDB.
+The server still expires its session records normally; no app-kill callback or
+server revocation is claimed. The update does not read the old persistent cookie
+jar or clear Safari's website session.
+
+After installing build 2, verify first launch/login, ordinary Reload, a short app
+switch, force-close/reopen to login, and re-login to the same saved banking data.
+Check explicit sign-out and the retained normal-zoom layout. No dev server or
+Expo Go should be running for signed-preview acceptance.

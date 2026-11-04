@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Softek POC",
+    "slug": "softek-ios-poc",
+    "owner": "mbcollins2",
+    "version": "0.1.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": ["ios"],
+    "icon": "./assets/icon.png",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bawebtech.softek.poc",
+      "buildNumber": "2",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "appleTeamId": "BVEJ326W2U"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e9e5458a-8ba3-4c49-82d4-26408cb29fb7"
+      }
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 160,
+          "backgroundColor": "#f5f6f1"
+        }
+      ]
+    ]
+  }
+}

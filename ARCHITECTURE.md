@@ -280,6 +280,8 @@ is documented by [MariaDB](https://mariadb.com/docs/server/reference/sql-stateme
 | D-009 | Use the user's configured `demo` schema and local TCP runtime account | User-selected `.env` target; provisioned and login verified, 2026-10-10 |
 | D-010 | `demo_test`, `softek_test_app`, and `softek_migrator` for isolated testing/schema changes | Implemented; generated secrets in ignored `.env`; no global or grant privileges |
 | D-011 | Dedicated Nginx site with Certbot webroot certificate | User-authorized public hostname; implemented without changing existing site files |
+| D-012 | Separate Expo iOS WebView shell around the hosted website, built with EAS on cloud macOS | User requires website coexistence and has Ubuntu/EAS/iPhone access; initial signed build installed and core flow verified. Remaining acceptance and the B-027 session-policy update are tracked in Plan 023 |
+| D-013 | Temporary iOS WebView website data store, with native cookie sharing disabled | User requested fresh login after force-close/relaunch. `incognito` uses WebKit's memory-only store; no unreliable termination callback or change to website/server login policy. IOS-09/10 track delivery and device proof |
 
 Changes to working choices do not need a separate approval ceremony. Record the
 reason and update affected plan/setup files. Revisit user-confirmed constraints
@@ -736,3 +738,84 @@ than a cached legacy selection; route/customer transitions clear it. Confirmed
 interaction events now read the existing structured consent helper correctly.
 Collection/actor/admin/impersonation rules are preserved. Impersonation can preview
 current Summary artwork without advancing its customer's cursor.
+
+## iOS shell — Plan 023
+
+`apps/mobile` is an Expo TypeScript workspace for an iOS WebView opening the
+existing Softek HTTPS website. The browser and app share hosted web screens and the same
+API/MariaDB boundary. Standard WebView cookies keep authentication within the
+website origin; a native token store, cross-origin API or mirrored banking state
+is unnecessary for the initial shell. Safari and app cookie stores are separate.
+
+EAS cloud builds supply the Mac/Xcode build environment unavailable on this
+Ubuntu host. A distinct Softek app identity and signed Release/internal preview
+build provide device acceptance without Metro. The owner's AWS EAS configuration
+is a read-only workflow reference; do not reuse its project identity or modify
+its services. Preserve root web/API build behavior and inspect the scoped mobile
+upload archive before cloud submission, excluding server secrets and owner files.
+
+Top-level navigation stays on the configured exact HTTPS origin; selected
+external links open outside the WebView. Native UI handles safe areas, loading,
+navigation and connection recovery. Existing web consent rules remain in force;
+there is no new native capture SDK or native message bridge in this phase.
+The future capture experiment must separately establish compatibility with
+WebViews and native controls. [Plan 023](plans/023-expo-ios-webview-poc.md) owns
+implementation tasks and actual-device acceptance.
+
+Implementation selects Expo **58.0.23**, React **19.3.0** and React Native
+**0.88.1** with Expo-recommended WebView/safe-area packages. SDK 58 matches the
+website's existing React version, avoiding duplicate React in native resolution
+without changing existing web/API package versions. Expo Go must support SDK 58;
+signed-preview acceptance does not depend on Expo Go. Splash artwork is configured
+through the supported `expo-splash-screen` plugin. There are no hand-edited Xcode
+projects in the working tree.
+
+The website build now names web/API workspaces explicitly, so the mobile export
+does not run as part of collection-profile builds or deployment. The EAS helper
+uses a project-owned tool cache after the shared cache failed, and no-VCS mode
+with an explicit repository root to omit Git history from uploads. Root manifests
+and the single lockfile remain; web/API package manifests are included for npm
+workspace resolution, while their source and private data are excluded.
+`archive:check` verifies the actual EAS archive against an allowlist before upload.
+
+### Shared main-content focus bounds — B-026
+
+The owner authorized a focused layout correction after observing whole-page
+sideways movement and an over-wide rust line below titles. The line is reproduced
+as the top edge of main's route/skip-link focus outline: the shared 3px outline
+with a 4px outward offset paints 7px beyond each viewport edge. Desktop WebKit
+and Chromium still report no root horizontal scroll in this state; actual iPhone
+scrolling must be confirmed separately rather than inferred from root scrollWidth.
+
+Inset only `#main:focus-visible` with a -7px offset. Keep programmatic route focus,
+skip-link behavior and the original visible outward indicators on interactive
+controls. Do not clip the document or disable intentional table/vertical scrolling.
+Release only the compiled CSS delta and its stylesheet reference over the existing
+frontend release, preserving exact application JavaScript, collection profile,
+API/runtime configuration and Nginx. This is a working implementation choice for
+the authorized B-026 correction, not a native-wrapper change.
+
+The owner subsequently reported that outline containment did not resolve the
+sideways movement, but pinching out immediately restored the signed-in page's
+fit. Treat that as evidence of an enlarged visual viewport rather than resize
+the cards. Shared form controls were 15px; raise their text to 16px to avoid
+small-input iPhone focus zoom. Keep normal viewport metadata and user pinch zoom;
+do not add `user-scalable=no`, scale caps or native scrolling suppression.
+Browser checks enforce the readable control size and unrestricted zoom metadata;
+the owner must verify prevention through a fresh iPhone login, since desktop
+WebKit does not reproduce iOS keyboard-driven zoom. Publish the one-rule CSS
+delta over the retained frontend without changing application JavaScript or APIs.
+
+### Temporary app sessions — B-027
+
+`incognito` selects the iOS nonpersistent website data store and
+`sharedCookiesEnabled={false}` prevents importing a native shared cookie jar.
+This replaces the default persistent store used by native build 1. It requires a
+new bundled app build (0.1.1 / 2); no hosted web/API deployment is part of this
+change. Memory-only website data disappears with that WebView instance. Reload
+and normal app switching keep the instance; force-close/process termination and
+the shell's existing failed-load recovery that remounts the view start fresh.
+This also resets browser-local consent/preferences. MariaDB user/banking state
+persists, and server sessions retain their normal expiry rather than being
+revoked by an unreliable app-termination callback. Existing persistent app data
+is not imported, and Safari's separate data store is not cleared.

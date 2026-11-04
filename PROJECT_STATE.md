@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-10-17 UTC**.
-Current focus: **Owner-requested application shutdown, completed.**
+Last updated: **2026-11-04 UTC**.
+Current focus: **Plan 023 — B-027 temporary-session behavior confirmed on iPhone.**
 Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
-Current request: **Stop the app on demo.bawebtech.com.**
-Next task: **Keep the demo stopped until the owner requests resumption. LOCAL_SETUP owns the exact restore steps. Do not deploy, start services or run public smoke/capture checks as routine verification while stopped.**
+Current request: **Commit and push the implemented iOS POC, layout fixes and maintained documentation.**
+Next task: **B-027's requested session behavior is owner-confirmed on 0.1.1 (2): Reload/app switching retain login and force-close requires it. Before completing IOS-10, record saved-data return after re-login, explicit sign-out, retained zoom/layout and Safari isolation if the owner continues acceptance. IOS-05/06 remain open; B-026 is complete; recording remains separate.**
 
 ## Plan status registry
 
@@ -37,27 +37,195 @@ Active identifies focus and does not itself authorize additional scope.
 | 020 | [Summary banner analytics readiness](plans/020-summary-banner-analytics-readiness.md) | Completed | READY-01–03 verified/deployed; 16 TAP entries, 12 browser cases, 13-call live stub reload visible in Phoenix |
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Completed | CTA-01–03: 13 unit entries, 12 browser cases, deployed exact tag visible in Phoenix; no Microsoft test traffic |
+| 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | Active | IOS-01–04/07/08 baseline verified; IOS-09 temporary-session update built/inspected. IOS-10 phone checks and remaining IOS-05/06 are open; capture stays B-025 |
 
 ## Current reality
 
-- **Owner-requested shutdown on 2026-10-17 at 09:03 PDT / 16:03 UTC.**
-  `softek-api.service` and the project's private `softek-phoenix.service` are
-  inactive and disabled, verified with systemctl; loopback 3100 and 6006 are closed.
-  Only this project's Nginx site was replaced with the committed maintenance
-  configuration. Root, admin, API, assets and banner paths return HTTPS **503**
-  with a plain stopped message; HTTP still redirects to HTTPS, TLS remains valid,
-  and the ACME challenge location remains available (missing probe returned 404).
-  Shared Nginx/MariaDB remain active. Hashes and symlink targets for all unrelated
-  Nginx sites/conf.d/main configuration matched before/after. The prior live site
-  and original service states are backed up under root-only
-  `/var/backups/softek/shutdown-20261017T160358Z/`; LOCAL_SETUP owns restoration.
-  No database changes, data deletion, release changes or collection-setting changes.
-  Application/data/assets/Phoenix history remain on disk, subject to their existing
-  retention behavior after services resume. Operational checks above plus Nginx
-  syntax and Git whitespace passed; application tests were not needed. Shutdown
-  source/runbook/state changes are recorded in the local shutdown commit; no push.
-  Owner `temp/` remains untracked and untouched. Prior delivery evidence below is
-  historical; the shutdown overrides its running-service/public-availability claims.
+- **B-027 / IOS-09–10:** owner authorized changing the previously accepted login
+  persistence policy. `apps/mobile/App.tsx` now sets `incognito` and
+  `sharedCookiesEnabled={false}`. Installed WebView source maps this on iOS to
+  `WKWebsiteDataStore.nonPersistentDataStore`, without importing shared native
+  cookies. New version **0.1.1 (2)** keeps the same Softek bundle/EAS identity.
+  Cookie/browser-storage lifetime is this WebView instance: ordinary Reload and
+  backgrounding preserve it while the view/process survives; force-close/new
+  process or error recovery that recreates the view requires sign-in again.
+  No kill callback, global cookie clearing, backend logout-on-kill or new SDK.
+  Bank data and normal server session expiry remain authoritative in MariaDB;
+  Safari and hosted website login policy are unchanged. Browser-only consent/
+  preferences also start fresh when the temporary store is recreated.
+  Mobile typecheck, seven policy/state and four rendered-handler checks pass,
+  including ephemeral/no-shared-cookie wiring. Expo Doctor **20/20**, iOS export
+  (634 modules, 1.6 MB), format and 24-file EAS upload inspection passed; only
+  mobile version metadata changed in the lockfile, no existing dependency version.
+  EAS preview **a67d553b-02fd-4e28-ba45-9159d8a4ba11**, **0.1.1 (2)**,
+  **FINISHED at 19:59:13 UTC / 11:59 PST**.
+  [Install the updated app](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/a67d553b-02fd-4e28-ba45-9159d8a4ba11).
+  Downloaded IPA **8,227,620 bytes**, SHA-256
+  `80f3c641b9ade409f87c61196315e0aa7efea97e939bf690d213ccadc749fd66`.
+  Checked name/bundle/version/build, included JavaScript (differs from build 1),
+  and CMS-verified embedded profile for the expected app/team/registered iPhone
+  with no debug entitlement. This inspects artifact identity/profile, not native
+  cookie lifetime or Apple application code signing on this Linux host.
+  Evidence is ignored/private `artifacts/fresh-login-*` files. IOS-09 is complete.
+  **Owner installed build 2 and confirmed Reload/app switching retain login,
+  while force-close/reopen requires sign-in.** The requested session-policy
+  behavior has passed on the iPhone, completing B-027's requested change.
+  IOS-10 remains open for explicit saved-data return after re-login, sign-out,
+  retained zoom/layout and Safari-isolation checks; these were not individually
+  confirmed by the selected response. IOS-05/06 broader acceptance remains open.
+  Hosted frontend remains
+  `2026-11-04T19-17-29Z-input-zoom`; no web/backend deployment, service operation,
+  database/collection change or dependency upgrade was performed for B-027.
+  Initial build 1 results below are historical, not acceptance of the new policy.
+
+- **B-026 / IOS-07–08:** the owner authorized the focused Plan 023 amendment.
+  **Owner confirms Account Summary and an account detail page fit after fresh
+  sign-in without pinching, following the 16px form-text release. B-026 and
+  IOS-07/08 are complete.** The outline-only release had not resolved sideways
+  movement; pinching out made the signed-in page fit and removed the symptom. This
+  establishes a zoomed visual viewport, not a demonstrated over-wide card layout.
+  Shared `input, select` text was 15px, a candidate trigger for iPhone focus zoom.
+  Controls now use 16px while preserving user pinch zoom and existing card sizing.
+  **CSS-only frontend `2026-11-04T19-17-29Z-input-zoom` is live**, with
+  `/assets/index-DblOOSg2.css` (SHA-256
+  `0c45e8b541dc873ae88c1257101bfab8b8b42f5d1be3a1445995a6fec7610c15`).
+  Compiled CSS differs from the prior release only by shared input/select font
+  size 15px → 16px. Two pre-change WebKit cases failed on 15px; all **10 focused
+  cases** now pass readable controls, retained user zoom, page/focus bounds,
+  keyboard menu, vertical and contained table scrolling. Root typecheck/build/
+  format passed. Public WebKit confirms both login inputs are 16px, viewport
+  metadata permits zoom, normal-scale widths are 440px, zero external requests
+  and API/DB health OK. Exact active JavaScript and collection marker, API
+  release/process and all 33 configuration hashes/links remain unchanged.
+  No native build or backend operation. Backup/rollback manifest:
+  `/var/backups/softek/input-zoom-2026-11-04T19-17-29Z/state.json`.
+  Evidence: `artifacts/input-zoom-before.log`, `input-zoom-after.log`,
+  `input-css-release.json`, `input-css-public-check.json`.
+  The owner was asked to Reload, reset existing zoom once, then sign out/in
+  without pinching afterward. The owner answered that both pages fit after
+  signing in, confirming the correction on the installed iPhone app.
+  Reproduced the rust line as main's 3px focus outline with a 4px outward offset,
+  painting **7px outside each screen edge**. Two pre-fix WebKit checks failed on
+  these bounds. Desktop WebKit/Chromium reported root width 440 and scrollX 0,
+  so actual iPhone sideways scrolling was not reproduced locally; the outline
+  is a confirmed paint issue, but the owner check ruled it out as the sufficient
+  correction for sideways movement.
+  Only `#main:focus-visible` now has inset offset -7px. Route/skip-link focus,
+  interactive focus rings, vertical scroll and contained report scroll remain.
+  **10 focused cases passed** (WebKit 360/440/1440; Chromium 440/1440), covering
+  login, six signed-in routes, keyboard menu, skip link and real report tables.
+  Root typecheck, collection-off build, format and Git whitespace passed; the
+  initial NodeNext config import was corrected. No local check remains failing.
+  First CSS-only frontend `2026-11-04T18-56-14Z-focus-outline` was deployed;
+  it is retained and superseded by the input-zoom release above.
+  Verified the compiled CSS differs from the previous asset by exactly the one
+  inset rule. The new HTML references `/assets/index-C0yCtRro.css`; actual served
+  CSS SHA-256 matches the release. Active `/assets/index-A56xcmfI.js` bytes,
+  collection-mode marker, API release/process, runtime/unit and **33 configuration
+  file hashes/links** are unchanged. No backend restart, Nginx reload/config edit,
+  database/collection mutation or native rebuild. Prior frontend is retained;
+  rollback is in LOCAL_SETUP. Root-only release manifest:
+  `/var/backups/softek/focus-outline-2026-11-04T18-56-14Z/state.json`.
+  Public HTTPS health confirms DB connected; WebKit 440px login/keyboard-focus
+  bounds and zero horizontal scroll passed with **zero external requests**.
+  Private/local evidence: `artifacts/layout-before.log`, `layout-after.log`,
+  `focus-css-release.json`, `focus-css-public-check.json` and layout screenshots.
+  IOS-08's CSS release checks and IOS-07's fresh-login phone confirmation are
+  complete. The input-font release resolved B-026; the outline release alone did not.
+
+- Plan 023 implementation is authorized. `apps/mobile` now contains the Expo
+  WebView shell, native icon/splash, safe areas, loading, manual error/timeout/
+  process recovery, Back/Reload and exact-origin navigation policy. It loads the
+  live website with normal WebView cookies, without a new API/auth mechanism,
+  recording SDK, native message bridge or collection-setting change.
+  SDK **58.0.23**, React **19.3.0**, React Native **0.88.1**, WebView **14.0.1**.
+  SDK 58 matches the existing web React; no preexisting package version changed.
+  The website build names only web/API workspaces; normal build never invokes EAS.
+  EAS owner **mbcollins2**, project **softek-ios-poc**, project ID
+  `e9e5458a-8ba3-4c49-82d4-26408cb29fb7`, bundle `com.bawebtech.softek.poc`.
+  Apple team is configured in app.json; EAS found one registered iPhone.
+  The owner completed Apple sign-in and configured an active, Softek-specific
+  ad hoc profile, reusing the existing team distribution certificate and including
+  their iPhone. Ctrl+C exited the credentials menu after settings were saved;
+  its exit 130 is expected, not a signing failure. The prior expired-session
+  blocker is resolved. The upload archive was rechecked (24 allowed files), then
+  EAS internal iOS preview **0.1.0 (1)**, build
+  **bc1cb6da-ce54-4e4f-b198-970bd3eebdcf**, **FINISHED** at
+  **18:31:25 UTC / 10:31 PST**. [Install/build page](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/bc1cb6da-ce54-4e4f-b198-970bd3eebdcf).
+  Downloaded IPA **8,227,623 bytes**, SHA-256
+  `cf68893975e8cc2e7a15034e9b8a06034c76c01d9701088e0ac956db314b19c6`.
+  Inspected Info.plist for Softek name/bundle/version, bundled JavaScript, and
+  CMS-verified embedded profile for the correct app/team, included registered
+  phone and disabled debug entitlement. This is artifact inspection, not a local
+  Apple code-signature or actual-device runtime test. Private evidence:
+  `artifacts/softek-ios-build-status.json`, `artifacts/softek-ios-ipa-check.json`,
+  and `artifacts/softek-ios-preview-0.1.0-1.ipa` (0600).
+  **Owner confirmed installation, login and navigation work on their iPhone**
+  in response to the signed-app check, with Metro stopped. IOS-04 is complete.
+  This confirms the basic standalone flow, not every device-matrix case.
+  On initial build 1, owner confirmed login persists after fully swiping the app off-screen
+  and reopening it. This verifies valid-session persistence on the phone; it
+  does not establish expired-session handling. Owner subsequently confirmed
+  that signing out, force-closing and reopening keeps the app signed out at the
+  login screen. These were the build-1 persistence results; B-027 intentionally
+  supersedes cold-launch login persistence in the update.
+  Owner also confirmed Airplane Mode/Reload shows the error state and restoring
+  connectivity/Try again recovers the demo. Offline recovery has passed.
+  Owner reported whole-page sideways movement on signed-in pages, with login
+  unaffected, and identified the over-wide rust line below titles. The initially
+  discussion-only observation became the authorized B-026 correction above.
+  Mobile layout acceptance and IOS-05/06 remain open. Invalid-login messaging, detailed
+  keyboard/layout, full route coverage, external navigation, consent/network
+  evidence and Safari coexistence are not yet explicitly confirmed on the phone.
+  No other issue reported. EAS reports pay-as-you-go usage on the existing account.
+  **Verified:** seven policy/state tests and four rendered-handler tests;
+  **20/20 Expo Doctor checks**; SDK dependency check; root typecheck/format;
+  iOS export (634 modules, 1.6 MB Hermes bundle); collection-off web/API build;
+  real EAS archive check (**24 files**, no private/server sources/Git history)
+  and archive npm-install dry run. Public API health reports DB connected.
+  SDK-57 duplicate React/obsolete splash configuration and a test-renderer React
+  resolution issue were fixed; no local implementation check remains failing.
+  Basic iPhone installation/login/navigation are owner-verified; remaining device
+  checks are listed above. Existing web chunk-size advisory
+  and test-renderer/Node timer notices are unchanged non-failing advisories.
+  Optional Expo Go preview was checked on dedicated Metro **8083**, including
+  HTTPS tunnel launch page, status and iOS manifest. It has now been stopped
+  deliberately for standalone acceptance: verified project process group 7662
+  was terminated, the PID file removed, and port 8083 confirmed closed. Its old
+  ephemeral URL is no longer an installation link. Only this project's preview
+  was stopped; the banking website and AWS processes were not changed.
+  LOCAL_SETUP/TESTING own executable commands and native acceptance limits.
+  Owner-authorized Git handoff includes mobile sources/assets, root package/
+  lockfile, Git/EAS ignore rules, scoped build integration, Plan 023 and maintained
+  root documents, shared CSS fixes and focused layout spec/config/type coverage.
+  Root typecheck, all 11 mobile tests, root/mobile-helper formatting and diff
+  checks passed again before committing. Earlier acceptance evidence above is
+  retained; broader phone acceptance remains open as listed. Owner `temp/` is
+  excluded; generated artifacts and signing credentials remain ignored. AWS
+  files/processes remain untouched. The CSS-only frontend releases above are the
+  only web release change; no backend deployment, migration or data reset.
+  Inspect Git history and the remote ref for the resulting commit/push identity.
+
+- **Owner-requested resumption on 2026-11-02 at 12:31 PST / 20:31 UTC.**
+  Restored the retained release **2026-10-14T22-49-13-460Z** using LOCAL_SETUP's
+  restore steps. The API and private Phoenix units were enabled and started;
+  the exact prior live Nginx site was restored from the root-only shutdown backup
+  `/var/backups/softek/shutdown-20261017T160358Z/`. The maintenance site is retained
+  at `/var/backups/softek/resume-20261102T203120Z/maintenance-nginx.conf`.
+  Nginx syntax passed. Public HTTPS root, `/controls`, built JS/CSS and API health
+  returned 200; health confirms MariaDB connected. HTTP redirects to HTTPS (301),
+  `.env` is blocked (403), and unknown API/assets/ACME probes return 404.
+  Both dedicated units are active/enabled; API 3100 and Phoenix 6006 listen only
+  on loopback. Phoenix returned HTTP 200 after its initial startup delay.
+  All 29 unrelated Nginx configuration hashes and symlink targets matched.
+  No rebuild, deployment, migration, data reset or collection/tracing-setting
+  change was performed. Verification used read-only HTTP requests without customer
+  login or Clarity traffic; the full fixture-creating public smoke was not run.
+  Git whitespace and changed-document links passed; no failing check remains.
+  The October 17 shutdown is superseded by this explicit resumption request.
+  PROJECT_STATE and LOCAL_SETUP operational notes were left uncommitted at
+  resumption; no push. These checks describe November 2, not a new November 4
+  service/public check.
 
 - Plan 022 adds cta-clicked only after an acknowledged CTA from an owned readable
   Summary banner entry, alongside the existing generic event. Strict trace values

@@ -94,3 +94,16 @@ IDs. No Phoenix key or browser OTLP endpoint is exposed.
 [TESTING](TESTING.MD#clarity-api-call-tracing--plan-017) owns the stub and isolated
 port-6008 round-trip commands. Never redirect routine tests to the production
 collector or Microsoft. The SDK's raw upload observer/decoder remains later scope.
+
+## Expo iOS tools — Plan 023
+
+The mobile workspace uses Expo SDK 58 and a pinned EAS CLI 25.2.0 wrapper,
+`npm run eas -- ...` from `apps/mobile`. The wrapper uses this project's ignored
+tool cache and scoped no-VCS upload flow; global tools and AWS files are unchanged.
+`archive:check` verifies actual EAS inputs, and `doctor` checks Expo configuration
+and dependencies. Expo Go development uses port 8083 and an Expo tunnel from this
+Ubuntu host. Local iOS JavaScript export is available; Apple compilation/signing
+uses EAS cloud infrastructure. No Mac/Xcode or iOS simulator is installed here.
+See [LOCAL_SETUP](LOCAL_SETUP.md#expo-ios-app--plan-023) for executable commands,
+Apple-signing prerequisites and install steps. [TESTING](TESTING.MD#expo-ios-shell--plan-023)
+explains why local/mock checks are not actual-device evidence.
