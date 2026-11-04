@@ -1,14 +1,12 @@
 # MariaDB schema migration contract
 
-Status: migrations `0001_demo_foundation.sql` through
-`0011_summary_explorer_rotation.sql` are committed and applied to `demo` and
-`demo_test`. Both ledgers are version 11, no pending/checksum drift. 0011 was
-committed in **0cbb1cb** before application. It adds only a per-user Summary widget
-cursor; existing presentations/configuration/banking layouts and ENUMs are unchanged.
-Scoped root-only 0600 schema/data/ledger backup:
-`/var/backups/softek/demo-before-0011-20261014T000207Z.sql`.
-Applied files are immutable; next schema change uses `0012_<description>.sql`.
-Earlier migrations/backups remain; see PROJECT_STATE for historical evidence.
+Current applied versions, pending migrations, backup identities and verification
+belong to [PROJECT_STATE](../../PROJECT_STATE.md#current-reality). Inspect actual
+status before application; documentation is not proof of current schema state.
+Applied files are immutable. Migration 0013 adds screenshot-session/frame metadata
+only; private image bytes live outside MariaDB. Previous app releases ignore these
+tables and remain compatible. For partial DDL failure use the scoped pre-migration
+schema/data/ledger backup and the recovery contract below, never a forced ledger.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
 backup including the ledger: `/var/backups/softek/demo-before-0002-20261011T165522Z.sql`
