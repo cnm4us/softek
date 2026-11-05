@@ -3,8 +3,8 @@
 Last updated: **2026-11-05 UTC**.
 Current focus: **Plan 024 — deployed POC functionally accepted; profiling/operational follow-ups tracked.**
 Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
-Current request: **Commit and push the accepted screenshot POC implementation, tests and documentation.**
-Next task: **Finish the authorized Git delivery and verify origin/main matches the pushed commits. The core POC has no device blocker; preserve its accepted behavior. Native memory/extended network-failure profiling and operational rollback validation remain follow-ups, and Plan 023's unrelated remaining assertions stay open.**
+Current request: **Commit and push the accepted screenshot POC implementation, tests and documentation — fulfilled.**
+Next task: **Preserve the accepted POC; no core device blocker or further rebuild is pending. Native memory/extended network-failure profiling and operational rollback validation remain explicit Plan 024 follow-ups, and Plan 023's unrelated remaining assertions stay open. Further feature scope awaits owner direction.**
 
 ## Plan status registry
 
@@ -42,13 +42,20 @@ Active identifies focus and does not itself authorize additional scope.
 
 ## Current reality
 
-- **Git delivery — in progress:** owner requested commit/push of the accepted POC.
-  Fetched origin; main has only the existing local migration commit ahead, no
-  conflicting remote commits. Reviewed 51 candidate paths against private
-  environment values/key/token patterns: no credential findings. The owner image
-  `IMG_2008.jpeg`, `temp/` and ignored artifacts/environment/signing files stay
-  outside the delivery. No application/service/config change for this Git task;
-  reuse the recorded passing checks and physical acceptance below.
+- **Git delivery — source pushed and verified:** implementation/tests/runbooks
+  committed as **`7f605c9`**, with existing schema commit **`a702319`**, on
+  `origin/main`. Verified the remote branch SHA equals the implementation commit
+  after push; this final handoff note is recorded in the following docs commit.
+  Reviewed 51 candidate paths against private environment values/key/token
+  patterns: no credential findings; explicitly staged the 50 changed POC files.
+  Owner `IMG_2008.jpeg` and `temp/` remain untracked, with ignored artifacts/
+  environment/signing files excluded. Plain HTTPS push lacked a credential
+  helper; the existing GitHub CLI login completed the push using a command-scoped
+  helper ([runbook](LOCAL_SETUP.md#github-push-authentication)). Shared Git settings
+  were not changed. No application tests were rerun for commit-only work; the
+  recorded automated checks and physical acceptance below remain the evidence.
+  Git diff/staged scope/credential checks passed. No deployment/service/collection
+  setting change was performed for this Git task.
 
 - **Plan 024 — deployed functional POC accepted; profiling/operational follow-ups open.**
   **Final build-10 acceptance:** owner confirms offline/reconnect retains login,
@@ -75,8 +82,8 @@ Active identifies focus and does not itself authorize additional scope.
   load failure, discarding its temporary cookie store. The exact native error
   event/code was not captured; the unmount/session-loss path is directly present.
   Accepted **0.2.1 (10)**, **980c35af-c9ac-48b7-8a84-2c61f40c4f80**, is
-  **FINISHED at 2026-11-05 06:07:16 UTC** through normal `preview`; owner accepts
-  offline/login behavior and the new upload are now accepted/verified above.
+  **FINISHED at 2026-11-05 06:07:16 UTC** through normal `preview`; offline/login
+  behavior and the new upload are accepted/verified above.
   [Install offline-recovery build 10](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/980c35af-c9ac-48b7-8a84-2c61f40c4f80).
   IPA **8,279,655 bytes**, SHA-256
   `d29969b049dd078454980af706a5f000336b8169f412f7c68e6d432606876813`.
@@ -100,8 +107,8 @@ Active identifies focus and does not itself authorize additional scope.
   version/lockfile metadata/tests/docs only; live web/API/schema/Clarity/Phoenix
   remain unchanged. Plan 024's architecture anchor also corrected.
   Targeted formatting, documentation link targets and Git diff checks pass.
-  All changes remain uncommitted apart from the existing schema commit; no push,
-  service operation or new server collection. Owner files remain untouched.
+  Source changes are now committed/pushed as recorded above. No service operation
+  or new server collection during correction acceptance; owner files untouched.
 
   **Two-minute journey passed:** owner answered affirmatively to the recording/
   scrolling/menu/error-review request, with readable screenshots and no new shots
@@ -219,9 +226,8 @@ Active identifies focus and does not itself authorize additional scope.
   assertions. The requested functional/native lifecycle checks are accepted.
   Keep future routine checks collection-off; no additional scope is implied.
   Do not infer those checks from generated HTTPS uploads or mocked native tests.
-  Only migration/initial migration test/contract update is committed locally;
-  all other Plan 024 changes remain uncommitted. No push. Owner `temp/` and
-  `IMG_2008.jpeg` untouched/untracked; the image is excluded from EAS uploads.
+  Git delivery is recorded above. Owner `temp/` and `IMG_2008.jpeg` remain
+  untouched/untracked; the image is excluded from EAS uploads.
 
 - **B-027 / IOS-09–10:** owner authorized changing the previously accepted login
   persistence policy. `apps/mobile/App.tsx` now sets `incognito` and

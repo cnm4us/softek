@@ -32,6 +32,20 @@ Commit and review each migration before applying it. Migrations 0001–0007 are
 already applied on this instance; repeated migration is a verified no-op. Seeds upsert fictional templates and add absent starter banner fixtures,
 preserving participant balances/goals/history and existing admin banner settings. Reset is a customer-run operation, never a database drop.
 
+### GitHub push authentication
+
+This host has an existing authenticated GitHub CLI account. For an authorized
+push, if plain HTTPS Git reports that it cannot read a username, use that login
+through a command-scoped credential helper:
+
+```bash
+gh auth status
+GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main
+```
+
+This was verified for the Plan 024 delivery. Credentials stay in the existing
+CLI store; the command does not change shared Git credential configuration.
+
 ## Database access
 
 All connections use local TCP `127.0.0.1:3306`, with explicit target validation.
