@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-11-04 UTC**.
-Current focus: **Plan 023 — B-027 temporary-session behavior confirmed on iPhone.**
+Last updated: **2026-11-05 UTC**.
+Current focus: **Plan 024 — deployed POC functionally accepted; profiling/operational follow-ups tracked.**
 Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
-Current request: **Commit and push the implemented iOS POC, layout fixes and maintained documentation.**
-Next task: **B-027's requested session behavior is owner-confirmed on 0.1.1 (2): Reload/app switching retain login and force-close requires it. Before completing IOS-10, record saved-data return after re-login, explicit sign-out, retained zoom/layout and Safari isolation if the owner continues acceptance. IOS-05/06 remain open; B-026 is complete; recording remains separate.**
+Current request: **Commit and push the accepted screenshot POC implementation, tests and documentation.**
+Next task: **Finish the authorized Git delivery and verify origin/main matches the pushed commits. The core POC has no device blocker; preserve its accepted behavior. Native memory/extended network-failure profiling and operational rollback validation remain follow-ups, and Plan 023's unrelated remaining assertions stay open.**
 
 ## Plan status registry
 
@@ -38,8 +38,190 @@ Active identifies focus and does not itself authorize additional scope.
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | Completed | LABEL-01–03 verified/deployed; 23 TAP entries, 12 browser cases, readable 13-call live reload visible in Phoenix |
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Completed | CTA-01–03: 13 unit entries, 12 browser cases, deployed exact tag visible in Phoenix; no Microsoft test traffic |
 | 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | Active | IOS-01–04/07/08 baseline verified; IOS-09 temporary-session update built/inspected. IOS-10 phone checks and remaining IOS-05/06 are open; capture stays B-025 |
+| 024 | [iOS screenshot recording POC](plans/024-ios-screenshot-recording-poc.md) | Active | Functional POC accepted; REC-02/03/04/05/06 verified/deployed, build-10 upload 13/13 and offline/lifecycle pass. REC-01/07 profiling and REC-08 operational validation remain explicit follow-ups |
 
 ## Current reality
+
+- **Git delivery — in progress:** owner requested commit/push of the accepted POC.
+  Fetched origin; main has only the existing local migration commit ahead, no
+  conflicting remote commits. Reviewed 51 candidate paths against private
+  environment values/key/token patterns: no credential findings. The owner image
+  `IMG_2008.jpeg`, `temp/` and ignored artifacts/environment/signing files stay
+  outside the delivery. No application/service/config change for this Git task;
+  reuse the recorded passing checks and physical acceptance below.
+
+- **Plan 024 — deployed functional POC accepted; profiling/operational follow-ups open.**
+  **Final build-10 acceptance:** owner confirms offline/reconnect retains login,
+  capture stays Stopped until explicitly started, force-close still requires login,
+  and a new recording appears in admin review. Independent readback at **06:21 UTC**
+  confirms **13/13 frames**, sequences 1–13, state stopped, reason Stopped, duration
+  **13,517 ms**, finalized **06:20:50 UTC**. Captures **41–54 ms**, images 720px
+  wide, **854,385 stored bytes**. Native SoftekPOC/10 requests are present in the
+  access log. This resolves the earlier absence of a new-build upload, rather than
+  treating the first generic response as server evidence. Evidence:
+  `artifacts/recording-device-build-10-upload.json`. Normal two-minute review and
+  all requested background/lock/reload/logout/force-close/offline phone cases pass.
+  No more routine device checks are needed for the delivered core POC. API/DB and
+  API/cleanup timer were healthy at the preceding read-only check. No new code,
+  config, service operation or collection setting change during final acceptance.
+  Process-memory profiling, extended slow-network/failure exercises and a live
+  rollback drill remain unperformed; REC-01/07/08 are not marked complete for them.
+
+  **Offline follow-up:** owner confirms lock/unlock, native Reload and sign-out/
+  sign-in each stop recording until a fresh Record tap. With Wi-Fi disabled,
+  however, the **whole native app shows Unable to open the demo / Try again**;
+  recovery then requires login. This is the native shell, not merely recording
+  creation failure. Build 9's conditional rendering unmounts the WebView on any
+  load failure, discarding its temporary cookie store. The exact native error
+  event/code was not captured; the unmount/session-loss path is directly present.
+  Accepted **0.2.1 (10)**, **980c35af-c9ac-48b7-8a84-2c61f40c4f80**, is
+  **FINISHED at 2026-11-05 06:07:16 UTC** through normal `preview`; owner accepts
+  offline/login behavior and the new upload are now accepted/verified above.
+  [Install offline-recovery build 10](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/980c35af-c9ac-48b7-8a84-2c61f40c4f80).
+  IPA **8,279,655 bytes**, SHA-256
+  `d29969b049dd078454980af706a5f000336b8169f412f7c68e6d432606876813`.
+  Inspected bundle/version/build and corrected JS; embedded profile CMS signature,
+  expected app/team, release entitlements and registered device set match.
+  This Linux artifact/profile inspection does not establish native cookie recovery
+  or verify Apple's whole-app code signature. It keeps the WebView mounted
+  behind an opaque/input-blocking/accessibility-hidden connection error screen.
+  Explicit Retry issues a fresh GET at home with a counter query parameter so
+  iOS cannot ignore an identical source URL; it never replays a form submission.
+  Capture invalidates on failure and cannot auto-restart on recovery; failed
+  loadEnd does not bootstrap a new bridge. Actual content-process termination
+  retains replacement-on-retry and can still require login; force-close keeps
+  the accepted fresh-session policy. No native dependency or capture-method change.
+  Mobile typecheck and **17 core + thirteen adapter/rendered tests pass**; iOS
+  export **660 modules / 1.7 MB** and actual **32-file** archive pass. First new
+  wrapper assertion selected the stub component rather than its containing View;
+  corrected to inspect the actual wrapper, all tests pass. Actual recovery/login
+  behavior is now owner-confirmed separately from mocks. Evidence: ignored/private
+  `artifacts/recording-offline-recovery-*`. This correction changes native source/
+  version/lockfile metadata/tests/docs only; live web/API/schema/Clarity/Phoenix
+  remain unchanged. Plan 024's architecture anchor also corrected.
+  Targeted formatting, documentation link targets and Git diff checks pass.
+  All changes remain uncommitted apart from the existing schema commit; no push,
+  service operation or new server collection. Owner files remain untouched.
+
+  **Two-minute journey passed:** owner answered affirmatively to the recording/
+  scrolling/menu/error-review request, with readable screenshots and no new shots
+  after Stop. Actual readback at **2026-11-05 05:51 UTC**: **139/139 frames**, all
+  sequences 1–139, elapsed **1,011–139,015 ms**, Stop **139,234 ms**, state stopped.
+  Capture-plus-copy **35–64 ms**, mean **45.6 ms**; stored re-encoded images
+  **47,117–92,064 bytes**, **9,642,594 bytes total**, all **720×1327**, zero
+  clock-uncertainty flags. Readback occurred after finalization with no extra
+  acknowledged frames. Prior backgrounding sessions also show stopped/Backgrounded
+  in server metadata. Evidence: private/ignored
+  `artifacts/recording-device-two-minute-metrics.json`. These measurements do not
+  establish native process memory usage; remaining lifecycle cases are below.
+
+  **Latest device/server evidence:** actual phone session received **17 screenshots
+  / 17 scheduled slots**, state **stopped**, reason **Stopped**, finalized
+  **2026-11-05 01:17:59 UTC**. **Owner confirms they can step through the server
+  screenshots and they are readable/consistent with the app.** Core capture →
+  upload → private review works on the signed phone build. At **01:29 UTC** the
+  session still has 17 frames, sequences 1–17, elapsed **1,011–17,012 ms**, Stop
+  **17,650 ms**, capture-plus-copy **35–50 ms (mean 42.1 ms)**. Stored re-encoded
+  frames are **49,524–91,859 bytes**, total **1,211,799 bytes**, all **720×1327**,
+  with zero clock-uncertainty flags. These are server/readback and client-reported
+  measurements; they do not measure native process memory or prove other lifecycle
+  cases. Evidence: `artifacts/recording-device-first-session-metrics.json`.
+  The longer journey is now accepted above; remaining lifecycle acceptance stays open.
+  **Owner now confirms backgrounding during recording stops it and returning
+  leaves it Stopped until a new explicit Record tap.** This completes that physical
+  lifecycle case. **Owner also confirms force-close/reopen/sign-in leaves
+  recording Stopped until a fresh Record tap.** Lock, Reload and sign-out now
+  also pass; offline recovery follow-up is above.
+  Owner initially could not sign into admin. Recent browser requests returned **401 password
+  mismatch**, not 429/network failures. Verified the actual public sign-in form
+  with the private configured password: **200**, Recordings rendered, own admin
+  session logged out. **Owner now confirms admin sign-in worked.** Password is unchanged from the deployment backup/workspace.
+  Resolved by directing owner to private `.env` → `DEMO_ADMIN_SECRET`, value only, and
+  `/controls/recordings`; do not print/reset the secret. No application/config/
+  service/password change for this investigation. Earlier browser check used an
+  incorrect button label; corrected form check passes. Owner image review passed.
+
+  Owner confirmed signed local **0.2.0 (8)** captures screenshots and supports
+  scrolling through local review, then explicitly authorized deployment and an
+  integrated transmitting app. The photographed size-check failure was an
+  unawaited asynchronous Expo FileSystem `copy()`; the adapter now waits before
+  metadata/source release, uses `info()` and reports distinct size failures.
+  A deferred-copy regression reproduces the old race and passes after correction.
+  Remaining detailed fidelity/cadence/memory and lifecycle evidence stays open.
+
+  **Live web/API release: `2026-11-05T01-07-31-794Z`**, both current links updated.
+  Production **demo** migrated **12 → 13** through committed **0013 / a702319**;
+  **demo_test** is also at 13. No pending migrations/drift. Exact production
+  target/account established first: `127.0.0.1:3306`, `demo`,
+  `softek_migrator@127.0.0.1`; runtime `softek@127.0.0.1` remains CRUD-only.
+  Root-only retained schema/data/ledger and configuration/runtime/node backup:
+  **`/var/backups/softek/recording-rollout-2026-11-05T01-06-35Z/state.json`**
+  (database dump **782,213 bytes**). Previous targets for compatible rollback:
+  web `2026-11-04T19-17-29Z-input-zoom`, API `2026-10-14T22-49-13-460Z`.
+  LOCAL_SETUP owns rollback; retain tables/images and the pinned cleanup release.
+
+  Receiver is enabled through existing HTTPS 443/API loopback 3100; no new port
+  or security-group change. Private `/var/lib/softek/recordings` is **0750**,
+  images **0640**, owned by `softek:softek`. Only the recording frame upload
+  route gains the 2 MiB Nginx exception. API images retain a 1 MiB cap.
+  `softek-recording-cleanup.timer` is active; its successful worker is pinned to
+  this exact API release. Runtime-user production dry-run: zero expired, orphan,
+  temporary or missing files. An initial direct CLI invocation omitted runtime
+  environment loading; reran with the actual private runtime environment as
+  `softek`, successfully. This was an invocation issue, not a receiver defect.
+
+  Live Clarity evaluation profile and Phoenix runtime gate preserved; existing
+  MariaDB collection/tracing values **and revisions/hashes are unchanged**.
+  All private runtime values match the backup except the three intended keys:
+  `RECORDING_DIR`, `SCREENSHOT_RECORDING_ENABLED`, `SOFTEK_RELEASE`.
+  **27 unrelated Nginx configuration fingerprints unchanged**. Nginx syntax,
+  API/DB health and Softek API/Phoenix/Nginx/MariaDB are healthy/active.
+  Routine workspace defaults remain collection-off; deployment used explicit
+  preserved profile/gates. No Microsoft/vendor traffic was used for checks.
+
+  **Actual public HTTPS receiver smoke passed**: generated **418,796-byte** JPEG,
+  upload 201; stored re-encoded **502,207-byte 720×1100** image matched its DB hash;
+  distinct capture/receipt UTC read back; anonymous read **401** and authenticated
+  image `no-store`; expected ordinary/API-image/proxy limits all **413**.
+  Actual runtime file/directory modes verified. Owned recording/customer/admin
+  session removed; database and private path cleanup checked. This was generated
+  fixture data, not a native screenshot. Evidence: private/ignored
+  `artifacts/recording-public-smoke.json`, `recording-rollout-*`.
+  Public **WebKit 440px / Chromium 1440px** admin-list checks passed enabled
+  receiver, page bounds and retained 16px login controls; zero page errors/vendor
+  requests. Receiver/migration **14 focused tests pass**, including simulated
+  low-free-space/shared-quota refusal before publication; root typecheck and
+  evaluation build passed. Prior full API suite 135, eight local recording UI
+  and ten layout cases remain previous-session evidence, not rerun claims.
+
+  **Integrated signed 0.2.0 (9)**, build
+  **`ba7c5bcf-787c-40f8-a2ae-beeee0b64fdf`**, **FINISHED**
+  **2026-11-05 01:11:41 UTC**.
+  [Install Softek POC build 9](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/ba7c5bcf-787c-40f8-a2ae-beeee0b64fdf).
+  IPA **8,279,144 bytes**, SHA-256
+  `799c44a602392963b8f3d35336e4edcb4a88d788fcaba2ecdc3167e4089db1eb`.
+  Bundle/version/build/JS and embedded profile CMS/app/team/release entitlements/
+  registered device set inspected. Linux artifact/profile inspection does not
+  verify whole-app Apple signing or actual native network behavior. Normal
+  `preview` explicitly sets `EXPO_PUBLIC_CAPTURE_CHECK=0`; it opens banking and
+  supports explicit Record/Stop uploads. `capture-check=1` retains local diagnosis.
+  iOS export **660 modules / 1.7 MB**, actual **32-file** EAS archive passed.
+  Build 8 was local-only; earlier builds 3/7 failed and 4/5/6 were superseded.
+  Do not distribute build 6. Native 17 core + eleven adapter/rendered checks
+  passed before the build-9 metadata/profile selection; runtime capture code is
+  unchanged from the phone-proven copy fix. No dev server/Metro is required.
+  Final root typecheck, targeted formatting/Git diff and **117 local documentation
+  link targets** pass. Public health and API/cleanup timer remain active. The
+  generated fixture's private directory is confirmed removed.
+
+  **Remaining follow-ups:** native memory and extended slow-network/failure
+  profiling, operational rollback validation, and Plan 023's separate remaining
+  assertions. The requested functional/native lifecycle checks are accepted.
+  Keep future routine checks collection-off; no additional scope is implied.
+  Do not infer those checks from generated HTTPS uploads or mocked native tests.
+  Only migration/initial migration test/contract update is committed locally;
+  all other Plan 024 changes remain uncommitted. No push. Owner `temp/` and
+  `IMG_2008.jpeg` untouched/untracked; the image is excluded from EAS uploads.
 
 - **B-027 / IOS-09–10:** owner authorized changing the previously accepted login
   persistence policy. `apps/mobile/App.tsx` now sets `incognito` and

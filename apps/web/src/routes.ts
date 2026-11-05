@@ -12,9 +12,11 @@ export const adminSections = [
   },
   { key: 'report', label: 'Adoption Report', href: '/controls/report' },
   { key: 'clarity', label: 'Clarity Settings', href: '/controls/clarity' },
+  { key: 'recordings', label: 'Recordings', href: '/controls/recordings' },
 ];
 
 export function adminTitle(path: string) {
+  if (path.startsWith('/controls/recordings/')) return 'Review Recording';
   if (path.startsWith('/controls/feature-explorer/'))
     return 'Configure Explore Feature';
   if (path === '/controls/customers/generate') return 'Generate Customers';

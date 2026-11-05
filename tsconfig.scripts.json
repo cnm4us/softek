@@ -11,6 +11,7 @@
     "tests/**/*.ts",
     "playwright.config.ts",
     "playwright.clarity.config.ts",
-    "playwright.layout.config.ts"
+    "playwright.layout.config.ts",
+    "playwright.recording.config.ts"
   ]
 }

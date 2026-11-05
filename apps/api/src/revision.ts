@@ -138,6 +138,7 @@ type Context = {
     path: string;
     maxAge: number;
   };
+  cleanupRecordings: () => Promise<unknown>;
 };
 
 export function registerRevision(ctx: Context) {
@@ -695,6 +696,7 @@ export function registerRevision(ctx: Context) {
       // FK cascades remove sessions, rotation, opening amounts and preferences.
       await c.query('DELETE FROM demo_users WHERE id=?', [id]);
     });
+    await ctx.cleanupRecordings();
     res.json({ ok: true });
   });
   app.post('/api/admin/users/:id/password', async (req, res) => {

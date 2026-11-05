@@ -18,6 +18,8 @@
     "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:e2e": "playwright test",
     "db:status": "tsx scripts/db.ts status",
+    "recordings:cleanup": "tsx apps/api/src/recording-cleanup.ts",
+    "recordings:smoke": "tsx scripts/recording-public-smoke.ts",
     "db:migrate": "tsx scripts/db.ts migrate",
     "db:provision": "tsx scripts/provision-db.ts",
     "db:seed": "tsx scripts/seed.ts",

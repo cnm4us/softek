@@ -19,6 +19,7 @@ import { customerToken, customerContext } from './customer-context.js';
 import { registerDiscovery } from './discovery.js';
 import { registerFeatureExplorer } from './feature-explorer.js';
 import { registerClarityTracing } from './clarity-tracing.js';
+import { registerRecordings } from './recordings.js';
 
 type Connection = PoolConnection;
 // Connector rows are checked at query boundaries; internal values never enter analytics as arbitrary metadata.
@@ -341,6 +342,15 @@ export function createApp(test = false) {
     }
     return events;
   }
+  const recordings = registerRecordings({
+    app,
+    pool,
+    test,
+    active,
+    admin,
+    token,
+    checkCsrf,
+  });
   registerRevision({
     app,
     pool,
@@ -356,6 +366,7 @@ export function createApp(test = false) {
     checkOrigin,
     checkCsrf,
     cookieOptions,
+    cleanupRecordings: () => recordings.cleanup(false),
   });
   registerFeatureExplorer({
     app,

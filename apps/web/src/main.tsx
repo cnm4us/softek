@@ -53,6 +53,7 @@ import {
 } from './revision';
 import { Card, Alert, Heading } from './ui';
 import { AppShell } from './shell';
+import { RecordingControl, suspendRecording } from './recording-control';
 import { SummaryFeatureBanner } from './summary-feature-banner';
 import { AdminApp } from './admin';
 import {
@@ -888,6 +889,7 @@ function CustomerApp() {
       setError('');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
+        suspendRecording();
         if (sessionStorage.getItem(impersonationStorage)) {
           void handleImpersonationExpiry();
           return;
@@ -1009,6 +1011,7 @@ function CustomerApp() {
   };
   async function logout() {
     if (!state) return;
+    suspendRecording();
     try {
       await api('/auth/logout', {}, state.csrf);
       beginCustomerTransition();
@@ -1038,6 +1041,7 @@ function CustomerApp() {
     )
       return;
     setResetting(true);
+    suspendRecording();
     try {
       await api('/reset', {}, state.csrf);
       sessionStorage.removeItem('softek_banner');
@@ -1092,6 +1096,12 @@ function CustomerApp() {
         area="Customer"
         title={state ? title : null}
         authenticated={Boolean(state)}
+        captureControl={
+          <RecordingControl
+            state={state}
+            enabled={!loading && !resetting && !exiting}
+          />
+        }
         sections={sections}
         greeting={state?.profile.firstName}
         viewingAs={state?.impersonation ? state.user.displayName : undefined}

@@ -75,6 +75,9 @@ try {
     PORT: '3100',
     PUBLIC_ORIGIN: 'https://demo.bawebtech.com',
     BANNER_ASSET_DIR: '/var/lib/softek/banner-assets',
+    RECORDING_DIR: '/var/lib/softek/recordings',
+    SCREENSHOT_RECORDING_ENABLED:
+      process.env.SCREENSHOT_RECORDING_ENABLED === 'true' ? 'true' : 'false',
     CLARITY_ENABLED: String(collection),
     VITE_CLARITY_ENABLED: String(collection),
     VITE_PHOENIX_TRACING_ENABLED: String(collection),
@@ -104,13 +107,14 @@ import json,os,pwd,shutil,subprocess,sys
 p=json.load(sys.stdin)
 try: pwd.getpwnam('softek')
 except KeyError: subprocess.run(['useradd','--system','--user-group','--home-dir','/nonexistent','--shell','/usr/sbin/nologin','softek'],check=True)
-for path in ['/opt/softek/releases','/opt/softek/runtime/bin','/etc/softek','/var/www/softek/releases','/var/backups/softek','/var/lib/softek/banner-assets']:
+for path in ['/opt/softek/releases','/opt/softek/runtime/bin','/etc/softek','/var/www/softek/releases','/var/backups/softek','/var/lib/softek/banner-assets','/var/lib/softek/recordings']:
  os.makedirs(path,exist_ok=True)
 os.chmod('/etc/softek',0o750)
 os.chmod('/var/backups/softek',0o700)
 uid=pwd.getpwnam('softek').pw_uid;gid=pwd.getpwnam('softek').pw_gid
 os.chown('/etc/softek',0,gid)
 os.chown('/var/lib/softek/banner-assets',uid,gid);os.chmod('/var/lib/softek/banner-assets',0o750)
+os.chown('/var/lib/softek/recordings',uid,gid);os.chmod('/var/lib/softek/recordings',0o750)
 # Copy immutable seeded creatives only when absent; uploads remain outside releases.
 if os.path.isdir(p['bannerAssets']):
  for name in os.listdir(p['bannerAssets']):
@@ -144,6 +148,13 @@ for target,link in [(release,'/opt/softek/current'),(web,'/var/www/softek/curren
  if os.path.lexists(temp):os.unlink(temp)
  os.symlink(target,temp);os.replace(temp,link)
 shutil.copy2(p['unit'],'/etc/systemd/system/softek-api.service');os.chmod('/etc/systemd/system/softek-api.service',0o644)
+for name,source in p['recordingUnits'].items():
+ target='/etc/systemd/system/'+name
+ text=open(source).read()
+ # Keep retention/reconciliation working across an API/web rollback.
+ if name=='softek-recording-cleanup.service': text=text.replace('/opt/softek/current',release)
+ with open(target,'w') as f:f.write(text)
+ os.chmod(target,0o644)
 nginx='/etc/nginx/sites-available/012_demo.bawebtech.com'
 shutil.copy2(nginx,'/var/backups/softek/nginx-before-'+p['release']+'.conf')
 shutil.copy2(p['nginx'],nginx);os.chmod(nginx,0o644)
@@ -151,6 +162,7 @@ subprocess.run(['/usr/sbin/nginx','-t'],check=True)
 subprocess.run(['systemctl','daemon-reload'],check=True)
 subprocess.run(['systemctl','enable','softek-api.service'],check=True)
 subprocess.run(['systemctl','restart','softek-api.service'],check=True)
+subprocess.run(['systemctl','enable','--now','softek-recording-cleanup.timer'],check=True)
 subprocess.run(['systemctl','reload','nginx'],check=True)
 `;
   const nginxPath = join(staging, 'nginx.conf');
@@ -179,6 +191,16 @@ subprocess.run(['systemctl','reload','nginx'],check=True)
     node: process.execPath,
     web: join(projectRoot, 'apps/web/dist'),
     unit: join(projectRoot, 'deploy/systemd.softek-api.service'),
+    recordingUnits: {
+      'softek-recording-cleanup.service': join(
+        projectRoot,
+        'deploy/systemd.softek-recording-cleanup.service',
+      ),
+      'softek-recording-cleanup.timer': join(
+        projectRoot,
+        'deploy/systemd.softek-recording-cleanup.timer',
+      ),
+    },
     nginx: nginxPath,
     env,
     bannerAssets: join(projectRoot, 'artifacts/banner-assets'),

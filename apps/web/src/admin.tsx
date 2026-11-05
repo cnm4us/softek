@@ -15,6 +15,7 @@ import {
   Users,
   ChartNoAxesCombined,
   Activity,
+  Film,
 } from 'lucide-react';
 import { api, ApiError } from './api';
 import { AdminSession, initialReportFilters, useAdmin } from './admin-session';
@@ -33,6 +34,7 @@ import {
   FeatureExplorerControls,
   ExploreWidgetControls,
 } from './feature-explorer-controls';
+import { Recordings, RecordingReview } from './recordings';
 
 function CustomerRoute() {
   const { userId } = useParams(),
@@ -48,8 +50,9 @@ function AdminHome() {
     'Configure feature invitations and mobile banners for each account page.',
     'Review enrollment and service use with clear participant counts.',
     'Control Microsoft Clarity collection for the customer demo.',
+    'Review approved app screenshots, timestamps and recording gaps.',
   ];
-  const icons = [Users, Image, Compass, ChartNoAxesCombined, Activity];
+  const icons = [Users, Image, Compass, ChartNoAxesCombined, Activity, Film];
   return (
     <>
       <p className="lead">Manage the Harbor demo.</p>
@@ -234,6 +237,11 @@ export function AdminApp() {
             />
             <Route path="/controls/report" element={<AdoptionReport />} />
             <Route path="/controls/clarity" element={<ClaritySettings />} />
+            <Route path="/controls/recordings" element={<Recordings />} />
+            <Route
+              path="/controls/recordings/:recordingId"
+              element={<RecordingReview />}
+            />
             <Route
               path="*"
               element={

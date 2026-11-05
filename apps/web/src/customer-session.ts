@@ -5,6 +5,7 @@ import { clearRenderedSummaryBanner } from './summary-explorer-context';
 export const impersonationStorage = 'softek_impersonation_context';
 const channel = new BroadcastChannel('softek_customer_session');
 function clearCustomerState() {
+  window.dispatchEvent(new Event('softek-capture-suspend'));
   stopCollection();
   sessionStorage.removeItem('softek_banner');
   sessionStorage.removeItem('softek_explorer_summary');

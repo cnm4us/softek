@@ -31,6 +31,7 @@ verification evidence, and the resume point live in
 | 021 | [Readable banner analytics IDs](plans/021-readable-banner-analytics-ids.md) | LABEL-01–03; readable analytics values, internal UUIDs retained; depends on 015/016/017/020 |
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | CTA-01–03; directly filter banner-attributed confirmed CTAs; depends on 005/016/017/021 |
 | 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | IOS-01–06; separate Expo app around the hosted website, EAS preview build and iPhone acceptance; reuses existing web/API, no recording in this phase |
+| 024 | [iOS screenshot recording POC](plans/024-ios-screenshot-recording-poc.md) | REC-01–08; authorized 1 Hz native snapshots, Record/Stop, private receiver/timestamps/storage and admin review; depends on 023's installed baseline; device proof and rollout tracked in state |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
@@ -47,6 +48,14 @@ Plan 023 is the owner's current implementation priority, ahead of deferred Plans
 access, not completion of the deferred Clarity work. The owner authorized
 implementation after reviewing the plan. Later mobile recording/gesture/error evaluation is tracked separately
 in BACKLOG and does not extend this first app milestone.
+
+Plan 024 now scopes the screenshot portion of B-025 at the owner's requested
+**one snapshot per second**, with server preflight/provisioning and review.
+The owner authorized implementation and deployment. Phone capture/local review now
+work and the receiver/admin review are deployed; integrated upload, review and
+normal/offline/lifecycle device checks are accepted (REC-02/03/04/05/06).
+Profiling/operational validation remains in Plan 024. Remaining Plan 023 acceptance stays
+open. Gesture/error events, real-bank masking and support sharing remain later.
 
 ## Later banking scope
 

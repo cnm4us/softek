@@ -628,3 +628,100 @@ state, and explicit sign-out must remain effective. Existing view-remount recove
 also starts a new session. Safari's independent website session must remain
 untouched. The previously passed force-close login persistence on build 1 is
 historical and intentionally superseded by this owner-requested policy.
+
+## Screenshot recording verification — Plan 024
+
+[Plan 024](plans/024-ios-screenshot-recording-poc.md#implementation-tasks-and-acceptance)
+owns REC-01–08 and installed-device acceptance. Implemented commands:
+
+```bash
+node --import tsx --test tests/recording-migration.test.ts tests/recordings.test.ts
+npm test -w @softek/mobile
+npx playwright test -c playwright.recording.config.ts
+npm run recordings:cleanup -- --test
+npm run typecheck
+npm run build
+npm run format:check
+```
+
+Migration 0013 must be applied to `demo_test` before receiver tests, through the
+normal committed-migration workflow. The migration probe uses owned replacement
+tables/contract ledger, checks clean/repeated application, and injects failure
+between the two CREATE statements to verify visible partial DDL and blocked retry.
+Receiver integration uses the real test MariaDB/filesystem/API: creation approval,
+server ownership, idempotent replacement/retry, concurrent case-normalized frame
+retries, private delivery/integrity/modes, out-of-order UTC metadata, size/timing
+limits, customer isolation/deletion, file publication failure/recovery, stop/drain,
+orphan/temp/missing reconciliation, retention and session/heartbeat revocation.
+Expected negative cases can log a bounded filesystem error code.
+
+Mobile tests cover monotonic cadence, no overlap/catch-up burst, disposal after
+Stop, authentication/document/lifecycle invalidation, bounded queues and terminal
+upload errors. Six rendered checks wire the actual App handlers against mocked
+native storage/network/view ports. Browser checks cover capability gating in
+ordinary browsers versus a fake native adapter, matching header buttons, modal
+focus/X/Stop/logout, private generated-image review, distinct timestamps, timeline
+gaps/playback and deletion at Chromium 360/390/1440px and WebKit 440px. These
+eight browser cases are not actual iOS snapshots. Save only fictional-fixture
+screenshots under artifacts. The existing ten-case layout configuration also
+checks WebKit/Chromium bounds, focus, readable controls and preserved zoom.
+
+After the first installed capture check failed with zero frames, added tests
+execute the actual capture-file adapter against mocked iOS bare-path results and
+Expo's strict file-URI boundary: encoded paths, preserved native release input,
+720 physical pixels at 1x/2x/3x, file-size limits, safe failure stages, and cleanup
+errors that preserve the original failure. The `capture-check` rendered profile
+test verifies the local-only HTML source, absent banking navigation/upload, and
+visible failure details. There are now **17 core + eleven adapter/rendered** mobile
+checks. The owner's diagnostic image identified the size guard; the new test
+models SDK 58's asynchronous copy with a deferred Promise and zero size until
+completion. It fails on the unawaited implementation and passes after awaiting
+copy, proving metadata/source release wait and asynchronous errors stay caught.
+Metadata checks separately cover missing, invalid, empty and oversized files.
+These checks cannot establish the exact failing native operation on build 3 or
+prove the corrected snapshot works on an iPhone. Use the LOCAL_SETUP diagnostic
+profile commands. The owner now confirms capture and local review; integrated
+upload/Record/Stop/lifecycle acceptance remains separate.
+
+The build-9 offline device check exposed a separate native recovery issue:
+rendering the error screen unmounted the temporary WebView and lost login.
+Build-10 rendered regressions count actual component mounts/unmounts across
+repeated connection failures/retries, check a fresh same-origin GET (no submitted
+body), blocked/hidden error content, no failed-load bridge bootstrap and no
+automatic recording restart. A genuine content-process termination still
+replaces the view on explicit retry. There are **17 core + thirteen adapter/
+rendered checks** after this correction. These prove React wiring, not native
+cookie persistence. Separately, the owner has now accepted signed iPhone
+retry/reconnect/login behavior and the new build's upload is server-confirmed;
+PROJECT_STATE owns the exact evidence and remaining profiling limitations.
+
+The live receiver smoke has passed with generated pixels: public multipart upload,
+private image/hash/timestamp readback, runtime permissions, size rejection and
+owned fixture removal. Public WebKit 440px/Chromium 1440px checks also cover the
+enabled admin list, bounded layout and retained 16px login controls, with zero
+vendor requests. Exact evidence is in PROJECT_STATE. Focused receiver coverage now
+includes simulated low free space/shared storage exhaustion before publication;
+it does not fill the host's disk. These checks remain separate from actual phone
+uploads and readable screenshot playback.
+
+`npm run recordings:smoke` is a separate explicit real-HTTPS receiver check on this
+EC2 host after the gate/setup in LOCAL_SETUP. It sends generated fixture pixels,
+validates actual proxy/body limits/runtime storage/private readback and removes
+only its owned fixture. Read the private result/cleanup flags; it is not a phone
+capture test or a command to enable the receiver. Keep its `.env`/sudo requirements
+and collection-profile boundary intact.
+
+The checks span three boundaries: actual native 1 Hz capture and lifecycle
+on the signed iPhone build; authenticated receiver/metadata/filesystem behavior
+through MariaDB and real HTTPS; and admin review of timing, gaps and deletion.
+Mocked native tests cannot establish WebView image fidelity. Loopback API tests
+cannot establish Nginx multipart/body limits or systemd write permissions. Inspect
+the actual uploaded image/hash and independent capture/receipt timestamps.
+
+Use isolated `demo_test` fixtures/private test image directories for automated
+coverage, and only explicit owner-approved fictional sessions for installed-app
+acceptance. Keep Clarity/vendor traffic blocked in routine checks. Include
+unauthorized image reads, credential/owner/session revocation, duplicate/conflicting
+frames, queue/storage limits, timing drift, clock skew, transition races,
+interruption/cleanup and customer-deletion scope. Preserve Plan 023's remaining
+acceptance and force-close-login regression checks.

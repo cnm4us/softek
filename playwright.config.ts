@@ -9,6 +9,7 @@ export default defineConfig({
     'accounts.spec.ts',
     'feature-explorer.spec.ts',
     'summary-banners.spec.ts',
+    'recordings.spec.ts',
   ],
   workers: 1,
   reporter: 'list',

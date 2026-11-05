@@ -1,6 +1,13 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import {
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  type ComponentRef,
+} from 'react';
 import {
   ActivityIndicator,
+  AppState,
   Linking,
   Pressable,
   StatusBar,
@@ -24,6 +31,10 @@ import {
   SITE_URL,
 } from './src/navigation';
 import { colors } from './src/theme';
+import { captureFile, clearCaptureFiles } from './src/capture-file';
+import { RecordingController } from './src/recording-controller';
+import { recordingRequest } from './src/recording-request';
+import { CaptureProbe } from './src/CaptureProbe';
 
 function Action({
   label,
@@ -61,40 +72,82 @@ function Demo() {
   const [uri, setUri] = useState(SITE_URL);
   const [generation, setGeneration] = useState(0);
   const [notice, setNotice] = useState('');
+  const failed = useRef(false);
+  const replaceOnRetry = useRef(false);
+  const retryCount = useRef(0);
+  const captureView = useRef<ComponentRef<typeof View>>(null);
+  const layout = useRef({ width: 0, height: 0 });
+  const recorder = useRef<RecordingController | null>(null);
+  recorder.current ??= new RecordingController({
+    capture: () =>
+      captureFile(captureView, layout.current.width, layout.current.height),
+    inject: (script) => web.current?.injectJavaScript(script),
+    request: recordingRequest,
+  });
 
   function clearTimer() {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
   }
-  function fail(message: string) {
+  function fail(message: string, replaceView = false) {
+    failed.current = true;
+    replaceOnRetry.current ||= replaceView;
+    recorder.current?.navigate();
     clearTimer();
     setCanGoBack(false);
     dispatch({ type: 'fail', message });
   }
   function start(url: string) {
+    failed.current = false;
+    recorder.current?.navigate();
     clearTimer();
     mainDocument.current = url;
     dispatch({ type: 'start' });
     timer.current = setTimeout(() => fail(CONNECTION_ERROR), LOAD_TIMEOUT_MS);
   }
   useEffect(() => clearTimer, []);
+  useEffect(() => {
+    if (!clearCaptureFiles())
+      setNotice('Screen recording storage is unavailable.');
+    recorder.current?.appState(AppState.currentState === 'active');
+    const listener = AppState.addEventListener('change', (next) =>
+      recorder.current?.appState(next === 'active'),
+    );
+    return () => {
+      listener.remove();
+      recorder.current?.dispose();
+    };
+  }, []);
 
   function retry() {
-    // Explicitly start a fresh GET at home; never replay a failed submission.
+    // Keep the temporary cookie store for connection recovery. Change the URL
+    // because WKWebView ignores an identical source URL; always issue a fresh
+    // GET at home instead of replaying a failed form/navigation submission.
+    recorder.current?.navigate();
     clearTimer();
+    failed.current = false;
     setNotice('');
     setCanGoBack(false);
-    setUri(SITE_URL);
-    mainDocument.current = SITE_URL;
-    setGeneration((value) => value + 1);
+    const target = new URL(SITE_URL);
+    target.searchParams.set('_softek_retry', String(++retryCount.current));
+    setUri(target.href);
+    mainDocument.current = target.href;
+    if (replaceOnRetry.current) {
+      setGeneration((value) => value + 1);
+      replaceOnRetry.current = false;
+    }
     dispatch({ type: 'retry' });
+    timer.current = setTimeout(() => fail(CONNECTION_ERROR), LOAD_TIMEOUT_MS);
   }
   async function openBrowser(url: string) {
     if (destination(url) !== 'external') return;
+    recorder.current?.appState(false);
     try {
       await Linking.openURL(url);
     } catch {
       setNotice('The link could not open. Please try again.');
+    } finally {
+      recorder.current?.appState(AppState.currentState === 'active');
     }
   }
 
@@ -115,7 +168,14 @@ function Demo() {
         </Text>
         <Action
           label="Reload"
-          onPress={state.error ? retry : () => web.current?.reload()}
+          onPress={
+            state.error
+              ? retry
+              : () => {
+                  recorder.current?.navigate();
+                  web.current?.reload();
+                }
+          }
         />
       </View>
       {notice ? (
@@ -126,22 +186,26 @@ function Demo() {
           <Action label="Dismiss" onPress={() => setNotice('')} />
         </View>
       ) : null}
-      <View style={styles.content}>
-        {state.error ? (
-          <View style={styles.error}>
-            <Text accessibilityRole="header" style={styles.errorTitle}>
-              Unable to open the demo
-            </Text>
-            <Text accessibilityRole="alert" style={styles.message}>
-              {state.error}
-            </Text>
-            <Action label="Try again" onPress={retry} />
-          </View>
-        ) : (
+      <View
+        ref={captureView}
+        collapsable={false}
+        style={styles.content}
+        onLayout={({ nativeEvent: { layout: size } }) => {
+          layout.current = size;
+        }}
+      >
+        <View
+          style={styles.web}
+          accessibilityElementsHidden={Boolean(state.error)}
+          importantForAccessibility={
+            state.error ? 'no-hide-descendants' : 'auto'
+          }
+          pointerEvents={state.error ? 'none' : 'auto'}
+        >
           <WebView<unknown>
             key={generation}
             ref={web}
-            source={{ uri }}
+            source={{ uri, method: 'GET' }}
             style={styles.web}
             // Login belongs to this WebView's lifetime, not the next app launch.
             incognito
@@ -151,6 +215,8 @@ function Demo() {
             originWhitelist={['*']}
             onShouldStartLoadWithRequest={(request) => {
               const action = navigationAction(request);
+              if (request.isTopFrame !== false && action === 'allow')
+                recorder.current?.route(request.url);
               if (action === 'open-browser') void openBrowser(request.url);
               return action === 'allow';
             }}
@@ -159,26 +225,43 @@ function Demo() {
               if (destination(targetUrl) === 'internal') setUri(targetUrl);
               else void openBrowser(targetUrl);
             }}
-            onNavigationStateChange={(navigation) =>
-              setCanGoBack(navigation.canGoBack)
+            onNavigationStateChange={(navigation) => {
+              setCanGoBack(navigation.canGoBack);
+              if (navigation.url) recorder.current?.route(navigation.url);
+            }}
+            onMessage={({ nativeEvent }) =>
+              recorder.current?.receive(nativeEvent.url, nativeEvent.data)
             }
             onLoadStart={({ nativeEvent }) => start(nativeEvent.url)}
             onLoadEnd={() => {
               clearTimer();
               dispatch({ type: 'finish' });
+              if (!failed.current)
+                web.current?.injectJavaScript(recorder.current!.bootstrap());
             }}
             onError={() => fail(CONNECTION_ERROR)}
             onHttpError={({ nativeEvent }) => {
               if (sameDocument(nativeEvent.url, mainDocument.current))
                 fail(CONNECTION_ERROR);
             }}
-            onContentProcessDidTerminate={() => fail(PROCESS_ERROR)}
+            onContentProcessDidTerminate={() => fail(PROCESS_ERROR, true)}
             renderError={() => <View />}
             pullToRefreshEnabled={false}
             allowsBackForwardNavigationGestures
             contentInsetAdjustmentBehavior="never"
           />
-        )}
+        </View>
+        {state.error ? (
+          <View style={[styles.error, StyleSheet.absoluteFill]}>
+            <Text accessibilityRole="header" style={styles.errorTitle}>
+              Unable to open the demo
+            </Text>
+            <Text accessibilityRole="alert" style={styles.message}>
+              {state.error}
+            </Text>
+            <Action label="Try again" onPress={retry} />
+          </View>
+        ) : null}
         {state.loading && !state.error ? (
           <View
             style={styles.loading}
@@ -197,7 +280,11 @@ function Demo() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <Demo />
+      {process.env.EXPO_PUBLIC_CAPTURE_CHECK === '1' ? (
+        <CaptureProbe />
+      ) : (
+        <Demo />
+      )}
     </SafeAreaProvider>
   );
 }

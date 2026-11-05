@@ -1,0 +1,11 @@
+[Unit]
+Description=Reconcile Softek screenshot storage every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=softek-recording-cleanup.service
+
+[Install]
+WantedBy=timers.target

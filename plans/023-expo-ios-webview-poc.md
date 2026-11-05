@@ -206,8 +206,8 @@ website's normal browser login policy or saved banking data.
   Use WebView `incognito` (iOS nonpersistent website data store) and explicitly
   disable shared native cookies. Keep the session through normal navigation,
   Reload and foreground/background while that WebView survives. No termination
-  callback or server-logout-on-kill assumption. A new WebView (including recovery
-  after a failed load/process) starts a fresh session; website preferences/consent
+  callback or server-logout-on-kill assumption. A new WebView (including genuine
+  content-process failure recovery) starts a fresh session; website preferences/consent
   stored only in browser storage also start fresh. Server session records retain
   their normal expiry; this change discards local access, not backend data.
   Bump the native version/build, run mobile checks/export/archive inspection,
@@ -221,6 +221,12 @@ website's normal browser login policy or saved banking data.
   Verify manual zoom/layout correction and that Safari's independent website
   session was not changed. Record actual phone results; mocked WebView tests
   cannot establish native cookie lifetime.
+
+Plan 024's offline check found that build 9 unnecessarily created a new WebView
+after ordinary connection failures. Its build-10 follow-up retains the view for
+connection/HTTP/timeout recovery and requests a fresh GET on Try again; recording
+must stay stopped. Signed-device verification of that correction is tracked in
+PROJECT_STATE, without weakening the force-close/new-process login requirement.
 
 The owner confirmed on installed 0.1.1 (2) that Reload/app switching retain login
 and force-close/reopen requires it. That completes B-027's requested behavior.

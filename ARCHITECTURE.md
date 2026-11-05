@@ -282,6 +282,7 @@ is documented by [MariaDB](https://mariadb.com/docs/server/reference/sql-stateme
 | D-011 | Dedicated Nginx site with Certbot webroot certificate | User-authorized public hostname; implemented without changing existing site files |
 | D-012 | Separate Expo iOS WebView shell around the hosted website, built with EAS on cloud macOS | User requires website coexistence and has Ubuntu/EAS/iPhone access; initial signed build installed and core flow verified. Remaining acceptance and the B-027 session-policy update are tracked in Plan 023 |
 | D-013 | Temporary iOS WebView website data store, with native cookie sharing disabled | User requested fresh login after force-close/relaunch. `incognito` uses WebKit's memory-only store; no unreliable termination callback or change to website/server login policy. IOS-09/10 track delivery and device proof |
+| D-014 | Native 1 Hz WebView snapshots, private project-local image storage and MariaDB metadata, with admin-only review | User requested one screenshot/second and authorized Plan 024 implementation. Local capture preview delivered; receiver/UI/controller implemented and under validation. Receiver rollout waits for signed-iPhone image proof; final device acceptance remains open |
 
 Changes to working choices do not need a separate approval ceremony. Record the
 reason and update affected plan/setup files. Revisit user-confirmed constraints
@@ -813,9 +814,95 @@ delta over the retained frontend without changing application JavaScript or APIs
 This replaces the default persistent store used by native build 1. It requires a
 new bundled app build (0.1.1 / 2); no hosted web/API deployment is part of this
 change. Memory-only website data disappears with that WebView instance. Reload
-and normal app switching keep the instance; force-close/process termination and
-the shell's existing failed-load recovery that remounts the view start fresh.
+and normal app switching keep the instance. Build 9 also remounted it on ordinary
+load errors, which lost login during the phone's offline check. Build 10 retains
+the mounted WebView under a blocking/accessibility-hidden connection-error
+overlay; manual Try again issues a fresh GET at home in that same view. A retry
+counter query parameter forces navigation because iOS ignores an identical source
+URL; it carries no identity/authentication data and is ignored by the website.
+Failure invalidates capture immediately, failed loadEnd cannot bootstrap the
+bridge, and recovery never restarts recording. Actual content-process termination
+is still an explicit replacement-on-retry path; force-close/new app process or
+that replacement starts a fresh session. This is a working recovery correction
+within REC-05/07; the owner has now accepted signed build-10 connection/cookie
+recovery and the follow-up upload is server-confirmed (PROJECT_STATE owns evidence).
 This also resets browser-local consent/preferences. MariaDB user/banking state
 persists, and server sessions retain their normal expiry rather than being
 revoked by an unreliable app-termination callback. Existing persistent app data
 is not imported, and Safari's separate data store is not cleared.
+
+## Screenshot recording — Plan 024
+
+The user requested planning for an explicit Record/Stop workflow at one snapshot
+per second. Proposed architecture keeps pixel capture in the native Expo shell,
+customer control/status in the shared website header via a narrow typed bridge,
+and receiver/review within the existing HTTPS/API/MariaDB application. A browser
+capability handshake controls presentation; server authentication is independent.
+
+Create sessions through existing customer cookie/Origin/CSRF checks. Give the
+native uploader a short-lived recording-only credential held in memory, never
+the website's HttpOnly cookie or an admin credential. Validate the originating
+customer session and capture eligibility; exclude login/admin/impersonation and
+stop on lifecycle/auth changes. Store bytes outside public releases at
+`/var/lib/softek/recordings`, with MariaDB ownership/timing/integrity metadata;
+admin-authorized reads serve each image with no public asset route. Retention,
+quota and DB/file reconciliation are part of the receiver, not deferred cleanup.
+
+Keep device capture UTC, monotonic elapsed time/sequence and server receipt UTC
+separate. Playback exposes gaps and clock uncertainty. Preserve the existing
+temporary-login policy and independent Clarity consent/settings. This is an
+implemented design with a deployed receiver and accepted native functional flow;
+profiling/operational follow-ups are tracked separately. [Plan 024](plans/024-ios-screenshot-recording-poc.md) owns
+contracts, limits, implementation order and verification criteria.
+
+Implementation uses view-shot 6.1.1 and Expo FileSystem 58.0.13. The first signed
+capture preview uses a self-contained fictional WebView fixture and retains only
+the latest eight local frames for review, without network upload. The integrated
+controller snapshots the banking WebView container after a main-document
+handshake and eligibility checks before/after capture, with an authentication
+generation that invalidates late results. A monotonic deadline scheduler skips
+missed slots rather than overlapping captures or catching up in a burst.
+Round timer delays upward and recheck the expected deadline/epoch after waking;
+early or stale timer callbacks cannot produce zero/duplicate frame sequences.
+One active session per customer is a working choice: a new explicit approval
+replaces an unclosed prior session, so force-close/re-login does not impose a
+timeout before the user can record again. A lost creation response retries the
+same request ID, while different customers still share the two-active limit.
+
+The initial phone check failed with zero frames. The corrected adapter converts
+iOS view-shot's absolute temporary path into an encoded `file://` URI for Expo
+File, while releasing the original native path. iOS view-shot renders at device
+scale; divide requested width/height by PixelRatio to target 720 physical pixels.
+Report a safe operation stage and allowlisted reason locally, keeping native
+paths/arbitrary errors out of the UI; cleanup must not mask the primary failure.
+These contract fixes do not establish the original native failure's exact cause.
+The later phone diagnostic identified size rejection. Expo FileSystem's `copy()`
+is asynchronous; await it before reading metadata, releasing the source, or
+publishing the owned file. Reading size immediately raced the copy and the old
+zero-fallback getter concealed the distinction. Use `info()` for checked metadata
+and separate missing/invalid/empty/oversized outcomes. A deferred-copy boundary
+test proves that sizing and source release wait for completion, including rejection;
+it does not establish native image fidelity. This is an implementation correction,
+not a change to the recording limits or capture method.
+The `capture-check` EAS profile sets `EXPO_PUBLIC_CAPTURE_CHECK=1` at bundle time
+and opens only the network-free fixture, without mounting the banking shell or
+uploader. Ordinary preview builds explicitly set it to `0`. This temporary working choice
+isolates pixel-path diagnosis before receiver deployment; no new server access
+or general screen-capture permission is needed by this local fixture.
+
+Native upload credentials are HMAC-derived from the random server recording ID,
+customer-session hash and idempotent creation request, with a separate domain
+separator. Only their hash is stored. This allows a lost creation response to be
+retried without storing plaintext credentials. They remain scoped to frames,
+heartbeat and stop, and validate the original live customer/run/session. Admin
+deletion follows the project's existing POST `/delete` + CSRF convention.
+
+All recording file/quota mutations share a MariaDB advisory lock across the API
+and cleanup CLI. Publish a private file atomically and sync it before committing
+metadata. A crash before commit can leave an orphan, handled by reconciliation;
+an unacknowledged retry can replace it safely. Commit deletion tombstones before
+unlinking, so failures leave retryable deletion intent. Cleanup prunes only this
+feature's known files, marks missing committed files as interrupted/gaps, and
+recalculates counters. Production storage refuses paths outside the dedicated
+Softek recording directory. UTC discrepancy flags are indicators of clock/start
+uncertainty, not a measurement of network latency or proof of phone clock drift.

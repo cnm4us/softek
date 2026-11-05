@@ -1,0 +1,23 @@
+[Unit]
+Description=Softek screenshot retention and interrupted-session reconciliation
+After=mariadb.service
+
+[Service]
+Type=oneshot
+User=softek
+Group=softek
+WorkingDirectory=/opt/softek/current/apps/api
+EnvironmentFile=/etc/softek/runtime.env
+ExecStart=/opt/softek/runtime/bin/node /opt/softek/current/apps/api/dist/recording-cleanup.js --apply
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/softek/recordings
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+TimeoutStartSec=60

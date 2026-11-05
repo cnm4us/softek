@@ -14,6 +14,7 @@ export function AppShell({
   viewingAs,
   onMenuOpen,
   onSelect,
+  captureControl,
 }: {
   title: string | null;
   area: 'Admin' | 'Customer';
@@ -26,6 +27,7 @@ export function AppShell({
   viewingAs?: string;
   onMenuOpen?: () => void;
   onSelect?: (key: string) => void;
+  captureControl?: ReactNode;
 }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -120,19 +122,22 @@ export function AppShell({
             </Link>
           )}
           {authenticated && (
-            <button
-              ref={button}
-              className="menu-button"
-              aria-label="Open menu"
-              aria-expanded={open}
-              aria-controls="area-menu"
-              onClick={() => {
-                setOpen(true);
-                onMenuOpen?.();
-              }}
-            >
-              <Menu size={24} />
-            </button>
+            <div className="header-actions">
+              {captureControl}
+              <button
+                ref={button}
+                className="menu-button"
+                aria-label="Open menu"
+                aria-expanded={open}
+                aria-controls="area-menu"
+                onClick={() => {
+                  setOpen(true);
+                  onMenuOpen?.();
+                }}
+              >
+                <Menu size={24} />
+              </button>
+            </div>
           )}
         </header>
         <div className="app-layout">

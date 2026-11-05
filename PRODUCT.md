@@ -518,8 +518,8 @@ navigation, safe areas and connection-error recovery. The banking pages require
 connectivity. Scope, tasks and device acceptance are in
 [Plan 023](plans/023-expo-ios-webview-poc.md).
 
-Recording, gesture/error instrumentation, recording approval controls and support
-review/sharing workflows require a later phase. The WebView POC establishes a
+Recording is scoped separately in Plan 024 below; gesture/error instrumentation
+and support/sharing workflows remain later work. The WebView POC establishes a
 hybrid-app testbed; it does not validate capture of native banking controls.
 
 The owner subsequently requested fresh sign-in after force-close/relaunch.
@@ -528,3 +528,26 @@ ordinary Reload and brief backgrounding retain it, while a new app process or
 recreated web view requires login. Saved banking data persists on the server.
 The normal browser website keeps its independent login policy. Native update
 and device acceptance are IOS-09/10 in Plan 023 (B-027).
+
+## Screenshot recording POC — Plan 024
+
+The owner requested a plan for screenshot capture at **one screenshot per second**,
+superseding the earlier four-per-second discussion. Place a recording-status
+button immediately left of the customer menu, matching its size and shape.
+Its overlay has Record, Stop and a close X in the upper-right; the button indicates
+Recording or Stopped. Close leaves recording active; Stop ends capture. Starting
+requires the user's explicit tap and an explanation of screenshot upload.
+
+The first phase captures visible fictional customer pages in the iOS app
+and sends images with capture timestamps to a private receiver on the existing
+server. An authenticated Admin Menu → Recordings provides review and frame/timeline
+navigation. The browser website remains usable. Login/admin/impersonation screens
+are excluded; lifecycle stops require a new Record tap. Screenshot capture consent
+is independent of Clarity consent, and Clarity masking does not mask these images.
+
+[Plan 024](plans/024-ios-screenshot-recording-poc.md) owns limits, server
+setup, timing/authentication/storage contracts and acceptance. The owner authorized
+implementation after reviewing the plan; installed-device acceptance remains
+required before declaring delivery complete.
+One-second images can miss short messages and do not identify taps/swipe paths;
+semantic interaction events, real-bank masking and support sharing remain later.

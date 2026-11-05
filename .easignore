@@ -28,6 +28,9 @@ Thumbs.db
 *.swo
 temp/
 
+# Owner-supplied phone diagnostic image; never upload it as an app build input.
+/IMG_2008.jpeg
+
 # The native app loads the hosted site; no server sources/data belong in its upload.
 /apps/api/*
 !/apps/api/package.json

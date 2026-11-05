@@ -13,7 +13,12 @@
       "developmentClient": false,
       "distribution": "internal",
       "node": "22.21.1",
+      "env": { "EXPO_PUBLIC_CAPTURE_CHECK": "0" },
       "ios": { "buildConfiguration": "Release" }
+    },
+    "capture-check": {
+      "extends": "preview",
+      "env": { "EXPO_PUBLIC_CAPTURE_CHECK": "1" }
     }
   }
 }

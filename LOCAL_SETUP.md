@@ -368,7 +368,9 @@ Routine public smoke still cannot collect from its automated users.
 
 The service starts on boot, restarts on failure, runs without sudo, and uses
 `NoNewPrivileges`, `ProtectHome`, `ProtectSystem=strict`, and a private temporary
-directory. The runtime cannot edit application code; only the banner directory is writable. `/api/health` checks the API
+directory. The runtime cannot edit application code; only the banner directory is writable.
+Plan 024 proposes a separate private recording directory; it is not provisioned.
+`/api/health` checks the API
 and DB; `/healthz` is only an Nginx marker. SPA routes support direct refresh;
 unknown API paths return JSON 404 rather than the SPA. HTTP redirects to HTTPS;
 participant/admin cookies are HttpOnly, Secure, and SameSite=Lax in production.
@@ -833,6 +835,31 @@ The website release, MariaDB schema and server collection/tracing switches were
 not changed by this mobile work. Decline the existing website analytics consent
 for routine phone testing; do not enable collection as part of app setup.
 
+### Local-only capture diagnostic build
+
+Plan 024's first phone check captured zero frames. Use the dedicated Release/
+internal profile for the corrected local check:
+
+```bash
+cd /home/ubuntu/softek/apps/mobile
+EXPO_PUBLIC_CAPTURE_CHECK=1 npm run export:ios
+npm run archive:check
+npm run eas -- build --platform ios --profile capture-check --non-interactive --no-wait
+```
+
+This profile bundles `EXPO_PUBLIC_CAPTURE_CHECK=1`. It opens **Local capture
+check** directly and never mounts the banking shell/uploader. Tap **Start check**,
+scroll/open the fictional menu/show the sample error, then **Review latest
+screenshots**. It keeps at most eight local frames; no login, network, Photos
+permission or EC2 security-group change is required. Report the full safe
+stage/reason if capture fails; review also shows decoded image pixel dimensions.
+The photographed size-check failure was traced to an unawaited async file copy;
+build 8 waits for copy completion and reports missing/empty/invalid/oversized
+metadata separately. This correction still requires actual phone image review.
+Normal `preview` explicitly sets the flag to `0` and opens the banking shell. Give a later
+integrated build a fresh iOS build number; do not distribute the superseded
+pre-fix integrated build. PROJECT_STATE owns exact artifact/device results.
+
 ### Focus-outline CSS-only release and rollback — B-026
 
 The focused November 4 release changes only main's focus-outline offset in the
@@ -915,8 +942,13 @@ for history; its login-persistence result is not the updated acceptance criterio
 
 Within the same WebView, normal navigation/Reload and brief backgrounding retain
 valid login. A fresh process after force-close requires sign-in. Recovery that
-recreates a failed WebView also starts a fresh session; this is expected with the
-current shell's Retry implementation. Browser-local storage, including web-only
+recreates a WebView also starts a fresh session. Build 9 did this for ordinary
+connection errors; the offline check exposed that login loss. Build 10 retains
+the same view for connection/HTTP/timeout recovery and uses an explicit fresh GET
+when Try again is tapped. Only actual content-process termination uses
+replacement-on-retry. Owner signed-phone recovery acceptance and a new upload
+are confirmed; PROJECT_STATE owns the evidence. Browser-local
+storage on a new WebView, including web-only
 consent/preferences, starts fresh too. Saved banking state remains in MariaDB.
 The server still expires its session records normally; no app-kill callback or
 server revocation is claimed. The update does not read the old persistent cookie
@@ -926,3 +958,123 @@ After installing build 2, verify first launch/login, ordinary Reload, a short ap
 switch, force-close/reopen to login, and re-login to the same saved banking data.
 Check explicit sign-out and the retained normal-zoom layout. No dev server or
 Expo Go should be running for signed-preview acceptance.
+
+## Screenshot receiver preflight — Plan 024
+
+The receiver is deployed after successful local phone capture. [Plan 024](plans/024-ios-screenshot-recording-poc.md#server-readiness-and-setup)
+owns the measured preflight snapshot, provisioning checklist and acceptance.
+These existing read-only commands can refresh readiness without enabling capture:
+
+```bash
+cd /home/ubuntu/softek
+df -h /var/lib /var/www /opt
+df -i /var/lib
+free -m
+timedatectl show -p NTPSynchronized -p TimeUSec
+systemctl is-active softek-api softek-phoenix nginx mariadb
+systemctl show softek-api -p User -p Group -p ReadWritePaths -p ProtectSystem -p ProtectHome -p PrivateTmp
+sudo -n nginx -t
+curl --fail --silent --show-error https://demo.bawebtech.com/api/health
+npm run db:status
+npm run db:status -- --test
+```
+
+Production has migration 0013, private recording storage and the checked-in
+API/systemd/Nginx deployment; exact releases/evidence remain in PROJECT_STATE.
+The screenshot feature uses `/var/lib/softek/recordings` only (other production
+paths are refused), 0750 directories/0640 images owned by `softek:softek`.
+The checked-in deploy provisions it and extends only this project's service write
+allowlist. Only `/api/recordings/UUID/frames` receives the 2 MiB proxy exception;
+normal requests retain 32 KB and API images are limited to 1 MiB. Do not use
+public banner storage or expose screenshots through Nginx static-file aliases.
+HTTPS 443 is the existing public entry point; no EC2 security-group change or
+new public port is needed. API traffic remains on loopback 3100.
+
+The runtime allowlist adds `RECORDING_DIR` and `SCREENSHOT_RECORDING_ENABLED`.
+The recording gate defaults to false. The authorized live deployment sets
+`SCREENSHOT_RECORDING_ENABLED=true` in its private runtime environment. This
+permits approved recording sessions; capture still needs the user's Record tap.
+It neither changes Clarity settings nor grants website analytics consent.
+Preserve the live collection profile and database switch revisions when deploying.
+The current live profile has collection and tracing gates enabled, while routine
+workspace defaults stay off. To rebuild/deploy this same approved profile:
+
+```bash
+npm run build -- --clarity
+SCREENSHOT_RECORDING_ENABLED=true PHOENIX_TRACING_ENABLED=true npm run deploy -- --clarity
+```
+
+Revalidate runtime/profile settings before reusing these commands; they preserve
+the currently approved gates, not authorization to change collection settings.
+
+These commands now exist. Cleanup defaults to read-only dry-run and requires
+the selected schema to have migration 0013:
+
+```bash
+cd /home/ubuntu/softek
+npm run recordings:cleanup -- --test
+npm run recordings:cleanup -- --test --apply
+```
+
+After the production gate/setup and backup, `npm run recordings:cleanup` inspects
+`demo`; adding `--apply` applies retention/reconciliation only to Softek recording
+metadata/files. It cannot select an arbitrary schema or production directory.
+The receiver defaults are in `apps/api/src/recordings.ts`; the plan explains the
+limits and their rationale. New explicit approval replaces any unclosed recording
+for that customer, allowing immediate restart after force-close without revoking
+the banking login session. Two customers may record concurrently. Creation is
+limited to ten new sessions/customer/minute; uploads to 180 requests/session/minute
+including retries, within the existing overall API rate limit.
+
+The deployment installs `softek-recording-cleanup.service` and its one-minute
+timer. Its installed WorkingDirectory/ExecStart are pinned to that deployment's
+retained API release, allowing cleanup to keep working if `/opt/softek/current`
+is rolled back. Do not prune that pinned release while the timer references it.
+The job marks stale sessions interrupted, enforces seven-day retention and
+reconciles known orphan/temp/missing files under the same DB advisory lock as
+uploads/deletion. Its private `.maintenance.json` aggregate result appears in
+the authenticated recordings API. Inspect with:
+
+```bash
+systemctl status softek-recording-cleanup.timer --no-pager
+sudo -n journalctl -u softek-recording-cleanup.service -n 30 --no-pager
+```
+
+`npm run recordings:smoke` is an explicit production receiver check for this host,
+after rollout and with private `.env`/sudo prerequisites. It creates only an owned
+Automation customer, uploads a generated JPEG exceeding 32 KB (no real screenshot),
+verifies proxy/API limits, admin-only image delivery, integrity, independent UTC
+timestamps and actual runtime file ownership/permissions, then deletes its
+recording/customer and ends its own admin session. It contacts only the fixed
+Softek HTTPS origin, rejects redirects and never prints credentials. Its private
+report is `artifacts/recording-public-smoke.json`; inspect cleanup flags and owned
+IDs if it fails. Its first actual HTTPS run passed; PROJECT_STATE owns results.
+Do not run it before the receiver gate, or treat it as native
+image/phone-network acceptance.
+
+### Screenshot rollback and recovery
+
+Before first rollout, back up retained `demo` data/schema/ledger and this site's
+Nginx configuration, API unit, runtime environment and current web/API link targets
+under root-only `/var/backups/softek/`. Record the exact manifest in PROJECT_STATE.
+Apply only the committed migration with the runner after test validation; partial
+DDL recovery follows the migration contract. Schema 0013 is additive and can
+remain when returning to earlier application code. No drop/reset is a rollback.
+
+To stop new capture ingestion, set the private recording gate false and restart
+only Softek's API (or deploy the disabled gate with the preserved collection
+profile). Existing native clients stop through bounded upload-failure/queue rules;
+do not assume an immediate remote app-termination callback. Restore compatible
+API/web links and the backed-up site/API unit/runtime environment, validate Nginx,
+then restart only Softek's API/reload Nginx. Keep the pinned recording-cleanup
+timer/service and private directory so retained bytes still expire and orphaned
+customer files are reconciled. If cleanup itself fails, stop only its timer/job,
+inspect the scoped failure and dry-run a repaired worker before resuming it.
+
+Uploads interrupted before DB commit may leave an unacknowledged file; cleanup
+removes it, or an identical retry safely republishes it. Deletion commits a
+tombstone before unlinking, so cleanup can retry after a crash. Missing acknowledged
+files become explicit interrupted/gap metadata, with corrected counts. Inspect
+dry-run output before manual recovery. Never move screenshots into public assets.
+POC schema/data backups alone do not back up image bytes; private images are
+preserved across releases but are not promised recoverable after disk loss.

@@ -58,6 +58,25 @@ test('recording migration adds empty private metadata tables and is repeat-safe'
     );
     assert.match(col.Type, /interrupted/);
     assert.match(col.Type, /deleting/);
+    // Exercise this two-table migration's partial-DDL boundary on owned probes.
+    for (const name of tables) await c.query(`DROP TABLE IF EXISTS ${name}`);
+    await writeFile(
+      join(dir, '0013_screenshot_recordings.sql'),
+      sql.replace(
+        'CREATE TABLE screenshot_frames_probe',
+        'INSERT INTO nonexistent_recording_probe VALUES (1); CREATE TABLE screenshot_frames_probe',
+      ),
+    );
+    await assert.rejects(migrate(options), /failed/);
+    assert.equal(
+      (await c.query("SHOW TABLES LIKE 'screenshot_recordings_probe'")).length,
+      1,
+    );
+    assert.equal(
+      (await c.query("SHOW TABLES LIKE 'screenshot_frames_probe'")).length,
+      0,
+    );
+    await assert.rejects(migrate(options), /Unresolved failed/);
   } finally {
     if (owned)
       for (const name of tables) await c.query(`DROP TABLE IF EXISTS ${name}`);
