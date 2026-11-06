@@ -1,10 +1,10 @@
 # Project state
 
-Last updated: **2026-11-05 UTC**.
-Current focus: **Plan 024 — deployed POC functionally accepted; profiling/operational follow-ups tracked.**
-Latest completed implementation: **Plan 022 — Banner CTA custom tag**.
-Current request: **Commit and push the accepted screenshot POC implementation, tests and documentation — fulfilled.**
-Next task: **Preserve the accepted POC; no core device blocker or further rebuild is pending. Native memory/extended network-failure profiling and operational rollback validation remain explicit Plan 024 follow-ups, and Plan 023's unrelated remaining assertions stay open. Further feature scope awaits owner direction.**
+Last updated: **2026-11-06 UTC**.
+Current focus: **Accepted capture/replay implementation committed locally; SDK extraction remains a discussion direction.**
+Latest completed implementation: **Plan 028 — Automatic replay generation and 30 fps output**, plus accepted Plan027 CAN-10 keyboard-tail correction.
+Current request: **Owner requested outstanding commits before further work. Implementation b13de94 and this delivery record commit the existing source/tests/docs; no push or new SDK implementation requested.**
+Next task: **This commit request is complete. Await the next scoped instruction. Discussion direction is a reusable web package, wrapper adapter/host contract and independent server, using Expo as the reference host while Access Softek's actual wrapper remains unknown. That extraction is not implemented or separately authorized yet. Preserve the accepted recorder/replay and the remaining Plan027 physical acceptance checklists.**
 
 ## Plan status registry
 
@@ -39,8 +39,528 @@ Active identifies focus and does not itself authorize additional scope.
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | Completed | CTA-01–03: 13 unit entries, 12 browser cases, deployed exact tag visible in Phoenix; no Microsoft test traffic |
 | 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | Active | IOS-01–04/07/08 baseline verified; IOS-09 temporary-session update built/inspected. IOS-10 phone checks and remaining IOS-05/06 are open; capture stays B-025 |
 | 024 | [iOS screenshot recording POC](plans/024-ios-screenshot-recording-poc.md) | Active | Functional POC accepted; REC-02/03/04/05/06 verified/deployed, build-10 upload 13/13 and offline/lifecycle pass. REC-01/07 profiling and REC-08 operational validation remain explicit follow-ups |
+| 025 | [Change-triggered screenshots and animated video replay](plans/025-change-triggered-video-replay.md) | Active | VID-01–04 verified. Build-11 phone upload, idle holds and Stop confirmed; full replay useful overall per owner; revision-5 transitions both smoother per owner. Inline error pixels verified; native validation bubble omitted. VID-05–07 lifecycle acceptance/profiling and capture-boundary follow-up remain |
+| 026 | [iOS native overlay capture experiment](plans/026-ios-native-overlay-capture-experiment.md) | Active | OVL-01–04 verified for the local gate: three tooltip trials, reset, keyboard exclusion and dismissal. OVL-05 verified by actual build-14 window recording: tooltip/keyboard pixels and provenance received. Real replay visually accepted by owner. OVL-06/07 lifecycle/fallback/offline and phone resource observations remain; OVL-08 placeholder accepted; OVL-09 opt-in page reconstruction verified and regenerated for review |
+| 027 | [Session page references and image diffs](plans/027-session-page-references-and-image-diffs.md) | Active | CAN-01–04/06/07/10 verified: keyboard-tail correction plus references/diffs, strict metadata, compatible persistence, budgets and automated/server checks. Live private review and build15 actual 49/49-frame uploads verified, complete measured sweeps and one keyboard fill. CAN-05/08/09 complete sweep quality accepted by owner; partial/mutation/keyboard/lifecycle/resource acceptance remains |
+| 028 | [Automatic replay and 30 fps](plans/028-automatic-replay-and-30fps.md) | Completed | AUTO-01–05: schema15 durable queue, isolated release-pinned worker, bounded recovery/retry, admin automatic status, 30fps FFmpeg output; 35 focused TAP +20 browser cases and live Stop→ready smokes verified |
 
 ## Current reality
+
+- **CAN-10 keyboard-tail correction (2026-11-06 UTC).** Latest release
+  **2026-11-06T16-58-10-085Z**, matched API/web and release-pinned renderer11 worker.
+  Prior config/unit/link/site backup:
+  `/var/backups/softek/keyboard-tail-20261106T165626Z/`. Schema15 unchanged; all
+  existing capture/canvas/worker/collection/tracing gates/settings preserved.
+  Health/DB and services active; all17 Nginx hashes and13 retained recording rows
+  unchanged. No new app build, capture changes, migration or other service change.
+
+  Owner's first actual automatic recording **a34bc9c6-2d09-482b-9506-998aedb7bccb**
+  has39 screenshots/179 events, Stop35,357ms, no reported loss, jobready. Owner
+  reports generally good replay but checkerboard at27→28 when the keyboard appears.
+  Snapshot28 has706px real viewport plus621px exclusion. The prior reference filled
+  only294 of595 valid hidden-page rows; bottom301px remained unknown despite clear
+  later donor30. Whole-viewport match27→30 had95.04% agreement (below97%) because
+  focus styling changed, so that otherwise usable image was rejected.
+
+  The new narrow rule verifies metadata shift1841px and two separated128px
+  textured bands (donor rows2/386), then imports only donor30's unseen lower301px
+  into document rows2867–3168. Prior observed pixels remain unchanged. Full-frame
+  matching thresholds/moving/overlay fences are unchanged. As-of coverage still
+  excludes later pixels; replay labels retrospective fill and retains checkerboard
+  for genuinely unknown areas. New /goals reference has complete measured supported
+  coverage. Snapshot28 fill now has421,260 known/0 missing pixels;26px outside the
+  measured document stays plain native matte. Original tooltip remains visible.
+
+  Only this affected export was atomically replaced. Short clip now20,000–35,000ms,
+  15.000s/1,241,487bytes; full35.367s/2,768,544bytes (+10ms, within one30fps frame).
+  Both30fps. Render43,579ms, Nodepeak254,060KiB; separate sample/full child peaks
+  179,288/183,428KiB. **26 focused image/keyboard/FFmpeg regression entries pass**,
+  including recent-keyboard/time/layout/moving/mismatched/unrelated/blank rejection,
+  untouched visible prefix and historical unknown coverage. Initial synthetic
+  pattern was too periodic for unambiguous displacement; corrected the fixture
+  to use irregular text positions before the passing run. Typecheck/build/format/
+  diff pass. Deployed renderer hash matches build. Actual encoded25s frame visibly
+  includes bubble, paragraph/buttons and footer without checkerboard. All39 source
+  hashes verified; both videos decode and private HTTPS hashes/range/no-store/
+  anonymous denial, WebKit440/Chromium1440 play/seek/all previews pass. Temporary
+  admin session removed. Evidence: `artifacts/keyboard-transition-regression-tests.log`,
+  `keyboard-transition-candidate.log`, `keyboard-transition-final-report.json`,
+  `keyboard-tail-private-check.json`, `keyboard-tail-rollout-check.json`.
+  Owner confirms “Footer and tooltip look correct”; CAN-10 visual acceptance
+  passes. Earlier Plan027 remaining physical checks are not marked complete; no push or unrelated feature commit.
+
+
+- **Plan 028 delivered (2026-11-06 UTC).** Release
+  **2026-11-06T16-30-16-185Z** with matching API/web links; separate
+  `softek-replay-worker` pinned to this release. REPLAY_WORKER_ENABLED=true;
+  existing screenshot/change/window/page-canvas/Phoenix gates and evaluation
+  collection settings preserved. Migration **0015** committed as **e2b5c8a** before
+  application; demo/demo_test both schema15, no pending/drift. Exact migration
+  target127.0.0.1:3306, dedicated `softek_migrator@127.0.0.1`; runtime CRUD unchanged.
+  Scoped prechange schema/data/ledger +runtime/unit/link/site backup:
+  `/var/backups/softek/auto-replay-20261106T162317Z/` (root-only, dump1,705,454 bytes).
+  Previous compatible release2026-11-06T07-51-52-485Z retained; rollback stops worker
+  and disables new automatic enqueueing, preserving schema/readers/cleanup.
+
+  Final Stop transaction creates one durable job after upload drain for nonempty
+  measured recordings. Worker polls3s, serializes independently of API, recovers
+  interrupted jobs/workspaces under existing render/storage locks, and retries at
+  most3 attempts (30s/120s delays). Admin review displays queued/rendering/failed,
+  polls to ready and offers CSRF-protected failed retry. Source deletion/expiry
+  still prevents publication. Worker runs assoftek with Nice10, CPU150%, 1GiB
+  service cap/64tasks, a256MiB renderer heap and existing two-thread encoding limits.
+  Renderer10 produces30fps sample/full videos, including static legacy holds.
+  Existing accepted24fps videos remain unchanged; no historical jobs backfilled.
+  Server/web-only: all37 mobile source inputs match build15; root package/lock
+  add a build-only esbuild dependency, not a native/app source change.
+
+  **Verification:** 35 core/API/queue/real-FFmpeg TAP entries; focused6-entry queue
+  rerun after connection-release hardening;20 browser cases across Chromium
+  360/390/1440 and WebKit440, including failed→Retry→queued→rendering→ready without
+  reload. Typecheck/evaluation build/format/diff pass. systemd unit verification
+  has only existing unrelated host unit warnings (netplan permission/snapd key).
+  Public baseline and page-context generated-fixture smokes passed without manual
+  render invocation, first-attempt queued→rendering→ready, encoded30/1 output,
+  full decode, measured duration within one30fps frame, private image/video and
+  generated page preview delivery. Page-context variant also recovered a seeded
+  abandoned workspace and preserved partial spatial coverage. All owned recordings,
+  customers/admin sessions removed; no jobs left from smokes. No real Microsoft
+  requests; 12 retained recording rows and collection/tracing fingerprints unchanged.
+  Existing accepted replay also passes live WebKit/Chromium play/seek/preview
+  after the final deployment; its temporary admin session was removed.
+  API/DB health connected and dedicated services active; no new public port or
+  security-group rule. All17 Nginx site hashes preserved.
+
+  Evidence: `artifacts/auto-replay-core-tests.log`, `auto-replay-queue-final-tests.log`,
+  `auto-replay-browser-tests.log`, `auto-replay-typecheck.log`, `auto-replay-build.log`,
+  `recording-public-auto-replay-smoke.json`, `recording-public-auto-canvas-smoke.json`,
+  `auto-replay-rollout-check.json`. An actual phone automatic-generation result is now confirmed in CAN-10 above; native capture was unchanged and this does not complete
+  Plan027's remaining physical checks. Feature source/tests/docs remain uncommitted
+  except migration commits51cc902/e2b5c8a; main ahead2. No push; owner image/temp intact.
+
+
+- **Plan 027 implementation deployed; initial physical uploads verified, quality acceptance pending.** Owner
+  authorized implementation. CAN-01–04/06/07 are checked. Sparse 256px tiles retain
+  immutable hash-named timestamped revisions, explicit unknown pixels and source
+  hashes; as-of views preserve historical coverage. Measured document extent,
+  top/bottom and actual coverage are separate. The 12px scrollbar gutter is outside
+  the supported reference domain. New visits/layout/font metrics split references;
+  unsafe layers/zoom/scroll mapping retain viewport replay. Strong image overlap
+  can correct bounded moving-frame positions. Original images remain authoritative.
+  Initial export was manual after Stop (`--session-reference`); Plan028 now queues it automatically after finalization.
+  Patch PNGs add storage; no bandwidth-saving claim.
+
+  **Compatible server rollout:** latest API/web **2026-11-06T07-51-52-485Z**,
+  scoped backup `/var/backups/softek/page-reference-review-20261106T072257Z`.
+  First reader rollout backup `/var/backups/softek/session-reference-20261106T061645Z`
+  retains the pre-Plan-027 configuration. SCREENSHOT_RECORDING_ENABLED,
+  CHANGE_CAPTURE_ENABLED, WINDOW_CAPTURE_ENABLED, PAGE_CANVAS_ENABLED and
+  PHOENIX_TRACING_ENABLED are true; existing evaluation collection profile/settings
+  preserved. HTTPS DB health connected; retained 10 recording rows and collection/
+  tracing fingerprints unchanged; all 17 Nginx site hashes unchanged. No new port,
+  security-group rule, unrelated service or DDL; schema 0014 clean. Strict numeric
+  `page-context-v1` and `screenshots-window-canvas-v1` use existing frame JSON/approval
+  fields. New gates preserve Stop/read/old clients. Private numeric page previews,
+  manifest/range/no-store, quotas and recursive cleanup support retained derivatives.
+
+  **Existing-image result:** recording `c9c0bcfa-6fe9-4ea1-8dba-7476d1581b44`
+  regenerated with renderer revision 9, all 42 original hashes unchanged. Selected
+  /goals reference spans 708×3168 content, including the later footer; preview adds
+  a 110px explanation header. Three independent partial references, 185 patch
+  versions, 2,661,278 tile bytes plus 1,165,911 preview bytes; originals total
+  2,387,144 bytes. Legacy extent/endpoints remain unknown. Full video 47.750 s
+  versus 47.717 s Stop (+33 ms, within one 24 fps frame), 2,819,242 bytes; sample
+  15.000 s / 887,063 bytes. All 16 keyboard-masked frames use registered raw donors,
+  14 remain partial. Frame 11 combines donor 31 with 62 footer pixels from donor23;
+  remaining 26px is explicitly unknown. Final encoded frame at14s visually verifies
+  readable tooltip, reconstructed page and footer. New measured-canvas fill is synthetic-test
+  verified only: this old recording has no new metadata. Render 42,684 ms; Node
+  peak 285,972 KiB, separate sample/full child peaks 180,480/183,000 KiB. Rendering
+  stays single-job/reduced priority/two encoder threads with documented caps.
+
+  **Checks actually run:** 43 focused core/API TAP entries, 29 core +20
+  rendered/adapter mobile checks, 20 browser cases across Chromium 360/390/1440 and
+  WebKit440; typecheck, evaluation build, Expo exports and archive checks pass.
+  Generated HTTPS canvas/window/change/periodic smokes passed and deleted only their
+  own fixtures. Private real-session HTTPS hashes/range/no-store/anonymous denial
+  and mobile/desktop play/seek/preview passed on the final release; temporary admin session removed.
+  Production cleanup read-only check as `softek`: all six counters zero. Running
+  cleanup as development user initially failed private-store permissions; corrected
+  OS identity is documented, permissions unchanged. Evidence: `artifacts/page-context-all-tests.log`,
+  `page-context-mobile-tests.log`, `page-context-browser.log`,
+  `page-reference-final-verification.json`, `session-reference-public-check.json`,
+  `session-reference-rollout-check.json`, `page-context-cleanup-dry-run.log`.
+
+  **Signed preview:** **0.5.0 (15)**, `canvas-preview`, EAS
+  **936bdab4-5764-488e-9138-8bb05df9ade0**, FINISHED
+  **2026-11-06 06:39:41.069 UTC**. [Install build15](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/936bdab4-5764-488e-9138-8bb05df9ade0).
+  IPA 8,311,472 bytes, SHA-256
+  `251a2bf39e96ba6b2163196f6acc39d0beafcdc106c7cbe799e11ef511cbb0f9`.
+  Linux inspection confirms bundle/version/build, linked native/window capability,
+  embedded signature, provisioning CMS/team/device set, release mode and unchanged
+  permission descriptions; not full Apple codesign verification. At submission all45 archived
+  inputs matched; current37 mobile/native inputs still match build15. Plan028
+  changes root build dependencies only. Native code remains frozen at build15.
+  Native coverage must be explicitly selected to negotiate the metadata contract.
+  The owner has now made two actual build15 uploads; detailed evidence follows.
+  No mandatory sweep for normal sessions.
+  CAN-05/08/09 stay open for remaining partial/mutation and keyboard-motion
+  quality, lifecycle and phone-resource observations; initial measured sweeps pass. Prior Plan024–026 follow-ups
+  remain. Feature source/tests/docs are uncommitted except earlier migration commit
+  51cc902; no commit/push requested. Owner IMG_2008.jpeg/temp remain untouched.
+
+- **Plan027 build15 actual uploads and replay visibility follow-up (2026-11-06 UTC).**
+  Owner reported two new tests with Screenshot Review/Interactions but no Animated
+  replay experiment. Both uploads were complete; no export had been generated.
+  The section is conditional on a generated replay. The server/manual post-Stop
+  generation boundary is confirmed; no recording repetition or app update needed.
+  Both new sessions now have private sample/full videos and measured references.
+
+  Latest **`25ded174-8f67-45b0-b458-81c46a4d5df6`**, start15:57:54.553Z:
+  **19/19** frames, **90** events, no reported loss, Stop18,649ms. Single /goals
+  reference reports complete supported coverage **708×3168**, both endpoints,
+  100% known pixels, 13 admitted observations. Preview visually verifies readable
+  complete cards and footer without repeated headers. Full18.667s (+18ms), sample
+  15.000s; 226 patch versions, 3,382,302 patch bytes +622,791 preview bytes.
+  Capture p50/p95/max61/64/64ms; render24,366ms, Nodepeak236,200KiB.
+
+  Earlier **`f086bc4a-11b0-4396-93e5-a8a2be4ae23a`**, start15:54:09.170Z:
+  **30/30** frames, **152** events, no reported loss, Stop38,101ms. Separate
+  Summary/Goals references both complete supported coverage, measured endpoints;
+  9/16 admitted observations. Exact native valid706/excluded621px in the one
+  masked screenshot; full replay uses one as-of canvas fill, no later pixels.
+  Full38.125s (+24ms), 438patch versions, 7,055,632 tile +1,346,189 preview bytes;
+  capture p50/p95/max65/71/91ms, render37,368ms, Nodepeak263,688KiB.
+
+  First rendering exposed a registered return just above document origin, which
+  threw Invalid canvas rectangle. Fixed the operator builder to leave out-of-domain
+  aligned frames viewport-only, preserving source pixels without clamping. Added
+  the one-pixel negative return to the existing moving-registration regression;
+  all5 focused session-reference/fill tests pass, formatting/diff checks pass.
+  Only CLI/test files changed; no server/native deployment was needed. Both
+  published exports are renderer9 with the bounded-return fix. Original **49/49**
+  hashes verified; both full videos decode, timing within one24fps frame, private
+  HTTPS hashes/range/no-store/anonymous denial pass. WebKit440/Chromium1440 verify
+  the actual Animated replay heading, play/seek, all numeric previews and no
+  overflow/errors/vendor calls. Temporary admin session removed. Evidence:
+  `artifacts/page-context-phone-review-check.json`, `page-context-return-scroll-tests.log`,
+  `page-context-phone-latest-render.log`, `page-context-phone-first-render.log`.
+  **Owner quality result:** latest full replay and complete reference accepted
+  (“Visible now; replay and reference look good”). This confirms scrolling, text
+  and footer for that sweep; it does not claim partial/mutation/keyboard or lifecycle
+  acceptance. The subsequent menu inquiry is resolved: older recording c9c0bcfa,
+  original snapshot3 at3.433s and full-video frame4s both visibly show Customer Menu.
+  Its short excerpt starts5.931s, after that menu. The two newest recordings have
+  no banking-menu screenshot/event interval; their overlays are recording controls.
+  Owner independently found the menu in an earlier recording. Menu open state is
+  preserved with a timed cut, not a reconstructed horizontal opening animation.
+  No source, capture or replay change was needed. Actual menu image/encoded-frame
+  inspection is in ignored `artifacts/menu-source.jpg`/`menu-replay-4s.png`.
+  No new physical lifecycle/partial/mutation/resource acceptance is inferred.
+
+- **Plan 026 integrated experiment — actual device upload/replay accepted; lifecycle checks pending.**
+  Local gate passed with three owner-confirmed actual validation-bubble captures,
+  keyboard exclusion, readable alignment/dismissal and build-13 reset/fresh runs.
+  OVL-01–04 are verified for that local gate. The API/web now supports explicit
+  experimental coverage in capable banking previews, defaulting to page capture;
+  native method is fixed per approved session with no silent fallback.
+  `screenshots-window-v1`/`changes-v2` binds approval to strict per-frame surface
+  provenance in existing metadata; no migration (schema 0014 clean). The separately
+  enabled WINDOW_CAPTURE_ENABLED gate preserves baseline clients and allows Stop.
+  Error requests settle 350 ms within the loop, preserving >=500 ms spacing and
+  discarding stopped/late work. Window web taps request UI snapshots; native-only
+  actions without a web signal are not claimed to have complete transition coverage.
+  Admin review labels method/popover/mask; replay cuts uncertain native/masked/error
+  surfaces and omits page markers there. No new full-page/diff/continuous capture.
+
+  **Deployment:** API/web **2026-11-05T18-09-21-499Z**; project runtime/site/link
+  backup **`/var/backups/softek/overlay-window-20261105T180614Z`** preserves prior
+  **2026-11-05T09-19-33-557Z** identities. Health/DB connected; cleanup dry-run zero;
+  all 17 Nginx site hashes unchanged. All nine retained recording metadata rows and
+  Clarity/Phoenix setting revisions unchanged. No new port, security group, service
+  or schema change. Gate rollback disables only window capture while keeping Stop,
+  compatible readers/cleanup and retained data. Normal preview stays baseline.
+
+  **Checks:** **23 API/replay TAP entries**, **28 core + 20 rendered/adapter mobile
+  checks**, **16 browser cases** across Chromium 360/390/1440 and WebKit 440 pass.
+  Includes consent/provenance agreement, retry immutability, native method opt-in,
+  Stop during settle, native capture spacing, overlay replay cuts/marker omission,
+  private readback, selection locking and layout. Root typecheck/evaluation build,
+  focused formatting/diff and Expo iOS export **665 modules / 1.7 MB** pass. EAS
+  profile archive **44 files**, safe allowlisted inputs. Live **window, changes and
+  periodic** generated-fixture HTTPS smokes pass and delete their owned rows/files/
+  sessions. Window smoke verifies real scoped ingestion/hash/UTC/private readback of
+  generated pixels, not a phone upload. Reports `artifacts/recording-public-window-smoke.json`,
+  `artifacts/overlay-window-rollout-check.json`, `artifacts/overlay-window-api-tests.log`,
+  `artifacts/overlay-window-mobile-tests.log`, `artifacts/overlay-window-browser-tests.log`.
+
+  **Experimental app:** **0.4.0 (14)**, profile `overlay-preview`, EAS
+  **`a952555f-c506-4397-b6a6-6683184eb883`**, **FINISHED** at
+  **2026-11-05 18:14:25.817 UTC**. [Install experimental banking](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/a952555f-c506-4397-b6a6-6683184eb883).
+  IPA **8,308,098 bytes**, SHA-256
+  **`e05271e36936a8f1daf7c0e33d0e9664219b6aee7beb6fa8bbb646389391b7d6`**.
+  Bundle/version/build, linked native module/window capability, embedded signature,
+  profile CMS signature, matching team/device set, release/nondebugging and unchanged
+  permission descriptions inspected on Linux, not full Apple codesign validation
+  or an on-phone launch. Reports `artifacts/overlay-build-14.json`,
+  `artifacts/overlay-ipa-14-check.json`, `artifacts/overlay-window-manifest.json`.
+  JS sources match submission. Native implementation is unchanged; its introductory
+  comment was clarified after submission, with archived/current source hashes and
+  comment-stripped code equality recorded. Public web bundle matches the verified
+  build (`artifacts/overlay-window-web-check.json`).
+  **First actual window upload (OVL-05):** owner confirms tooltip uploads correctly
+  and keyboard excluded. Session **`c9c0bcfa-6fe9-4ea1-8dba-7476d1581b44`**, started
+  **2026-11-06 01:24:33.874 UTC**, finalized **Stopped / 47,717 ms**. All **42/42**
+  captures and **151/151** reported events received; **38** combined triggers,
+  **2,387,144 image bytes**, no reported loss. Every frame has window provenance;
+  dimensions **720×1327**. Native popovers in frames **11 (12,703 ms)** and
+  **12 (16,441 ms)**; keyboard masked in **16** frames. Actual saved images visually
+  confirm the Goal name and target required-field bubbles, blanked keyboard areas,
+  and readable content after dismissal. Capture duration **p50 64 / p95 73 / max 74 ms**,
+  minimum frame spacing **508 ms**. This meets the capture-duration budget for this
+  session; phone CPU/memory and extended-run performance are still unmeasured.
+
+  **Actual window replay:** owner accepted tooltip/keyboard exclusion replay, then
+  accepted the OVL-08 labeled keyboard placeholder (“That worked”). OVL-09 now
+  provides opt-in page reconstruction beneath the keyboard in renderer revision
+  **7** (`--reconstruct-keyboard`). No actual keyboard/full-page capture is added.
+  Same recording **`c9c0bcfa-6fe9-4ea1-8dba-7476d1581b44`** regenerated atomically:
+  sample **5,931–20,931 ms**, **15.000 s / 874,206 bytes**; full **47.750 s /
+  2,791,754 bytes**, **+33 ms** within one 24 fps frame, 720×1436. Initial no-image
+  gap **116 ms** and all native holds preserved; 15 ordinary scroll intervals remain.
+
+  **Reconstruction result:** all **16** masked source frames have a registered page
+  donor; **2** recover the full excluded area, **14** recover partially and retain
+  a smaller placeholder. Sample has **6** partial fills. Donors are snapshots
+  **10, 23, 31, 36**, with offsets **−14.0 to +15.3 s**. Each video caption labels
+  donor/time and reconstruction; private manifest stores bounds/offset/match audit.
+  Website's generic movement note is unchanged; private report explains unknown
+  historical hidden state. Only the nearest eligible stable unmasked observation
+  on either side within the contiguous route and 30-second window is considered.
+  Visible texture/seam agreement gates borrowing. Boundary is inferred from canvas
+  pixels plus bounded JPEG-edge tolerance, not exact recorded keyboard bounds.
+  Captured pixels above that boundary are unchanged; original **42/42** file hashes
+  reverified. Tiny clipping/lighting seams can remain. Hidden changes beyond the
+  visible overlap cannot be verified; this is approximate reconstruction, not
+  ground truth for covered content. Placeholder-only remains the default and can
+  be restored by rerendering without the flag. No native/API/web deployment needed.
+
+  **Checks:** **13 renderer tests** (5 reconstruction + 8 existing replay), script
+  typecheck, focused formatting/diff pass. Tests cover donor timing, full/partial
+  pixel recovery, observed tooltip preservation, unsafe route/gap/zoom/container/
+  unstable/masked/popover/time/viewport rejection, unrelated/blank pixels and actual
+  FFmpeg encoded content/timing. Full decode succeeds. Encoded full frames at
+  **14 / 18 / 40.5 s** visually show readable tooltip/page/error and recovered
+  content with source labeling. Actual private HTTPS sample/full byte hashes,
+  range/no-store/anonymous denial pass; WebKit 440 and Chromium 1440 play/seek
+  without page/layout errors. Vendor requests blocked; temporary admin session
+  removed. Render **36,926 ms**, Node peak **207,952 KiB**, sample/full child peaks
+  **183,068 / 185,812 KiB** (separate peaks). Existing nonfatal Fontconfig
+  unwritable-cache warnings remain; labels render correctly. Reports
+  `artifacts/keyboard-reconstruction-tests.log`,
+  `artifacts/keyboard-reconstruction-placement.json`,
+  `artifacts/keyboard-reconstruction-report.json`,
+  `artifacts/overlay-window-phone-public-check.json`. Temporary image/video copies
+  removed. Owner reports reconstruction worked pretty well and identifies the slide 10→11
+  jump as keyboard appearance on the phone. Source/plan comparison confirms a
+  **205 image-pixel upward translation (~125 CSS px)** and exactly **205 image
+  pixels** left unrecovered at the bottom: shifting donor 10 exposes that much
+  uncaptured page below its original extent. The full excluded keyboard region
+  was **620 image pixels**, of which **415** were reconstructed. The residual
+  placeholder is an unavailable-page strip, not a measurement of keyboard height.
+  No code/test rerun for this feedback-only analysis. Remaining lifecycle/offline/
+  fallback and phone observations stay OVL-06/07.
+  No commit/push; schema 0014 is the existing sole local feature commit. Earlier
+  source/docs and current work remain uncommitted; owner image/temp untouched.
+
+- **Plan 026 local comparison — prior implementation/evidence.** Added
+  `SoftekOverlayCapture` as a local Expo iOS module and a separate `overlay-check`
+  entry/fixture. It resolves the referenced view's owning active normal-level window,
+  crops directly into a 720 px JPEG and clips known keyboard transition regions
+  before rendering. Hosted modals are allowed; unrelated native presentations
+  reject unless a popover is anchored within the fixture. Public UIKit APIs only;
+  no global window enumeration, ReplayKit or full-screen file. The first candidate bubble capture is owner-confirmed; repeated capture,
+  keyboard-visible exclusions and wider geometry/lifecycle tests remain.
+
+  The explicit local check coalesces initial/invalid/UI/content/scroll/viewport
+  requests for 350 ms, takes one sequential A/B pair at a time (500 ms between pair
+  starts), expires after one minute and retains at most eight samples. Each method
+  has capture UTC/elapsed/cost/bytes/dimensions; candidate mask/popover flags and
+  fixed diagnostics are shown. Stop/background/eligibility loss discards late files;
+  local exit/restart cleanup preserves no Photos copy. The native candidate has
+  no receiver wiring, banking login or upload credential. Normal preview continues
+  using the unchanged baseline capture adapter. The fictional form uses genuine
+  HTML required-field validation; no hosted validation UI was changed.
+
+  **Checks:** **25 core + 18 rendered/adapter mobile tests pass**, including five
+  pairing/lifecycle cases, four candidate-file validation/redaction cases and the
+  local-only app entry. A new test initially had an incomplete fixture-result merge;
+  corrected that harness and reran successfully. Mobile/script typecheck and focused
+  formatting/diff checks pass. WebKit/Chromium local fixture validation/inline error,
+  fixed-kind events without typed values, no network requests and mobile layout
+  pass (`artifacts/overlay-fixture-check.json`). Expo iOS export **665 modules / 1.7 MB**
+  passes. Autolinking resolves `SoftekOverlayCaptureModule` and its pod
+  (`artifacts/overlay-autolinking.json`). EAS profile archive **44 files**, explicitly
+  allowlisted local module, no private/server/Git inputs. Linux has no UIKit compiler;
+  native build success and device fidelity are separate from these checks.
+
+  **Build:** **0.3.1 (12)**, EAS **`fdab781e-f9c7-4b71-a789-8cfa1f2bf192`**,
+  profile `overlay-check`, **FINISHED** at **2026-11-05 17:23:54.392 UTC**.
+  [Install local comparison](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/fdab781e-f9c7-4b71-a789-8cfa1f2bf192).
+  IPA **8,301,508 bytes**, SHA-256
+  **`59bcacadb5fdfe3ccccb6ff48b8d117023c01436fcaf7ae0b09bc5362c6de178`**.
+  Native module actually compiled/linked in the release executable; local comparison
+  text present in bundle. Bundle/version/build, embedded signature presence, profile
+  CMS signature, matching team/device set versus build 11, nondebugging entitlements
+  and unchanged permission descriptions checked on Linux. This is not full Apple
+  codesign verification or a full device acceptance check. Owner has now confirmed launch and a successful
+  candidate bubble capture. Private IPA/report
+  `artifacts/overlay-check-0.3.1-12.ipa`, `artifacts/overlay-ipa-12-check.json`; other reports
+  `artifacts/overlay-build-12.json`, `artifacts/overlay-experiment-manifest.json`,
+  `artifacts/overlay-archive-check.log`, `artifacts/overlay-mobile-tests.log`.
+  No production deploy/schema/service/security-group changes. API/web symlinks
+  still **2026-11-05T09-19-33-557Z**. Module/package/autolinking/source changes and
+  Stage A/B work remain uncommitted except migration 0014; no push. Owner diagnostic
+  image/temp untouched.
+
+  **First OVL-04 device result:** owner selected “Candidate captures the bubble
+  correctly” for build 12, confirming installed standalone launch and actual
+  required-field tooltip pixels in the Window candidate. This is one positive
+  trial in the asked readable-page/no-keyboard-pixel check, not proof of general
+  overlay coverage or the keyboard-visible case. Two more bubble trials and
+  keyboard-visible/dismissal/scroll checks are requested before integration;
+  lifecycle/resources remain outstanding. No code/build/deployment changes for this
+  feedback; documentation/diff checked, no application tests rerun.
+
+  **Local gate passed:** owner confirms a third actual bubble capture in build 13,
+  Test 2 / Pair 2 / Window candidate / invalid, with “Fill out this field,” and
+  separately confirms keyboard excluded, content/alignment and dismissal correct.
+  OVL-04's local pixel/crop/keyboard gate passes; the plan now explicitly locates
+  banking/lifecycle/resource matrix rows in OVL-06/07, since the standalone fixture
+  cannot exercise the integrated banking path. No unmeasured performance result or
+  general native-overlay coverage is inferred. OVL-05 implementation follows this
+  proof; image-diff/full-page capture stays discussion only.
+
+  **Owner-requested reset refinement:** repeated comparisons were confusing because
+  pair numbers restart on Start and Review could retain its previous scroll offset.
+  Added Clear & reset on the fixture/review screens, explicit test labels and a
+  fresh review scroll container. Reset stops and invalidates pending work, disposes
+  saved files and reloads an empty fictional page; old load/message events are
+  rejected by document epoch, readiness resets and capture stays stopped. UI-only
+  change; native candidate/geometry/file adapter and production capture unchanged.
+  Mobile **25 core + 19 rendered/adapter** checks pass, including actual reset file
+  disposal, stale-document rejection and Test 2 / Pair 1 labeling. Mobile typecheck,
+  focused formatting, iOS export (665 modules / 1.7 MB), 44-file profile archive and
+  diff check pass. Reports `artifacts/overlay-reset-mobile-tests.log`,
+  `artifacts/overlay-reset-rendered-check.log`, `artifacts/overlay-reset-export.log`,
+  `artifacts/overlay-reset-archive-check.log`. Version **0.3.2 (13)**, profile
+  `overlay-check`, EAS **`9f8d1a60-3a75-4b37-b0bb-cb9362eee03c`**,
+  **FINISHED** at **2026-11-05 17:44:22.355 UTC**.
+  [Install reset comparison](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/9f8d1a60-3a75-4b37-b0bb-cb9362eee03c).
+  IPA **8,302,242 bytes**, SHA-256
+  **`b6af85592fdcee3d8063e20323076333c2c6adf74bbeed6821424507e037ddfe`**.
+  Identity/version/build, profile CMS signature and matching team/device set,
+  nondebugging/unchanged permission descriptions, embedded signature presence,
+  module linkage and reset text in bundle verified on Linux; not full Apple
+  codesign or on-phone reset proof. Reports `artifacts/overlay-build-13.json`,
+  `artifacts/overlay-ipa-13-check.json`, `artifacts/overlay-reset-manifest.json`.
+  App/candidate source hashes match submission; native module source unchanged
+  from the successful build 12. Owner confirms “Reset and fresh tooltip check work,”
+  establishing build-13 installation, cleared prior entries/empty form, fresh
+  labeling and a second actual bubble capture. The three-trial target still needs
+  one explicit repeat; keyboard-visible exclusion/dismissal and other physical
+  checks remain. No code or build changes for this result; documentation/diff
+  checked, no application tests rerun.
+  No server/deployment/schema change, commit or push for this refinement.
+
+- **Plan 025 Stage B — implemented/deployed, device acceptance pending.** Owner explicitly advanced after the fps explanation. Added negotiated `changes-v2` beside legacy `periodic-v1`; initial screenshot plus change requests, no idle capture timer, minimum 500 ms spacing, one capture in flight. Native/web clocks are calibrated; geometry probes bracket captures; passive local UI/scroll/touch observation sends typed metadata without DOM/input/error text. Opaque menu/dialog container IDs prevent incorrect gesture assignment. Native batches/queues/lifecycle and terminal failure behavior are bounded. Sparse admin review holds idle images, exposes capture/event/coalescing counts and nearby events. Replay supports sparse holds, recorded scroll timing and actual tap/swipe glyphs, with geometry/uncertainty fallback and one viewport scale. Exports remain manual CLI actions after finalized uploads.
+
+  **Schema/rollout:** migration **0014**, local commit **`51cc902`**, checksum `e7d5f0d095696382538f04dd5a6359a0e9f2b1d43ba11b416e85a93073c1540b`, applied cleanly to both `demo` and `demo_test` on `127.0.0.1:3306` through `softek_migrator`; runtime remains non-admin. Frame insert shape retains 12 columns. Backup **`/var/backups/softek/change-capture-2026-11-05T08-38-30Z`** contains `demo-before-0014.sql` (1,094,758 bytes), test backup, schema/ledger/config/link identities. Previous API/web **`2026-11-05T07-16-00-994Z`**. Initial Stage B API/web **`2026-11-05T09-19-33-557Z`**, superseded by the Plan 026 release above. Both screenshot gates enabled explicitly, existing Clarity/Phoenix profile and DB revisions preserved. All 17 site hashes unchanged; original six recording metadata rows unchanged. No new port or Nginx limit change. Source/retained replay files remain private.
+
+  **Checks actually passed:** migration upgrade/repeat/retained-data/cascade/partial-DDL probe; **22** sequential receiver/replay TAP entries (15 receiver + 7 replay); **20 core + 13 rendered/adapter** native tests; **12 browser cases** across Chromium 360/390/1440 and WebKit 440, plus targeted WebKit surface recheck. Real FFmpeg fixtures verify event-guided pauses/pans, encoded glyph positions, short viewport scaling and omission on an uncaptured dialog. Typecheck, evaluation build, formatting/diff checks and Expo iOS export (661 modules, 1.7 MB) pass; EAS archive **34 files**, no private inputs. API and browser suites must run separately because their active-session quota is shared. Latest glyph/geometry refinements are fixture-checked; physical fidelity is not inferred.
+
+  **Actual HTTPS checks:** new-policy smoke uploads two same-second images (100/600 ms) plus two events, deduplicates retries, checks private/hash/timestamp/size boundaries; legacy smoke also passes. Both remove their owned fixture/session/files. Reports: `artifacts/recording-public-changes-smoke.json`, `artifacts/recording-public-smoke.json`; readback/settings comparison `artifacts/change-capture-rollout-check.json`. No real new-policy device session was present at that comparison. Website analytics remained blocked in routine browser checks.
+
+  **Signed preview:** **0.3.0 (11)**, EAS **`8fc8bfd9-fbda-4429-8ed5-07d125a10ad2`**, FINISHED. [Install](https://expo.dev/accounts/mbcollins2/projects/softek-ios-poc/builds/8fc8bfd9-fbda-4429-8ed5-07d125a10ad2). IPA **8,286,134 bytes**, SHA-256 **`6f471fab525f7b906677ef6d534a267b6c9709b47631d28cf6876f4294754dd5`**. Bundle/team/profile CMS, embedded signature presence, release/nondebugging and device-set match to accepted build 10 checked on Linux, not full Apple codesign validation. Private artifact/report: `artifacts/change-capture-0.3.0-11.ipa`, `artifacts/change-capture-ipa-11-check.json`, `artifacts/change-capture-build-11.json`. Native sources stayed unchanged after this build's submission; later refinements were web/renderer only.
+
+  **First real build-11 session:** **`af19eb19-a310-4e1c-b81a-a676f73c3898`**, started **2026-11-05 15:52:03.278 UTC**, finalized Stopped at **63,187 ms**. All **38/38** images and **194/194** events received; **36** merged triggers, no reported losses. Events: 152 scroll, 17 swipe, 8 tap, 8 UI, 5 content, 3 route, 1 viewport; no error event in this session. Frame 2 at 1,492 ms is followed by no events until 15,361 ms and no next image until 16,288 ms; frame 37 at 50,380 ms is followed by no events until 61,413 ms and next image at 61,548 ms. These establish idle suppression without asking the owner to repeat it. Capture work 31–49 ms, minimum spacing 505 ms; 18 captures marked unstable during motion. No physical memory profiling inferred.
+
+  **Actual replay / renderer revision 5:** owner reports full replay looks good overall, but 24→25 and 33→34 were choppy and the short excerpt seemed to omit motions. Both pairs had valid content overlap rejected by moving scrollbar pixels at the image edge (prior edge error 26.09/26.67, second match 96.77%). Alignment now excludes only the outer one-sixtieth-width gutter and refines every full-resolution content pixel, retaining the same acceptance thresholds. Accepted offsets **579/462 px**, matches **98.83%/97.69%**, edge error **18.17/21.05**. Four former cuts now animate: **24→25, 28→29, 33→34, 34→35**; all source frame metadata/hashes unchanged. Original full-width pixels remain in composites. The previous idle-onset correction is retained. Regenerated only this session's derivatives atomically; no native rebuild or API/web deployment.
+
+  **Latest output/checks:** short excerpt now **34,000–49,000 ms**, **15.000 s / 951,295 bytes**, selected to include both flagged pairs; it is an excerpt, not the complete recording. Full **63.209 s**, **+22 ms** (within one 24 fps frame), **3,374,014 bytes**, 720×1436. 29 reconstructed intervals, three fully event-guided paths, 12 onset-guided intervals; remaining motion is estimated/cut as labeled. Render **37,712 ms**, Node peak **178,644 KiB**, child peak **188,588 KiB** (separate peaks). Seven replay tests and script typecheck pass, including moving-scrollbar acceptance, changed-page/fixed-header rejection, encoded idle fallback and FFmpeg decode/duration. Intermediate actual transition frames visually inspected. HTTPS anonymous denial, admin range/no-store byte hashes, WebKit 440/Chromium 1440 sample/full playback and seeking to 47.8 s pass; no layout/page errors, external requests blocked, temporary admin session removed. Reports: `artifacts/change-capture-transition-check.json`, `artifacts/change-capture-transition-public-check.json`. Earlier timing/idle evidence remains in `artifacts/change-capture-phone-timing-check.json`; no idle retest needed. Private inspection image/video copies removed after review.
+
+  **Owner acceptance:** both revision-5 transitions confirmed smoother. The short excerpt starts with snapshot 23 because it covers seconds 34–49; full replay starts with snapshot 1. The owner requested where to find a form error; verified source validation at Savings Goals → Create a goal, name `Test`, target `0`, displays the $1–$1,000,000 validation message without creating a goal. Inline error device proof is recorded immediately below.
+
+  **Form-error device evidence:** owner confirms the inline amount error is captured, along with intermediate typed-name states. Read-only server inspection found finalized session **`8e15dc19-b219-44ee-851e-7c5d54a7b783`**, started **2026-11-05 16:28:35.887 UTC**, Stop **30,299 ms**, **30 images / 97 events**, expected events 97, loss 0. Frame **15 at 15,856 ms** visibly includes `Test`, target `0` and the inline amount validation message; matching error events at 15,743 ms. Earlier session **`812454f9-1bee-45e8-85bd-98227835220f`** (16:24:59.419 UTC, 34 images / 78 events, no reported event loss) has error-triggered frames **9 at 16,058 ms** and **15 at 30,559 ms**, about 114/101 ms after error events. Both show a focused empty Goal name but omit the browser's “Fill out this field” bubble, matching the owner's report. Thus detection/capture requests work, while these overlay pixels are absent. Local view-shot captures the referenced view hierarchy; WebKit's iOS validation bubble is a separately presented UIKit popover ([implementation](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/platform/ios/ValidationBubbleIOS.mm)). This supports a capture-boundary explanation, without proving the exact iOS hierarchy/timing on the phone. Native popover coverage is an explicit unresolved limitation; no code, validation UX, native scope or app build changed for this report. Source confirms input observation requests `content` after a 300 ms pause; intermediate text can appear in approved images, while event payloads contain no input values. Private inspection copies removed. No application tests needed for this documentation/read-only check.
+
+  **Pending:** remaining new-mode lifecycle/offline checks, native validation-popover capture follow-up and existing profiling/operational follow-ups. VID-05/06/07 remain open until their full criteria are checked. No current automated failures. Only migration 0014 is committed; other Stage A/B source/tests/docs remain uncommitted; no push. Owner `IMG_2008.jpeg` and `temp/` are untouched.
+
+- **Prior Plan 025 Stage A / B-025 — deployed and accepted for progression.** Added
+  `recordings:replay` CLI, deterministic timing/hash/offset manifest, conservative
+  vertical image registration/compositing and FFmpeg pan rendering. Uses existing
+  approved images only, preserves pauses/initial absence, cuts unsupported changes,
+  labels capture UTC and elapsed time separately, and invents no gesture telemetry.
+  Private atomic exports, separate render lock, bounded working reservation/derived
+  quota accounting, stale-work cleanup and authenticated range/no-store video
+  delivery are implemented. Admin review adds inline sample/full/downloads.
+  Phone capture and legacy receiver contract remain **1 Hz**, app **0.2.1 (10)**.
+  No schema migration, dependency installation, EAS build, new port or public assets.
+
+  **Owner feedback / revision 2:** initial phone playback looks good except a
+  larger leap around nine seconds, specifically source **14→15 and 15→16**.
+  Original registration searched only half a viewport. Their actual displacements
+  are **−994 px** and **−776 px** on 1327px images: both exceed that limit while
+  retaining valid overlap. Extended the bound to three-quarters with unchanged
+  strict matching (98.87% and 97.25% matched). Full-source comparison adds **only
+  these two** animations; the earlier 20 decisions are unchanged. Encoding now
+  generates **24 fps** rather than 12 from the same 139 screenshots. No new capture.
+  Added explicit `--replace`, staging/validation and Linux atomic directory exchange
+  to retain the prior complete export until replacement succeeds. Six replay tests
+  pass, including quarter-viewport overlap, exact source crop, failed/successful
+  exchange and actual FFmpeg duration/decode. Scripts typecheck/format/diff pass.
+  Published **2026-11-05T08:16:58.207Z** without any API/web/service change; latest
+  HTTPS playback/seek/hash/range/no-store checks pass in WebKit/Chromium. Owner was
+  asked to reload the whole review page and reassess those transitions before Stage B.
+
+  **Produced:** retained recording **`a88bbb7b-f78b-46ee-85cc-a7c4c998fbfb`**,
+  139 frames; **15.000 s** sample (0 ms error), **139.250 s** full replay versus
+  Stop **139.234 s** (16 ms error). Twenty-two estimated scroll intervals total
+  **21,993 ms**; initial 0–1,011 ms explicitly has no image. Outputs **720×1436**
+  include a separate label band and padding; source remains 720×1327. Sample
+  **1,196,355 bytes**, full **9,148,405 bytes**, render **68,850 ms**. Peak Node RSS
+  **180,504 KiB**, largest child **182,224 KiB**, separate peaks, not simultaneous
+  combined memory. Files under the recording's private `replay/`, 0750/0640 and
+  `softek:softek`. Source retention is **2026-11-12T05:46:56.993Z**; videos expire
+  with their parent. Public delivered hashes match private files.
+
+  **Rollout:** API/web **`2026-11-05T07-16-00-994Z`**; scoped configuration/link
+  backup **`/var/backups/softek/replay-rollout-2026-11-05T07-14-27Z`**. Previous API/
+  web release **`2026-11-05T01-07-31-794Z`**. API/cleanup timer healthy; updated
+  worker pinned to new release. Actual cleanup and dry-run show zero stale work,
+  missing/orphan/temp files or expired records. All **17** site-available hashes
+  unchanged. Original six recording metadata rows and Clarity/Phoenix values and
+  revisions verified unchanged. At that Stage A rollout, DB was migration **0013**; Stage B is now **0014**.
+
+  **Verification:** initial 18 focused replay/receiver TAP entries, eight local browser
+  cases (Chromium 360/390/1440, WebKit 440), typecheck, evaluation build, formatting
+  and Git diff checks pass. HTTPS WebKit 440/Chromium 1440 play and seek the actual
+  sample, correct dimensions/duration, no page errors/overflow/vendor requests;
+  anonymous access denied, both MP4 hashes/range/no-store checked, temporary admin
+  session revoked. Evidence **`artifacts/replay-public-check.json`**; renderer report/
+  manifest remain private with the recording. Visual inspection of three extracted
+  scrolling positions found readable text and aligned content; six further sampled
+  positions confirm reconstructed content through both corrected transitions.
+  Phone playback is confirmed and the owner explicitly advanced to Stage B after
+  the 24-fps clarification. The retained Stage A review is at
+  [the review](https://demo.bawebtech.com/controls/recordings/a88bbb7b-f78b-46ee-85cc-a7c4c998fbfb).
+  VID-02/03 are accepted for progression. No current automated failures; fixed
+  fragmented test-container seek failure is documented in TESTING. Gesture/scroll
+  metadata and early/same-second capture are implemented in Stage B as described above.
+
+  **Uncommitted:** Plan 025/docs, CLI/renderer/private-files helper, receiver/review/
+  CSS/package script and focused tests. No commit or push in this session. Owner
+  `IMG_2008.jpeg` and `temp/` remain untouched/untracked. Remaining Plan 023/024
+  profiling/operational work is unchanged.
 
 - **Git delivery — source pushed and verified:** implementation/tests/runbooks
   committed as **`7f605c9`**, with existing schema commit **`a702319`**, on
@@ -1636,6 +2156,10 @@ or an in-flight request and expire independently. No push or rollback performed.
 
 ## Exact resume point
 
+Current work resumes from the **Next task** at the top: automatic replay is
+delivered; remaining Plan027 physical acceptance is separate. The older delivered-feature
+context below does not replace that task or authorize new analytics experiments.
+
 1. Read AGENTS/START_HERE, state and PRODUCT; inspect actual Git and live release.
    Plans 017/018/019/020/021 are delivered; the owner has collection and tracing enabled.
    Use private port-6006 forwarding and select softek-clarity-api. Refresh the
@@ -1669,13 +2193,29 @@ or an in-flight request and expire independently. No push or rollback performed.
 
 ## Git and operational handoff
 
-Prior menu commit **162be9d**; committed 0004 migration **d0ec4c6**; initial feature
-implementation **bd6a774**; consent modal **a145d30**; 0006 migration **de1f8e1**.
-0007 migration **7eb7290**. Plans 005/006/007/008/009/010/011/012/013/014/015/016/017 and the current Clarity implementation/checks/docs are
-committed locally on `main`; Plan 013 application **bdd15e1**; Plan 012 application **99abd9d**; Plan 011 application **0d7fbd8**, SQL/plan **b3305a6**; Plan 010 application **b00d520**, SQL **c758cc4**; inspect `git log -1` for the latest handoff commit. **No push** was made. Origin is
-`https://github.com/cnm4us/softek.git`. Only user-provided `temp/` remains untracked
-and untouched. Plan 018 source/tests are committed as cedf9bf; final durable
-documentation is included in the handoff commit (inspect `git log -1`). No push
-was made. Ignored artifacts hold screenshots/manifests and owned checks.
-No credentials are committed; production intentionally continues running.
-LOCAL_SETUP owns backup/rollback/renewal, TESTING owns commands and cleanup boundaries.
+Current Git delivery supersedes the then-current uncommitted/ahead statements in
+older dated verification sections above.
+
+- **b13de94** commits the outstanding Plan025–028 implementation, native local
+  module/probes, change-triggered capture, page references/diffs, automatic30fps
+  replay, keyboard-tail correction, tests and primary documentation (71 files).
+- Migrations0014/0015 were already committed as **51cc902/e2b5c8a** before schema
+  application. Applied SQL/checksums are unchanged. This delivery-notes commit adds
+  the current state and verification record; inspect `git log -1` for its identity.
+- Commit verification actually run: **52 focused core/API/migration/image/FFmpeg/
+  queue TAP entries**, **29 mobile core +20 rendered/adapter entries**, workspace/
+  script typecheck, full TypeScript/CSS formatting and mobile CJS formatting pass.
+  Known private environment values were checked against72 project candidates:
+  no matches or unexpected credential/generated files. Diff/relative links pass.
+  Reports are ignored `artifacts/commit-capture-*.log`. Prior browser/live/device
+  evidence remains above; no extra deployment or collection experiment was run.
+- All project work is committed locally. Owner `IMG_2008.jpeg` and `temp/` are
+  excluded and untouched; private configuration, builds, recordings and evidence
+  remain ignored. **No push** performed. Remote remains
+  `https://github.com/cnm4us/softek.git`; the four local commits since origin include
+  both migrations, implementation and these delivery notes.
+- Live release remains **2026-11-06T16-58-10-085Z**, schema15, signed mobile
+  **0.5.0 (15)**. Services/settings were not changed by committing. LOCAL_SETUP
+  owns operations/rollback; TESTING owns commands; individual plans retain open
+  physical/lifecycle/resource checks. SDK packaging/tenant targeting remains future
+  scoped work; the banking demo stays the reference application.
