@@ -3,15 +3,17 @@
     "name": "Softek POC",
     "slug": "softek-ios-poc",
     "owner": "mbcollins2",
-    "version": "0.2.1",
+    "version": "0.5.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["ios"],
+    "platforms": [
+      "ios"
+    ],
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bawebtech.softek.poc",
-      "buildNumber": "10",
+      "buildNumber": "15",
       "config": {
         "usesNonExemptEncryption": false
       },

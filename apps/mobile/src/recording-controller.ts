@@ -6,6 +6,14 @@ import {
   type Clock,
 } from './capture-loop';
 import { destination } from './navigation';
+import { pageGeometry, type PageGeometry } from './page-context';
+import {
+  ChangeCaptureLoop,
+  geometry,
+  type Geometry,
+  type Interaction,
+  type CaptureReason,
+} from './change-capture';
 
 type StopReason =
   | 'Stopped'
@@ -30,13 +38,33 @@ type Session = {
   pumping: Promise<void> | null;
   heartbeat: ReturnType<typeof setInterval> | null;
   failed: boolean;
+  policy: 'periodic-v1' | 'changes-v2';
+  captureMethod: 'view-v1' | 'window-crop-v1';
+  pageContext: boolean;
+  page: PageGeometry | null;
+  offset: number | null;
+  uncertainty: number;
+  geometry: Geometry | null;
+  clockRequest?: {
+    id: string;
+    sent: number;
+    timer: ReturnType<typeof setTimeout>;
+  };
+  events: Interaction[];
+  eventBytes: number;
+  eventSequence: number;
+  lostEvents: number;
+  eventsReady: boolean;
+  eventTimer: ReturnType<typeof setTimeout> | null;
 };
 export type RecordingPorts = {
+  pageContext?: boolean;
   capture: () => Promise<CapturedFile>;
+  windowCapture?: () => Promise<CapturedFile>;
   inject: (script: string) => void;
   request: (
     session: { id: string; credential: string },
-    endpoint: 'frames' | 'heartbeat' | 'stop',
+    endpoint: 'frames' | 'heartbeat' | 'stop' | 'events',
     body: Frame | Record<string, unknown>,
     signal: AbortSignal,
   ) => Promise<Reply>;
@@ -69,6 +97,7 @@ export class RecordingController {
     }
   >();
   private loop: CaptureLoop;
+  private changes: ChangeCaptureLoop;
   constructor(
     private ports: RecordingPorts,
     private clock: Clock = captureClock,
@@ -76,17 +105,25 @@ export class RecordingController {
     this.loop = new CaptureLoop(
       {
         eligible: () => this.ready && this.allowed && this.foreground,
-        capture: async () => {
-          const s = this.session;
-          if (!s || !(await this.probe(s.generation)))
-            throw new Error('Capture not eligible');
-          const file = await this.ports.capture();
-          if (this.session !== s || !(await this.probe(s.generation))) {
-            file.dispose();
-            throw new Error('Capture eligibility changed');
-          }
-          return file;
-        },
+        capture: () => this.capture(),
+        frame: (frame) => this.enqueue(frame),
+        stopped: (reason) =>
+          void this.stop(
+            reason === 'Duration limit reached'
+              ? 'Duration limit'
+              : 'Capture failed',
+          ),
+      },
+      this.clock,
+    );
+    this.changes = new ChangeCaptureLoop(
+      {
+        settleMs: (reason) =>
+          this.session?.captureMethod === 'window-crop-v1' && reason === 'error'
+            ? 350
+            : 100,
+        eligible: () => this.ready && this.allowed && this.foreground,
+        capture: (reason) => this.capture(reason),
         frame: (frame) => this.enqueue(frame),
         stopped: (reason) =>
           void this.stop(
@@ -98,11 +135,65 @@ export class RecordingController {
       this.clock,
     );
   }
+  private async capture(reason?: CaptureReason) {
+    const s = this.session;
+    if (
+      !s ||
+      s.stopping ||
+      this.session !== s ||
+      !(await this.probe(s.generation))
+    )
+      throw new Error('Capture not eligible');
+    const before = s.geometry;
+    const beforePage = s.page;
+    if (reason && !before) throw new Error('Missing viewport geometry');
+    if (s.pageContext && !beforePage)
+      throw new Error('Missing page reference geometry');
+    const file = await (s.captureMethod === 'window-crop-v1'
+      ? this.ports.windowCapture!()
+      : this.ports.capture());
+    if (s.captureMethod === 'window-crop-v1' && !file.surface) {
+      file.dispose();
+      throw new Error('Missing native capture provenance');
+    }
+    if (s.pageContext && !file.imageBounds) {
+      file.dispose();
+      throw new Error('Missing page reference bounds');
+    }
+    if (this.session !== s || !(await this.probe(s.generation))) {
+      file.dispose();
+      throw new Error('Capture eligibility changed');
+    }
+    if (reason && before)
+      file.context = {
+        reason,
+        geometry: before,
+        uncertaintyMs: Math.min(
+          1000,
+          Math.ceil(s.uncertainty + (file.captureMs ?? 100)),
+        ),
+        unstable:
+          JSON.stringify(before) !== JSON.stringify(s.geometry) ||
+          (s.pageContext &&
+            JSON.stringify(beforePage) !== JSON.stringify(s.page)),
+        ...(file.surface ? { surface: file.surface } : {}),
+        ...(s.pageContext && beforePage && file.imageBounds
+          ? {
+              page: {
+                version: 1 as const,
+                web: beforePage,
+                image: file.imageBounds,
+              },
+            }
+          : {}),
+      };
+    return file;
+  }
   // Injected after main-document load, using a new native-owned document ID.
   bootstrap() {
     return `(function(){if(window.top!==window||location.origin!=='https://demo.bawebtech.com')return;
       const id=${JSON.stringify(this.documentId)};
-      Object.defineProperty(window,'__softekCapture',{configurable:true,value:Object.freeze({version:1,documentId:id,
+      Object.defineProperty(window,'__softekCapture',{configurable:true,value:Object.freeze({version:1,capabilities:${JSON.stringify(['changes-v2', ...(this.ports.windowCapture ? ['window-crop-v1'] : []), ...(this.ports.windowCapture && this.ports.pageContext ? ['page-context-v1'] : [])])},documentId:id,
         send:function(message){if(window.top===window)window.ReactNativeWebView.postMessage(JSON.stringify({...message,protocol:'softek-capture-v1',documentId:id}));},
         receive:function(message){if(message.documentId===id)window.dispatchEvent(new CustomEvent('softek-capture-native',{detail:message}));}
       })});window.dispatchEvent(new Event('softek-capture-ready'));window.__softekCapture.send({type:'hello'});
@@ -183,6 +274,19 @@ export class RecordingController {
       if (!pending) return;
       clearTimeout(pending.timer);
       this.probes.delete(m.requestId);
+      if (
+        this.session &&
+        m.generation === this.session.generation &&
+        geometry(m.geometry)
+      )
+        this.session.geometry = geometry(m.geometry);
+      if (this.session?.pageContext) {
+        this.session.page = pageGeometry(m.page);
+        if (!this.session.page) {
+          pending.resolve(false);
+          return;
+        }
+      }
       pending.resolve(
         m.allowed === true &&
           m.generation === pending.generation &&
@@ -200,7 +304,59 @@ export class RecordingController {
         this.status('error', 'Recording cannot start right now.');
         return;
       }
-      this.start(m.recordingId, m.credential, this.generation);
+      if (
+        (m.captureMethod !== undefined &&
+          !['view-v1', 'window-crop-v1'].includes(String(m.captureMethod))) ||
+        (m.captureMethod === 'window-crop-v1' &&
+          (!this.ports.windowCapture || m.policy !== 'changes-v2')) ||
+        (m.pageContextVersion !== undefined &&
+          (m.pageContextVersion !== 1 ||
+            !this.ports.pageContext ||
+            m.captureMethod !== 'window-crop-v1'))
+      ) {
+        this.status('error', 'This capture method is unavailable.');
+        return;
+      }
+      this.start(
+        m.recordingId,
+        m.credential,
+        this.generation,
+        m.policy === 'changes-v2' ? 'changes-v2' : 'periodic-v1',
+        m.captureMethod === 'window-crop-v1' ? 'window-crop-v1' : 'view-v1',
+        m.pageContextVersion === 1,
+      );
+    } else if (m.type === 'clock-reply') {
+      const s = this.session;
+      if (
+        !s ||
+        s.stopping ||
+        s.policy !== 'changes-v2' ||
+        !s.clockRequest ||
+        m.requestId !== s.clockRequest.id ||
+        m.generation !== s.generation ||
+        typeof m.webNow !== 'number' ||
+        !Number.isFinite(m.webNow) ||
+        !geometry(m.geometry)
+      )
+        return;
+      const now = this.clock.now();
+      s.offset = (s.clockRequest.sent + now) / 2 - m.webNow;
+      s.uncertainty = Math.ceil((now - s.clockRequest.sent) / 2);
+      s.geometry = geometry(m.geometry);
+      if (s.pageContext) {
+        s.page = pageGeometry(m.page);
+        if (!s.page) {
+          void this.stop('Capture failed');
+          return;
+        }
+      }
+      clearTimeout(s.clockRequest.timer);
+      s.clockRequest = undefined;
+      this.send({ type: 'observe', active: true });
+      this.changes.start(s.started);
+      this.status('recording');
+    } else if (m.type === 'interaction') {
+      this.interaction(m);
     } else if (m.type === 'stop') {
       void this.stop(m.reason === 'Signed out' ? 'Signed out' : 'Stopped');
     }
@@ -238,7 +394,14 @@ export class RecordingController {
       this.send({ type: 'probe', requestId });
     });
   }
-  private start(id: string, credential: string, generation: number) {
+  private start(
+    id: string,
+    credential: string,
+    generation: number,
+    policy: 'periodic-v1' | 'changes-v2',
+    captureMethod: 'view-v1' | 'window-crop-v1',
+    pageContext = false,
+  ) {
     const s: Session = {
       id,
       credential,
@@ -252,6 +415,19 @@ export class RecordingController {
       pumping: null,
       heartbeat: null,
       failed: false,
+      policy,
+      captureMethod,
+      pageContext,
+      page: null,
+      offset: null,
+      uncertainty: 0,
+      geometry: null,
+      events: [],
+      eventBytes: 0,
+      eventSequence: 0,
+      lostEvents: 0,
+      eventsReady: false,
+      eventTimer: null,
     };
     this.session = s;
     s.heartbeat = setInterval(() => {
@@ -265,8 +441,121 @@ export class RecordingController {
           void this.stop('Upload failed');
         });
     }, 10_000);
-    this.loop.start();
-    this.status('recording');
+    if (policy === 'periodic-v1') {
+      this.loop.start();
+      this.status('recording');
+    } else {
+      const requestId = uuid();
+      s.clockRequest = {
+        id: requestId,
+        sent: this.clock.now(),
+        timer: setTimeout(() => void this.stop('Capture failed'), 1000),
+      };
+      this.send({ type: 'clock', requestId });
+    }
+  }
+  private interaction(m: Record<string, unknown>) {
+    const s = this.session,
+      g = geometry(m.geometry);
+    if (
+      !s ||
+      s.stopping ||
+      s.policy !== 'changes-v2' ||
+      s.offset === null ||
+      !this.allowed ||
+      !this.foreground ||
+      m.generation !== s.generation ||
+      !g ||
+      typeof m.webNow !== 'number' ||
+      !Number.isFinite(m.webNow)
+    )
+      return;
+    const kinds = [
+      'tap',
+      'swipe',
+      'scroll',
+      'viewport',
+      'route',
+      'ui',
+      'error',
+      'content',
+    ] as const;
+    if (!kinds.includes(m.kind as (typeof kinds)[number])) return;
+    const elapsedMs = Math.round(m.webNow + s.offset - s.started);
+    if (
+      elapsedMs < -s.uncertainty ||
+      elapsedMs > this.clock.now() - s.started + 1000 ||
+      elapsedMs > 900000
+    )
+      return;
+    const event: Interaction = {
+      sequence: ++s.eventSequence,
+      elapsedMs: Math.max(0, elapsedMs),
+      kind: m.kind as Interaction['kind'],
+      geometry: g,
+      uncertaintyMs: s.uncertainty,
+    };
+    if (event.kind === 'tap' || event.kind === 'swipe') {
+      for (const key of [
+        'x',
+        'y',
+        ...(event.kind === 'swipe' ? ['endX', 'endY'] : []),
+      ] as const) {
+        const v = m[key];
+        if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1) {
+          s.eventSequence--;
+          return;
+        }
+        (event as unknown as Record<string, unknown>)[key] = v;
+      }
+      if (event.kind === 'swipe') {
+        if (
+          typeof m.durationMs !== 'number' ||
+          !Number.isInteger(m.durationMs) ||
+          m.durationMs < 0 ||
+          m.durationMs > 60000
+        ) {
+          s.eventSequence--;
+          return;
+        }
+        event.durationMs = m.durationMs;
+      }
+    }
+    const length = JSON.stringify(event).length;
+    if (
+      s.eventSequence > 12000 ||
+      s.events.length >= 500 ||
+      s.eventBytes + length > 256 * 1024
+    ) {
+      s.lostEvents++;
+      s.eventSequence = Math.min(12000, s.eventSequence);
+      void this.stop('Upload failed');
+      return;
+    }
+    s.events.push(event);
+    s.eventBytes += length;
+    if (s.captureMethod === 'window-crop-v1' && event.kind === 'tap')
+      this.changes.request('ui');
+    if (m.capture === true && event.kind !== 'tap' && event.kind !== 'swipe')
+      this.changes.request(event.kind);
+    if (!s.eventTimer)
+      s.eventTimer = setTimeout(() => {
+        s.eventTimer = null;
+        s.eventsReady = true;
+        this.kick(s);
+      }, 1000);
+  }
+  private kick(s: Session) {
+    if (s.pumping || s.failed || s.abort.signal.aborted) return;
+    s.pumping = this.pump(s).finally(() => {
+      s.pumping = null;
+      if (
+        !s.failed &&
+        !s.abort.signal.aborted &&
+        (s.queue.length || (s.events.length && s.eventsReady))
+      )
+        this.kick(s);
+    });
   }
   private enqueue(frame: Frame) {
     const s = this.session;
@@ -281,22 +570,34 @@ export class RecordingController {
     }
     s.queue.push(frame);
     s.bytes += frame.bytes;
-    if (!s.pumping) {
-      s.pumping = this.pump(s).finally(() => {
-        s.pumping = null;
-      });
-    }
+    this.kick(s);
   }
   private async pump(s: Session) {
-    while (s.queue.length && !s.abort.signal.aborted) {
+    while (
+      (s.queue.length || (s.eventsReady && s.events.length)) &&
+      !s.abort.signal.aborted
+    ) {
       const frame = s.queue[0]!;
+      const events: Interaction[] = [];
+      const batchId = uuid();
+      if (!frame)
+        for (const event of s.events.slice(0, 30)) {
+          if (
+            JSON.stringify({ requestId: batchId, events: [...events, event] })
+              .length >
+            12 * 1024
+          )
+            break;
+          events.push(event);
+        }
+      const batch = events.length ? { requestId: batchId, events } : null;
       let accepted = false;
       for (let attempt = 0; attempt < 3 && !s.abort.signal.aborted; attempt++) {
         try {
           const result = await this.ports.request(
             s,
-            'frames',
-            frame,
+            frame ? 'frames' : 'events',
+            frame ?? batch!,
             s.abort.signal,
           );
           if (result.ok) {
@@ -310,11 +611,21 @@ export class RecordingController {
         if (attempt < 2) await wait(1000 * 2 ** attempt);
       }
       if (s.abort.signal.aborted) break;
-      s.queue.shift();
-      s.bytes -= frame.bytes;
-      frame.dispose();
+      if (frame) {
+        s.queue.shift();
+        s.bytes -= frame.bytes;
+        frame.dispose();
+      } else {
+        s.events.splice(0, events.length);
+        s.eventBytes -= events.reduce(
+          (n, e) => n + JSON.stringify(e).length,
+          0,
+        );
+        if (!accepted) s.lostEvents += events.length;
+        if (!s.stopping) s.eventsReady = false;
+      }
       if (accepted) {
-        s.uploaded++;
+        if (frame) s.uploaded++;
         if (this.session === s) this.status();
       } else {
         s.failed = true;
@@ -327,13 +638,34 @@ export class RecordingController {
     const s = this.session;
     if (!s || s.stopping) return;
     s.stopping = true;
+    if (s.clockRequest) clearTimeout(s.clockRequest.timer);
+    if (s.eventTimer) clearTimeout(s.eventTimer);
+    s.eventTimer = null;
+    this.send({ type: 'observe', active: false });
+    s.eventsReady = true;
     const elapsedMs = Math.min(
       901_000,
       Math.max(0, Math.round(this.clock.now() - s.started)),
     );
-    const slots = Math.min(900, Math.floor(elapsedMs / 1000));
-    const body = { elapsedMs, slots, reason };
+    const slots =
+      s.policy === 'changes-v2'
+        ? this.changes.attempted
+        : Math.min(900, Math.floor(elapsedMs / 1000));
+    const body = {
+      elapsedMs,
+      slots,
+      reason,
+      ...(s.policy === 'changes-v2'
+        ? {
+            events: s.eventSequence,
+            lostEvents: s.lostEvents,
+            coalesced: this.changes.coalesced,
+          }
+        : {}),
+    };
     this.loop.stop();
+    this.changes.stop();
+    this.kick(s);
     if (s.heartbeat) clearInterval(s.heartbeat);
     this.status('uploading');
     let drainTimer: ReturnType<typeof setTimeout> | undefined;
@@ -363,6 +695,9 @@ export class RecordingController {
     s.abort.abort();
     for (const frame of s.queue.splice(0)) frame.dispose();
     s.bytes = 0;
+    s.lostEvents += s.events.length;
+    s.events = [];
+    s.eventBytes = 0;
     const final = new AbortController(),
       timer = setTimeout(() => final.abort(), 8000);
     let finalized = false;

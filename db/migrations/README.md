@@ -5,7 +5,13 @@ belong to [PROJECT_STATE](../../PROJECT_STATE.md#current-reality). Inspect actua
 status before application; documentation is not proof of current schema state.
 Applied files are immutable. Migration 0013 adds screenshot-session/frame metadata
 only; private image bytes live outside MariaDB. Previous app releases ignore these
-tables and remain compatible. For partial DDL failure use the scoped pre-migration
+tables and remain compatible. Migration 0014 adds versioned change-triggered
+metadata/events and broadens elapsed time without adding frame columns, preserving
+legacy positional inserts. API policy validation retains old cadence rules.
+Migration 0015 adds one cascading durable replay-job table with no historical
+backfill; previous API releases ignore it. It is a single additive CREATE TABLE;
+use the scoped schema/ledger backup recovery below if application is interrupted.
+For partial DDL failure use the scoped pre-migration
 schema/data/ledger backup and the recovery contract below, never a forced ledger.
 
 Migrations 0002/0003 were committed in `e239925` before test application. Production
@@ -92,7 +98,8 @@ need a specific backup/recovery plan and authorization within the current task.
 
 The first real migration should define the minimal M1 model, relationships,
 participant scoping, constraints, and useful reporting/query indexes. Review it
-against `ARCHITECTURE.md` before execution. The actual applied version is **13**; current evidence is in `PROJECT_STATE.md`.
+against `ARCHITECTURE.md` before execution. Current applied versions and evidence belong to `PROJECT_STATE.md`; verify them
+with the migration runner before changes.
 
 ## Partial-failure recovery
 

@@ -21,6 +21,7 @@ async function mount(options = {}) {
     rejectBrowser: false,
     storageReady: true,
     requests: [],
+    disposedFrames: [],
     webMounts: 0,
     webUnmounts: 0,
     ...options,
@@ -40,6 +41,12 @@ async function mount(options = {}) {
       format: 'cjs',
       jsx: 'automatic',
       define: {
+        'process.env.EXPO_PUBLIC_WINDOW_CAPTURE': JSON.stringify(
+          options.windowCapture ? '1' : '0',
+        ),
+        'process.env.EXPO_PUBLIC_OVERLAY_CHECK': JSON.stringify(
+          options.overlayCheck ? '1' : '0',
+        ),
         'process.env.EXPO_PUBLIC_CAPTURE_CHECK': JSON.stringify(
           options.captureCheck ? '1' : '0',
         ),
@@ -50,7 +57,10 @@ async function mount(options = {}) {
           name: 'native-boundaries',
           setup(bundle) {
             bundle.onResolve(
-              { filter: /^\.\/(?:src\/)?(capture-file|recording-request)$/ },
+              {
+                filter:
+                  /^\.\/(?:src\/)?(capture-file|recording-request|overlay-capture)$/,
+              },
               () => ({
                 path: 'probe',
                 namespace: 'probe-stub',
@@ -58,8 +68,9 @@ async function mount(options = {}) {
             );
             bundle.onLoad({ filter: /.*/, namespace: 'probe-stub' }, () => ({
               contents: `exports.CaptureFileError=class extends Error {};
+                 exports.overlayAvailable=true;exports.prepareOverlayCapture=async()=>true;exports.captureOverlay=async()=>({uri:'file:///candidate.jpg',bytes:1234,width:720,height:1000,dispose:()=>{global.__softekNative.disposedFrames.push('candidate');}});
                  exports.clearCaptureFiles=()=>global.__softekNative.storageReady;
-                 exports.captureFile=async()=>{if(global.__softekNative.captureFailure)throw new exports.CaptureFileError('Capture copy: file permission denied');return {uri:'file:///fixture.jpg',bytes:1234,dispose:()=>{}};};
+                 exports.captureFile=async()=>{if(global.__softekNative.captureFailure)throw new exports.CaptureFileError('Capture copy: file permission denied');return {uri:'file:///fixture.jpg',bytes:1234,dispose:()=>{global.__softekNative.disposedFrames.push('baseline');}};};
                  exports.recordingRequest=async()=>{global.__softekNative.requests.push('upload');return {ok:true,status:200};};`,
             }));
             bundle.onResolve({ filter: /^react(?:\/.*)?$/ }, (args) => ({
@@ -412,6 +423,147 @@ test('unavailable recording cache keeps the banking WebView and navigation usabl
     assert.ok(app.button('Dismiss'));
     await Test.act(async () => app.button('Reload').props.onPress());
     assert.equal(app.ports.reload, 1);
+  } finally {
+    await app.close();
+  }
+});
+
+test('overlay-check build opens only the local fictional comparison with uploads inactive', async () => {
+  const m = await mount({ overlayCheck: true });
+  try {
+    const web = m.root.root.findByType('WebView');
+    assert.ok(web.props.source.html.includes('id="name" required'));
+    assert.ok(web.props.source.html.includes("addEventListener('invalid'"));
+    assert.ok(
+      m.root.root
+        .findAllByType('Text')
+        .some((n) => n.props.children === 'Local tooltip comparison'),
+    );
+    assert.deepEqual(m.ports.requests, []);
+    assert.equal(
+      web.props.onShouldStartLoadWithRequest({
+        url: 'https://demo.bawebtech.com/',
+      }),
+      false,
+    );
+    await Test.act(async () => {
+      web.props.onLoadEnd();
+    });
+    const start = m.root.root
+      .findAllByType('Pressable')
+      .find((n) => n.props.accessibilityLabel === 'Start local check');
+    assert.equal(start.props.disabled, false);
+    await Test.act(async () => {
+      start.props.onPress();
+    });
+    const stop = m.root.root
+      .findAllByType('Pressable')
+      .find((n) => n.props.accessibilityLabel === 'Stop');
+    assert.equal(stop.props.disabled, false);
+    await Test.act(async () => {
+      stop.props.onPress();
+    });
+    assert.deepEqual(m.ports.requests, []);
+  } finally {
+    await m.close();
+  }
+});
+
+test('Clear & reset deletes review files, reloads an empty fixture and rejects its stale events without restarting capture', async () => {
+  const app = await mount({ overlayCheck: true });
+  try {
+    await app.event('onLoadEnd');
+    await Test.act(async () => app.button('Start local check').props.onPress());
+    await Test.act(
+      async () => new Promise((resolve) => setTimeout(resolve, 400)),
+    );
+    assert.equal(app.root.root.findAllByType('Image').length, 2);
+    const previous = app.web().props;
+    await Test.act(async () => app.button('Clear & reset').props.onPress());
+    assert.equal(app.root.root.findAllByType('Image').length, 0);
+    assert.deepEqual(app.ports.disposedFrames.sort(), [
+      'baseline',
+      'candidate',
+    ]);
+    assert.equal(app.ports.webMounts, 2);
+    assert.equal(app.ports.webUnmounts, 1);
+    assert.equal(app.button('Review').props.disabled, true);
+    assert.equal(app.button('Start local check').props.disabled, true);
+    assert.equal(app.button('Stop').props.disabled, true);
+    await Test.act(async () => previous.onLoadEnd());
+    assert.equal(
+      app.button('Start local check').props.disabled,
+      true,
+      'Old document cannot mark the fresh fixture ready',
+    );
+    await app.event('onLoadEnd');
+    assert.equal(app.button('Start local check').props.disabled, false);
+    assert.equal(app.button('Stop').props.disabled, true);
+    await Test.act(async () => app.button('Start local check').props.onPress());
+    await Test.act(async () =>
+      previous.onMessage({
+        nativeEvent: {
+          url: 'about:blank',
+          data: JSON.stringify({
+            type: 'softek-overlay-check',
+            kind: 'invalid',
+          }),
+        },
+      }),
+    );
+    await Test.act(
+      async () => new Promise((resolve) => setTimeout(resolve, 400)),
+    );
+    const labels = app.root.root
+      .findAllByType('Text')
+      .map((n) => JSON.stringify(n.props.children))
+      .join(' ');
+    assert.ok(labels.includes('Test ') && labels.includes('View baseline'));
+    assert.ok(
+      !labels.includes('invalid'),
+      'An old fixture message cannot trigger capture in the new test',
+    );
+    assert.equal(app.root.root.findAllByType('Image').length, 2);
+    const reviewLabels = app.root.root
+      .findAllByType('Text')
+      .map((n) => React.Children.toArray(n.props.children).join(''));
+    assert.ok(
+      reviewLabels.some((label) =>
+        /Test 2.*Pair 1.*View baseline.*ui/.test(label),
+      ),
+      'The fresh test is labeled separately and restarts at Pair 1',
+    );
+    await Test.act(async () => app.button('Stop').props.onPress());
+    const scrollBefore = app.root.root.findByType('ScrollView');
+    await Test.act(async () => app.button('Review').props.onPress());
+    assert.notEqual(
+      app.root.root.findByType('ScrollView'),
+      scrollBefore,
+      'Review remounts at the beginning',
+    );
+    await Test.act(async () =>
+      app.root.root
+        .findAllByType('Pressable')
+        .filter((n) => n.props.accessibilityLabel === 'Clear & reset')[1]
+        .props.onPress(),
+    );
+    assert.equal(app.root.root.findAllByType('Image').length, 0);
+    assert.equal(app.button('Stop').props.disabled, true);
+    assert.deepEqual(app.ports.requests, []);
+  } finally {
+    await app.close();
+  }
+});
+
+test('experimental banking preview advertises optional native tooltip capture while leaving the normal entry intact', async () => {
+  const app = await mount({ windowCapture: true });
+  try {
+    assert.deepEqual(app.web().props.source, { uri: site, method: 'GET' });
+    await app.event('onLoadEnd');
+    assert.ok(
+      app.ports.injected.some((script) => script.includes('window-crop-v1')),
+    );
+    assert.deepEqual(app.ports.requests, []);
   } finally {
     await app.close();
   }

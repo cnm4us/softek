@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync, rmSync } from 'node:fs';
 import '../apps/api/src/config.js';
 import { collectionMode } from './lib/collection-mode.js';
+import { build } from 'esbuild';
 const enabled = collectionMode(process.argv.slice(2));
 rmSync('apps/web/dist/collection-mode.json', { force: true });
 execFileSync(
@@ -16,6 +17,15 @@ execFileSync(
     },
   },
 );
+await build({
+  entryPoints: ['scripts/recording-replay.ts'],
+  outfile: 'apps/api/dist/replay-renderer.mjs',
+  platform: 'node',
+  format: 'esm',
+  target: 'node22',
+  bundle: true,
+  packages: 'external',
+});
 writeFileSync(
   'apps/web/dist/collection-mode.json',
   JSON.stringify({ clarity: enabled }),

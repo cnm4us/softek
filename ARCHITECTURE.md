@@ -283,6 +283,11 @@ is documented by [MariaDB](https://mariadb.com/docs/server/reference/sql-stateme
 | D-012 | Separate Expo iOS WebView shell around the hosted website, built with EAS on cloud macOS | User requires website coexistence and has Ubuntu/EAS/iPhone access; initial signed build installed and core flow verified. Remaining acceptance and the B-027 session-policy update are tracked in Plan 023 |
 | D-013 | Temporary iOS WebView website data store, with native cookie sharing disabled | User requested fresh login after force-close/relaunch. `incognito` uses WebKit's memory-only store; no unreliable termination callback or change to website/server login policy. IOS-09/10 track delivery and device proof |
 | D-014 | Native 1 Hz WebView snapshots, private project-local image storage and MariaDB metadata, with admin-only review | User requested one screenshot/second and authorized Plan 024 implementation. Local capture preview delivered; receiver/UI/controller implemented and under validation. Receiver rollout waits for signed-iPhone image proof; final device acceptance remains open |
+| D-015 | Sparse change-triggered images plus lightweight motion events; reconstruct video on EC2, beginning with existing images | User requires change-only screenshots and FFmpeg movement. Stage A reviewed and progression authorized; Stage B receiver/web and signed preview are implemented for phone acceptance |
+| D-016 | Negotiate capture policy in the existing bridge; store context in a sidecar and bounded interaction rows | Working choice preserves old native builds and 12-column frame inserts. Native owns timing/sequences, web emits fixed kinds/geometry, MariaDB owns metadata; only capable clients replace periodic images |
+| D-017 | Local comparison of content-view capture against owning-window capture cropped to the banking area | Working choice for owner-authorized Plan 026. Local Expo module/fixture implemented; three actual bubble trials and keyboard exclusion confirmed. Baseline remains the normal method; optional integrated candidate follows D-018 |
+| D-018 | Bind experimental window capture to separate approval and per-frame provenance in existing metadata | Working choice after three owner-confirmed tooltip trials and keyboard exclusion. Reuse approval_version and JSON sidecar; no schema migration. Method fixed per session; normal page capture remains default, with a separately gated receiver and conservative overlay replay cuts |
+| D-019 | Per-recording sparse page references with timestamped image patches and explicit partial coverage | User requirements: same-session references, valid partial coverage and image diffs. Implemented working choices in Plan 027: server-first immutable tile derivatives, provenance/coverage, versioned page/clip metadata and conservative layout/layer fallback. Signed-device validation remains open |
 
 Changes to working choices do not need a separate approval ceremony. Record the
 reason and update affected plan/setup files. Revisit user-confirmed constraints
@@ -906,3 +911,328 @@ feature's known files, marks missing committed files as interrupted/gaps, and
 recalculates counters. Production storage refuses paths outside the dedicated
 Softek recording directory. UTC discrepancy flags are indicators of clock/start
 uncertainty, not a measurement of network latency or proof of phone clock drift.
+
+## Animated replay — Plan 025
+
+The owner requested a plan for change-triggered screenshots and FFmpeg-generated
+movement. First prove reconstructed scrolling with existing images, preserving
+capture/elapsed timing and unknown intervals. Only then introduce versioned capture
+triggers and bounded gesture/scroll events. Both policies are implemented: old
+clients retain the 1 Hz contract; capable clients negotiate `changes-v2`.
+
+Use a deterministic timeline manifest to distinguish observed images/events from
+estimated movement. Align overlapping content and animate a crop across bounded
+composites; stationary layers stay stationary only where supported. Page changes
+or uncertain/non-overlapping content use cuts/transitions. Capture UTC labels and
+elapsed playback clocks remain separate; receipt UTC does not drive replay.
+
+Implemented Stage A working choices: a bounded project-only CLI renderer, private per-recording
+derived artifacts with shared quota/retention/deletion, and authenticated admin
+delivery. No automatic render queue/service is needed for the experiment. Do not
+hold the receiver's shared lock during encoding; coordinate brief source/publish
+operations and revalidate deletion/expiry before publishing output.
+
+Use a separate per-schema render advisory lock, a 1 GiB per-job filesystem work
+reservation, short receiver locks around source copy/publication, and private atomic
+directory publication. Receiver capacity includes derived bytes/reservations alongside
+image DB counters; no schema change is needed for Stage A. Cleanup reaps abandoned
+work after 30 minutes and retains published exports until parent deletion/expiry.
+Encoding uses 24 generated frames/second, bounded pan/composite geometry and H.264
+faststart MP4. It does not capture additional phone images. The normal page header
+scrolls with this site's content; no fixed-header layer is invented for these views.
+Registration permits up to three-quarters of a viewport of vertical displacement,
+retaining at least one-quarter overlap and the existing strict pixel/edge checks.
+The earlier half-viewport limit incorrectly cut the owner-observed source 14→15
+and 15→16 scrolls. Optional replacement uses a Linux
+[atomic directory exchange](https://www.man7.org/linux/man-pages/man2/rename.2.html)
+after complete rendering/validation; failed replacement leaves the prior export.
+Renderer revision 5 excludes a narrow outer gutter (one-sixtieth of the image
+width on each side) from alignment scores because WebKit scroll indicators move
+independently of page content. Full-resolution refinement checks every content
+pixel instead of a three-pixel stride; acceptance thresholds and full-width source
+composites stay unchanged. This working choice fixes false cuts on matching text
+without relaxing content checks. Unsupported stationary-layer/layout mismatches retain observed cuts. Admin replay
+uses authenticated no-store range delivery; no public static media alias or job UI.
+
+Migration 0014 adds default legacy policy/counters, a frame-context sidecar and
+interaction rows without changing the 12-column frame insert shape. Migration 0013
+is immutable. Native/WebKit clocks are calibrated per session with uncertainty;
+eligibility/geometry probes bracket snapshots. One pending change and minimum
+500 ms spacing replace periodic images; the remaining idle timers are metadata
+heartbeat and session expiry. Terminal upload failures cannot restart the pump.
+
+Explicit React page/menu/alert hooks and a local observer of committed customer
+content request images. Passive scroll/touch observations send fixed kinds and
+geometry, not DOM/input/error text. Aggregate motion sampling and bounded event
+batches share image storage quotas. Stable opaque menu/dialog IDs prevent gesture
+marks being assigned to another visible surface. Points use one viewport-to-image
+scale in both axes. Sparse replay holds idle states, uses observed timing where
+alignment/geometry support it, and retains estimated motion/cuts otherwise.
+Renderer revision 4 preserves preceding idle time even when a moving endpoint
+requires estimated interpolation: with complete events and a stable starting
+image, bound motion onset by the first compatible scroll sample minus its 100 ms
+sampling window and clock uncertainty. Stable paths also hold until that bound.
+This is a working reconstruction choice, not an exact onset observation; missing
+events or unstable starting geometry do not establish such a bound.
+Known device boundary: inline application validation is captured, while the iOS
+required-field validation bubble was absent despite error-triggered snapshots.
+The current adapter snapshots a referenced view hierarchy; WebKit presents this
+bubble as a [native UIKit popover](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/platform/ios/ValidationBubbleIOS.mm).
+A wider in-app hierarchy capture is a possible follow-up experiment, not verified
+support or authorization to broaden collection. Do not claim pixel-complete native
+overlay capture. Input events request a content image after a 300 ms pause without
+reading values; approved screenshots can still display intermediate typed text.
+All existing recording authorization, eligibility,
+privacy/lifecycle boundaries and independent Clarity controls remain in force.
+[Plan 025](plans/025-change-triggered-video-replay.md) owns proposed limits, concrete
+tasks and acceptance; lifecycle status/evidence stay in PROJECT_STATE.
+
+## Native overlay capture experiment — Plan 026
+
+The owner authorized a local-first experiment for broader in-app capture after native required-field
+popover pixels were absent from otherwise successful captures. The proposed working
+choice is to render from the foreground window associated with the approved content
+view, cropped to that same banking area, using public APIs. Scene/window ownership,
+keyboard/system exclusion and coordinate mapping must be verified; a global
+key-window or all-window screenshot is not an accepted shortcut. A small local Expo
+iOS module is an option if the installed adapter cannot target the correct window.
+
+Prove the real bubble in a local fictional fixture before integrating uploads.
+Retain the current capture adapter, scheduling/timing/file contract and lifecycle
+checks. Native popovers may appear after web validation events and need bounded
+settle handling; no idle polling or continuous recording is proposed. Preserve
+source/capture-method provenance and use cuts for unsupported overlay transitions.
+No receiver/schema change is assumed; any negotiated contract expansion must retain
+old clients and strict validation. The local-only candidate and fixture are
+implemented. The owner confirms one successful actual validation-popover capture
+on the iPhone; repeatability, keyboard-visible exclusion and remaining acceptance
+still require physical checks. [Plan 026](plans/026-ios-native-overlay-capture-experiment.md) owns tasks,
+boundaries, device acceptance and fallback; PROJECT_STATE owns lifecycle/evidence.
+
+
+The local candidate is `SoftekOverlayCapture`, an Expo module resolved from
+`apps/mobile/modules`. It resolves the referenced view through the installed Expo
+Fabric-compatible context and takes only its owning foreground normal-level window.
+Rendering translates/scales directly into a 720 px crop rather than saving a full
+screen. Keyboard transition rectangles conservatively clip drawing above their
+highest intersection before pixels are rendered. A modal hosting the approved view
+is allowed; another presentation must be a popover anchored inside that view, or
+capture is rejected. No window enumeration, private class-name matching or private
+API is used. Keyboard clipping and window/popover assumptions are device hypotheses.
+
+`overlay-check` opens only a network-free fictional fixture. Start arms a one-minute
+comparison; initial/event requests coalesce for 350 ms and pairs start at least
+500 ms apart. Each pair sequentially invokes the unchanged baseline adapter and
+the window candidate, rechecking foreground/eligibility between results. Stop or
+interruption discards late files. Only eight samples are retained locally; they
+carry method, UTC/elapsed time, dimensions, byte/capture cost and mask/popover flags.
+The local fixture has no upload wiring. The separate experimental banking preview
+now offers candidate recording as described below. The normal preview retains
+the original capture adapter.
+
+
+The local comparison's Clear & reset action stops and invalidates pending captures,
+deletes accepted local files, closes Review and remounts the fictional WebView.
+A document epoch rejects load/message events from the old view; Start remains
+unavailable until the new document loads. Reset never automatically starts a check.
+New test labels distinguish runs whose pair numbers restart at 1, and Review gets
+a fresh scroll container on each opening. This addresses confusing cross-run
+numbering and retained review position without changing native pixel capture.
+
+
+After local pixel/exclusion proof, `overlay-preview` advertises `window-crop-v1`
+alongside `changes-v2`. The hosted recording panel defaults to page capture and
+lets capable preview users explicitly select native-tooltip coverage before Record.
+Selection is locked during recording/draining and fixed in the native session.
+The candidate uses the same private upload pipeline, with before/after eligibility,
+Stop and bounded files/queues; no silent method fallback is permitted.
+
+Window approval is `screenshots-window-v1` with policy `changes-v2`. Existing
+`approval_version` stores it; each frame's strict JSON context carries only
+`surface: { method: 'window-crop-v1', maskedKeyboard, anchoredPopover }`. The receiver
+requires approval/provenance agreement and rejects retry approval changes. The
+new `WINDOW_CAPTURE_ENABLED` gate defaults off and can reject new/writable window
+sessions while allowing Stop. Legacy view approvals retain their behavior. No new
+MariaDB column/migration, port, public file route or collection setting is needed.
+Admin method labels derive from approval and show native popover/mask flags.
+
+A window validation error waits at least 350 ms before the capture attempt, with
+500 ms minimum capture spacing maintained by the change loop. Stop cancels pending
+work. Native-reported capture request time feeds elapsed timestamps. Ordinary web
+taps additionally request a candidate UI capture to observe native dismissal;
+there is no idle polling. Native-only actions lacking a web signal are not claimed
+to have complete transition coverage until observed in the integrated device test.
+Replay cuts intervals touching a reported popover, keyboard mask or window error,
+and omits page gesture marks on those uncertain surfaces. Ordinary supported
+window scrolls can still use image/event alignment. These metadata are client
+reports, not device attestation or proof that every possible overlay is captured.
+
+
+### Labeled keyboard placeholder — OVL-08
+
+The owner selected an explanatory placeholder in derived replay videos. Renderer
+revision 6 adds “Keyboard area / Not captured” only to held `window-crop-v1` frames
+reporting `maskedKeyboard`. Existing frames do not persist exact masked bounds.
+As a working choice, scan full-width bottom rows matching the known native canvas
+color `#f5f6f1` within 3 RGB levels for JPEG rounding; retain an 8-pixel boundary
+margin and require at least 128 blank pixels. Center a compact panel wholly inside
+that region. Placement is inferred, not an assertion of exact keyboard dimensions.
+Nonblank page content is preserved. If no safe region exists, the video header
+still says “Keyboard area not captured,” without an in-image panel. Unmasked and
+legacy frames remain unchanged. No actual keys, suggestions or covered page
+content are synthesized, and originals/approval/native masking remain unchanged.
+The manifest records this convention and each video report counts labeled source
+intervals. Existing native-layer holds and marker exclusions continue to apply.
+
+
+### Page reconstruction beneath the keyboard — OVL-09
+
+The owner authorized this experiment after accepting the placeholder. Renderer
+revision 7 keeps placeholder-only behavior as the default; explicit
+`--reconstruct-keyboard` plans an inferred fill for held masked window frames.
+Within the same consecutive frame/route/document-container segment, consider only
+the nearest stable unmasked, nonpopover window observation before and after, each
+within 30 seconds. Require equal image dimensions/viewport width, scale 1 and no
+horizontal panning. Geometry predicts a vertical offset; a 120-pixel-wide image
+comparison searches nearby shifts. Require agreement in two textured bands,
+>=90% matching visible pixels (84% for a reported popover), bounded image error,
+and strict agreement near the seam. Full-resolution seam refinement establishes
+integer pixel alignment. Blank/unrelated/reflowed overlaps fail conservatively.
+Choose the accepted donor with greatest coverage, then closest time. These are
+working choices for this bounded demo, not proof of historical hidden state.
+
+Mask bounds were not persisted. Start from the uniform bottom canvas detection,
+without the placeholder's padding, and allow at most 16 faded JPEG-boundary rows
+within 25 RGB levels of the fill color. Strong content stops that extension.
+Everything above the inferred boundary is preserved byte-for-byte before video
+encoding, including the native tooltip. Copy only the donor strip that fits;
+never stretch, generate pixels, or fill across an unobserved source extent. The
+remaining region keeps the placeholder when it fits, otherwise the video/header
+still explains partial reconstruction. Tiny JPEG clipping/lighting seams may
+remain. Native/masked intervals remain holds, without synthetic gesture marks.
+
+Every reconstructed interval labels donor snapshot number and relative time in
+video; the private export note explicitly states that hidden state at that moment
+is unknown. The existing website summary still describes movement generically;
+reconstruction provenance is carried in the video itself. The private manifest records per-frame donor, elapsed/relative time,
+rectangle, pixel shift and match scores. The small served report contains opt-in
+status and counts, not a potentially oversized per-frame array. Original JPEGs,
+receiver/native capture, keyboard exclusion and consent are unchanged. Without
+`--reconstruct-keyboard`, rerendering restores the accepted placeholder-only view.
+
+
+## Session page references and image diffs — Plan 027
+
+The reference key is recording + page visit + layout revision + document extent,
+viewport/font metrics and image dimensions. The first version supports the main
+vertically scrolling document at scale 1; overlays, selection, horizontal overflow
+and uncertain mapping retain raw viewport replay. No other recording supplies pixels.
+
+`PageCanvas` stores sparse 256px PNG tiles with transparent unknown pixels and
+immutable hash-named revisions. New/changed/cleared observations update only the
+applicable historical state; JPEG noise up to eight channel levels may retain the
+previous tile, while original screenshots remain authoritative. Provenance includes
+source hash/time, mapped region and placement method. As-of views cannot introduce
+later coverage; retrospective keyboard fill uses past observations first and later
+pixels only for remaining holes, with time-range labeling and a manifest audit.
+Unobserved areas use a checkerboard. Space beyond a measured page end is separate
+from unknown page content. Legacy native footage instead uses bounded sequential
+registration of several raw donors; native tooltip pixels remain unchanged.
+
+Spatial coverage, temporal revisions and freshness are separate. Off-screen pixels
+retain their last observation, not a guarantee of unchanged state. Complete spatial
+coverage requires a measured extent, endpoint observations and full pixel coverage
+of the supported document domain in one layout. The 12px right scrollbar gutter
+is a separate viewport region, excluded from the reference domain/preview; full
+original screenshots retain it. Legacy extent/endpoints remain unknown. Previews
+are bounded; a tall reference can be retained even when its preview is truncated.
+
+The optional `page-context-v1` capability is negotiated by the new
+`screenshots-window-canvas-v1` approval, fixed per session in the existing approval
+column. Strict `context.page` version 1 holds whitelisted web page/extent/layout/
+layer/boundary numbers and the native renderer's actual valid/excluded pixel
+rectangles. It is stored in existing MariaDB frame-context JSON; no schema change.
+The viewport size/offset and actual document scroll origin remain distinct. Native
+bounds describe the same top clip used before drawing, never a keyboard screenshot.
+The separately controlled PAGE_CANVAS_ENABLED gate blocks new-mode starts/writes
+while preserving Stop, readers and old clients.
+
+Web layout identity combines document size, client width, computed font metrics
+and up to 64 numeric main/card position/size anchors; no DOM text/HTML/form values
+are read into metadata. Route visits, layout changes and incompatible rendering
+create separate references. Full moving observations can be placed when strong
+image overlap agrees with metadata within bounded uncertainty (up to 128 image
+pixels); their actual aligned position is recorded. Without a reliable anchor,
+unstable or mismatched scroll observations remain viewport-only. Registered
+positions outside the measured page (including a one-pixel negative return near
+the top) also remain viewport-only, rather than clamping or aborting the export. Keyboard-masked
+moving frames and reported native popovers are not page-base donors. These are
+client-reported geometry and experimental alignment, not device attestation.
+
+A keyboard-transition follow-up admits a narrowly scoped lower tail when focus
+styling spoils whole-image registration. After a keyboard observation in the same
+page key within 10 seconds, a stable unmasked/nonpopover forward-scroll frame needs its
+best shift within 6px of metadata, plus the existing 97% pixel/edge quality across
+two 128px full-width textured bands separated by at least 256px. The overall fit
+must still have 90% agreement, mean error below 6 and edge error below 25. This
+exception copies only new pixels below the prior observed bounds, beginning in
+the lower half of the donor. It never replaces already observed pixels or promotes
+that full image to a new alignment anchor. The manifest records `image-anchors`,
+band positions, source hash and the exact imported tail. Unverified holes remain
+unknown; retrospective video fill retains its source-time labels. This is a
+working choice for the owner-reported focus transition, not a relaxed general
+scroll/moving/overlay matcher.
+
+Plan 027 first delivery assembled/diffed completed recordings through the manual
+replay operator command; Plan 028 below adds automatic completion jobs. The renderer keeps full viewport uploads and immutable originals. Tile
+patches can increase total storage; patch-only uploads remain deferred. Use one
+reduced-priority job, two encoding threads, existing timing/decoded-image bounds,
+64 references/4,096 patch versions and 128 MiB of nested canvas derivatives,
+including per-page previews. Fixed-name preview/manifest and hashed tiles count
+toward capacity and retention; size limits fall back to observed viewport replay.
+The small served report bounds gap detail; the private manifest keeps the full audit.
+
+Authenticated admin review can select each generated page/layout preview, inspect
+coverage/endpoints/capture-time range, then compare original screenshots and timed
+MP4 replay. Page previews use fixed numeric routes; tile files stay private.
+All outputs publish atomically with source-deletion/expiry rechecks. Existing
+capture approval, lifecycle, native tooltip/keyboard exclusions and independent
+Clarity/Phoenix gates remain. [Plan 027](plans/027-session-page-references-and-image-diffs.md)
+owns acceptance, PROJECT_STATE the actual rollout/build/evidence, and LOCAL_SETUP
+and TESTING the executable operator/verification commands.
+
+
+## Automatic replay worker and 30 fps — Plan 028
+
+The owner requires automatic generation after recording ends and 30 fps video.
+Working choice: migration0015 adds a separate MariaDB `screenshot_replay_jobs`
+table, one cascading row per recording. Final Stop inserts the job in the same
+transaction as finalization, after upload drain; drain alone creates no job.
+Empty/no-duration sources are ineligible. Duplicate finish preserves an existing
+queued/ready/failed job. No historical backfill runs on deployment.
+
+A separate `softek-replay-worker` service polls every 3 seconds, holds a connection-scoped
+worker lock and launches the existing renderer from its immutable API release.
+A bundled ESM renderer keeps production independent of the writable development
+checkout/tsx. The renderer retains its separate manual/automatic render lock,
+source-copy/publication lock and deletion/expiry recheck. The HTTP process does
+not encode video. Ready publication precedes the durable ready status; a worker
+restart can recognize completed 30 fps outputs before rerendering.
+
+Interrupted rendering rows are recovered only while the worker owns its exclusive
+lock. Attempts are bounded at 3, with 30-second/120-second retry delays; failed jobs require an
+admin/CSRF-protected retry. On recovery the renderer may remove only the exact
+session's `.replay-work`, under both existing locks, rejecting a non-directory.
+Output publication remains atomic and original screenshots remain immutable.
+Each renderer gets a 256 MiB JS heap, two encoder threads and the existing 15-minute
+render deadline; the service has Nice 10, CPUQuota 150%, MemoryMax 1 GiB and 64 tasks.
+A 16-minute parent deadline and shutdown terminate the child process group, with a
+5-second force-kill fallback. Diagnostic logs expose only jobID and a whitelisted phase.
+
+REPLAY_WORKER_ENABLED independently gates new enqueueing and worker processing.
+Admin polling exposes safe queue status and automatically displays ready output;
+errors preserve screenshots and offer retry after the bounded attempts. Generated
+animation is 30 fps (renderer10); source timestamps and screenshot cadence do not
+change. Static legacy recordings can render timed holds without inferred scroll.
+Earlier accepted 24 fps exports are retained until an explicit rebuild. Schema 15
+is additive; rollback disables/stops the worker while preserving readers/cleanup.

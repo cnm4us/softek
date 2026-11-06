@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { pageWeb, pageBounds } from './page-context-fixtures.js';
 import { test } from 'node:test';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -9,6 +10,8 @@ import {
   access,
   rename,
   unlink,
+  rm,
+  utimes,
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -281,6 +284,153 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
         assert.equal(read.status, 200);
         assert.equal(read.response.headers.get('cache-control'), 'no-store');
         assert.deepEqual(read.data, bytes);
+      },
+    );
+    await t.test(
+      'derived replay remains private, supports range reads, shares quotas and removes stale work',
+      async () => {
+        const folder = join(store.directory, recording.id, 'replay');
+        const work = join(store.directory, recording.id, '.replay-work');
+        const bytes = Buffer.from('fictional-mp4-range-fixture');
+        await mkdir(folder, { mode: 0o750 });
+        await writeFile(join(folder, 'sample.mp4'), bytes, { mode: 0o640 });
+        await writeFile(join(folder, 'full.mp4'), bytes, { mode: 0o640 });
+        await writeFile(
+          join(folder, 'report.json'),
+          JSON.stringify({
+            version: 1,
+            sample: { durationMs: 15000 },
+            full: { durationMs: 139250 },
+            reconstructedIntervals: 3,
+          }),
+          { mode: 0o640 },
+        );
+        await writeFile(
+          join(folder, 'canvas-preview.png'),
+          Buffer.from('fictional-page-preview'),
+          { mode: 0o640 },
+        );
+        const canvasFolder = join(folder, 'canvas', 'page-1');
+        await mkdir(canvasFolder, { recursive: true, mode: 0o750 });
+        await writeFile(
+          join(canvasFolder, 'preview.png'),
+          Buffer.from('fictional-page-preview'),
+          { mode: 0o640 },
+        );
+        const route = `/api/admin/recordings/${recording.id}/replay/sample.mp4`;
+        const cap = recordingLimits.totalBytes;
+        try {
+          assert.equal((await request(route, undefined, 'none')).status, 401);
+          assert.equal(
+            (await request(route, undefined, 'customer')).status,
+            401,
+          );
+          const previewRoute = `/api/admin/recordings/${recording.id}/replay/canvas-preview.png`;
+          assert.equal(
+            (await request(previewRoute, undefined, 'none')).status,
+            401,
+          );
+          const preview = await request(previewRoute, undefined, 'admin');
+          assert.equal(preview.status, 200);
+          assert.ok(
+            preview.response.headers
+              .get('content-type')
+              ?.startsWith('image/png'),
+          );
+          assert.equal(
+            preview.response.headers.get('cache-control'),
+            'no-store',
+          );
+          const pageRoute = `/api/admin/recordings/${recording.id}/page-references/0`;
+          assert.equal(
+            (await request(pageRoute, undefined, 'none')).status,
+            401,
+          );
+          const pageRead = await request(pageRoute, undefined, 'admin');
+          assert.equal(pageRead.status, 200);
+          assert.equal(
+            pageRead.response.headers.get('cache-control'),
+            'no-store',
+          );
+          assert.equal(
+            (
+              await request(
+                `/api/admin/recordings/${recording.id}/page-references/64`,
+                undefined,
+                'admin',
+              )
+            ).status,
+            400,
+          );
+          const read = await request(route, undefined, 'admin');
+          assert.equal(read.status, 200);
+          assert.deepEqual(read.data, bytes);
+          assert.equal(read.response.headers.get('cache-control'), 'no-store');
+          const range = await fetch(base + route, {
+            headers: {
+              Cookie: adminCookie,
+              Range: 'bytes=0-9',
+              'X-Demo-Automation': process.env.AUTOMATION_SECRET!,
+            },
+          });
+          assert.equal(range.status, 206);
+          assert.deepEqual(
+            Buffer.from(await range.arrayBuffer()),
+            bytes.subarray(0, 10),
+          );
+          assert.equal(
+            (
+              await request(
+                `/api/admin/recordings/${recording.id}`,
+                undefined,
+                'admin',
+              )
+            ).data.replay.version,
+            1,
+          );
+          const [imageUsage] = await pool.query(
+            'SELECT COALESCE(SUM(stored_bytes),0) AS bytes FROM screenshot_recordings',
+          );
+          recordingLimits.totalBytes = Number(imageUsage.bytes) + bytes.length;
+          await assert.rejects(
+            store.locked((c) => store.capacity(c)),
+            /storage limit/,
+          );
+          recordingLimits.totalBytes = cap;
+          await mkdir(work, { mode: 0o750 });
+          await utimes(
+            work,
+            new Date(Date.now() - 31 * 60_000),
+            new Date(Date.now() - 31 * 60_000),
+          );
+          assert.equal((await store.cleanup(true)).staleReplayWork, 1);
+          await store.cleanup(false);
+          await assert.rejects(access(work));
+          await access(join(folder, 'sample.mp4'));
+          const [r] = await pool.query(
+            'SELECT retained_until FROM screenshot_recordings WHERE id=?',
+            [recording.id],
+          );
+          try {
+            await pool.query(
+              'UPDATE screenshot_recordings SET retained_until=UTC_TIMESTAMP(6) WHERE id=?',
+              [recording.id],
+            );
+            assert.equal(
+              (await request(route, undefined, 'admin')).status,
+              404,
+            );
+          } finally {
+            await pool.query(
+              'UPDATE screenshot_recordings SET retained_until=? WHERE id=?',
+              [r.retained_until, recording.id],
+            );
+          }
+        } finally {
+          recordingLimits.totalBytes = cap;
+          await rm(folder, { recursive: true, force: true });
+          await rm(work, { recursive: true, force: true });
+        }
       },
     );
     await t.test(
@@ -579,6 +729,15 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
         };
         assert.equal(
           (
+            await pool.query(
+              'SELECT COUNT(*) AS n FROM screenshot_replay_jobs WHERE recording_id=?',
+              [recording.id],
+            )
+          )[0].n,
+          0,
+        );
+        assert.equal(
+          (
             await request(
               `/api/recordings/${recording.id}/stop`,
               stopped,
@@ -586,6 +745,16 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
             )
           ).status,
           200,
+        );
+        assert.equal(
+          (
+            await pool.query(
+              'SELECT COUNT(*) AS n FROM screenshot_replay_jobs WHERE recording_id=?',
+              [recording.id],
+            )
+          )[0].n,
+          0,
+          'Drain must not start rendering before uploads finish',
         );
         assert.equal(
           (
@@ -617,6 +786,13 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
           ).status,
           200,
         );
+        const jobs = await pool.query(
+          'SELECT state,attempts FROM screenshot_replay_jobs WHERE recording_id=?',
+          [recording.id],
+        );
+        assert.equal(jobs.length, 1);
+        assert.equal(jobs[0].state, 'queued');
+        assert.equal(jobs[0].attempts, 0);
         assert.equal(
           (
             await request(
@@ -637,6 +813,44 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
           ).status,
           409,
         );
+      },
+    );
+    await t.test(
+      'video status is private and failed retry requires admin/CSRF without duplicating queued work',
+      async () => {
+        const path = `/api/admin/recordings/${recording.id}/replay/retry`;
+        assert.equal((await request(path, {}, 'customer')).status, 403);
+        const denied = await fetch(base + path, {
+          method: 'POST',
+          headers: {
+            Origin: process.env.PUBLIC_ORIGIN!,
+            'Content-Type': 'application/json',
+            Cookie: adminCookie,
+            'X-Demo-Automation': process.env.AUTOMATION_SECRET!,
+          },
+          body: '{}',
+        });
+        assert.equal(denied.status, 403);
+        assert.equal((await request(path, {}, 'admin')).status, 409);
+        await pool.query(
+          "UPDATE screenshot_replay_jobs SET state='failed',attempts=3,last_error='Video generation failed' WHERE recording_id=?",
+          [recording.id],
+        );
+        const view = await request(
+          `/api/admin/recordings/${recording.id}`,
+          undefined,
+          'admin',
+        );
+        assert.equal(view.data.replayJob.state, 'failed');
+        assert.equal((await request(path, {}, 'admin')).status, 200);
+        assert.equal((await request(path, {}, 'admin')).status, 409);
+        const [job] = await pool.query(
+          'SELECT state,attempts,last_error FROM screenshot_replay_jobs WHERE recording_id=?',
+          [recording.id],
+        );
+        assert.equal(job.state, 'queued');
+        assert.equal(job.attempts, 0);
+        assert.equal(job.last_error, null);
       },
     );
     await t.test(
@@ -763,6 +977,476 @@ test('private screenshot receiver, timestamps, retries, lifecycle and cleanup', 
             )
           ).length,
           0,
+        );
+      },
+    );
+    await t.test(
+      'change policy accepts near-zero and same-second frames, bounds private events, and records loss',
+      async () => {
+        requestId = randomUUID();
+        recording = (await start()).data;
+        const g = {
+          route: '/',
+          width: 440,
+          height: 812,
+          scale: 1,
+          offsetX: 0,
+          offsetY: 0,
+          scrollX: 0,
+          scrollY: 0,
+          container: 'document',
+          containerX: 0,
+          containerY: 0,
+        };
+        const context = {
+          reason: 'start',
+          geometry: g,
+          uncertaintyMs: 10,
+          unstable: false,
+        };
+        const event = {
+          sequence: 1,
+          elapsedMs: 500,
+          kind: 'tap',
+          geometry: g,
+          uncertaintyMs: 10,
+          x: 0.25,
+          y: 0.5,
+        };
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, { elapsedMs: 0 }),
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/events`,
+              { requestId: randomUUID(), events: [event] },
+              'bearer',
+            )
+          ).status,
+          409,
+        );
+        requestId = randomUUID();
+        const body = {
+          requestId,
+          documentId,
+          approvalVersion: 'screenshots-v2',
+          policy: 'changes-v2',
+        };
+        assert.equal(
+          (
+            await request('/api/recordings', {
+              ...body,
+              approvalVersion: 'screenshots-v1',
+            })
+          ).status,
+          400,
+        );
+        const created = await request('/api/recordings', body);
+        assert.equal(created.status, 201);
+        recording = created.data;
+        await pool.query(
+          'UPDATE screenshot_recordings SET started_at=DATE_SUB(UTC_TIMESTAMP(6),INTERVAL 10 SECOND) WHERE id=?',
+          [recording.id],
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, { elapsedMs: 0, context }),
+              'bearer',
+            )
+          ).status,
+          201,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(2, sample, {
+                elapsedMs: 500,
+                context: { ...context, reason: 'ui' },
+              }),
+              'bearer',
+            )
+          ).status,
+          201,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(3, sample, {
+                elapsedMs: 600,
+                context: { ...context, inputValue: 'excluded' },
+              }),
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        const endpoint = `/api/recordings/${recording.id}/events`,
+          batch = {
+            requestId: randomUUID(),
+            events: [event, { ...event, sequence: 3, elapsedMs: 600 }],
+          };
+        assert.equal((await request(endpoint, batch, 'bearer')).status, 201);
+        assert.equal((await request(endpoint, batch, 'bearer')).status, 200);
+        assert.equal(
+          (
+            await request(
+              endpoint,
+              { ...batch, events: [{ ...event, x: 0.75 }] },
+              'bearer',
+            )
+          ).status,
+          409,
+        );
+        assert.equal(
+          (
+            await request(
+              endpoint,
+              { ...batch, events: [{ ...event, inputValue: 'never allowed' }] },
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/admin/recordings/${recording.id}/events`,
+              undefined,
+              'customer',
+            )
+          ).status,
+          401,
+        );
+        const reviewed = await request(
+          `/api/admin/recordings/${recording.id}/events`,
+          undefined,
+          'admin',
+        );
+        assert.equal(reviewed.data.events.length, 2);
+        const stopped = {
+          phase: 'drain',
+          elapsedMs: 800,
+          slots: 2,
+          events: 3,
+          lostEvents: 0,
+          coalesced: 5,
+          reason: 'Stopped',
+        };
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/stop`,
+              stopped,
+              'bearer',
+            )
+          ).status,
+          200,
+        );
+        assert.equal(
+          (
+            await request(
+              endpoint,
+              { ...batch, events: [{ ...event, sequence: 4, elapsedMs: 900 }] },
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/stop`,
+              { ...stopped, phase: 'finish' },
+              'bearer',
+            )
+          ).status,
+          200,
+        );
+        const [r] = await pool.query(
+          'SELECT * FROM screenshot_recordings WHERE id=?',
+          [recording.id],
+        );
+        assert.equal(r.capture_policy, 'changes-v2');
+        assert.equal(r.received_events, 2);
+        assert.equal(r.lost_events, 1);
+        assert.equal(r.coalesced_triggers, 5);
+        assert.ok(Number(r.event_bytes) > 0);
+        await request(
+          `/api/admin/recordings/${recording.id}/delete`,
+          {},
+          'admin',
+        );
+        assert.equal(
+          Number(
+            (
+              await pool.query(
+                'SELECT COUNT(*) n FROM screenshot_events WHERE recording_id=?',
+                [recording.id],
+              )
+            )[0].n,
+          ),
+          0,
+        );
+        assert.equal(
+          Number(
+            (
+              await pool.query(
+                'SELECT COUNT(*) n FROM screenshot_frame_context WHERE recording_id=?',
+                [recording.id],
+              )
+            )[0].n,
+          ),
+          0,
+        );
+      },
+    );
+    await t.test(
+      'native window provenance requires matching approval and survives private readback',
+      async () => {
+        const context = {
+          reason: 'error',
+          geometry: {
+            route: '/',
+            width: 440,
+            height: 812,
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            scrollX: 0,
+            scrollY: 0,
+            container: 'document',
+            containerX: 0,
+            containerY: 0,
+          },
+          uncertaintyMs: 25,
+          unstable: false,
+        };
+        const surface = {
+          method: 'window-crop-v1',
+          maskedKeyboard: true,
+          anchoredPopover: true,
+        };
+        const body = {
+          requestId: randomUUID(),
+          documentId,
+          policy: 'changes-v2',
+          approvalVersion: 'screenshots-v2',
+        };
+        const base = await request('/api/recordings', body);
+        assert.equal(base.status, 201);
+        recording = base.data;
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, {
+                elapsedMs: 0,
+                context: { ...context, surface },
+              }),
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request('/api/recordings', {
+              ...body,
+              approvalVersion: 'screenshots-window-v1',
+            })
+          ).status,
+          409,
+        );
+        const windowBody = {
+          ...body,
+          requestId: randomUUID(),
+          approvalVersion: 'screenshots-window-v1',
+        };
+        assert.equal(
+          (
+            await request('/api/recordings', {
+              ...windowBody,
+              policy: 'periodic-v1',
+            })
+          ).status,
+          400,
+        );
+        const created = await request('/api/recordings', windowBody);
+        assert.equal(created.status, 201);
+        recording = created.data;
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, { elapsedMs: 0, context }),
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, {
+                elapsedMs: 0,
+                context: {
+                  ...context,
+                  surface: { ...surface, inputValue: 'excluded' },
+                },
+              }),
+              'bearer',
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/frames`,
+              form(1, sample, {
+                elapsedMs: 0,
+                context: { ...context, surface },
+              }),
+              'bearer',
+            )
+          ).status,
+          201,
+        );
+        const read = await request(
+          `/api/admin/recordings/${recording.id}`,
+          undefined,
+          'admin',
+        );
+        assert.equal(read.status, 200);
+        assert.equal(read.data.recording.capture_method, 'window-crop-v1');
+        assert.deepEqual(read.data.frames[0].context.surface, surface);
+        assert.equal(
+          (
+            await request(
+              `/api/admin/recordings/${recording.id}`,
+              undefined,
+              'none',
+            )
+          ).status,
+          401,
+        );
+        assert.equal(
+          (
+            await request(
+              `/api/recordings/${recording.id}/stop`,
+              { phase: 'finish', elapsedMs: 1000, slots: 1, reason: 'Stopped' },
+              'bearer',
+            )
+          ).status,
+          200,
+        );
+        await request(
+          `/api/admin/recordings/${recording.id}/delete`,
+          {},
+          'admin',
+        );
+      },
+    );
+    await t.test(
+      'page references bind versioned context to approval and validate decoded image bounds',
+      async () => {
+        const created = await request('/api/recordings', {
+          requestId: randomUUID(),
+          documentId,
+          policy: 'changes-v2',
+          approvalVersion: 'screenshots-window-canvas-v1',
+        });
+        assert.equal(created.status, 201);
+        assert.equal(created.data.pageContextVersion, 1);
+        recording = created.data;
+        const context = {
+          reason: 'scroll',
+          geometry: {
+            route: '/goals',
+            width: 440,
+            height: 812,
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            scrollX: 0,
+            scrollY: 0,
+            container: 'document',
+            containerX: 0,
+            containerY: 0,
+          },
+          uncertaintyMs: 25,
+          unstable: false,
+          surface: {
+            method: 'window-crop-v1',
+            maskedKeyboard: true,
+            anchoredPopover: false,
+          },
+          page: { version: 1, web: pageWeb, image: pageBounds },
+        };
+        const send = (c: unknown) =>
+          request(
+            `/api/recordings/${recording.id}/frames`,
+            form(1, sample, { elapsedMs: 0, context: c }),
+            'bearer',
+          );
+        const { page, ...missing } = context;
+        assert.equal((await send(missing)).status, 400);
+        assert.equal(
+          (
+            await send({
+              ...context,
+              page: {
+                ...page,
+                image: {
+                  ...pageBounds,
+                  height: 1099,
+                  excluded: [{ x: 0, y: 700, width: 720, height: 399 }],
+                },
+              },
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await send({
+              ...context,
+              page: { ...page, web: { ...pageWeb, inputValue: 'excluded' } },
+            })
+          ).status,
+          400,
+        );
+        assert.equal((await send(context)).status, 201);
+        assert.equal((await send(context)).status, 200);
+        const read = await request(
+          `/api/admin/recordings/${recording.id}`,
+          undefined,
+          'admin',
+        );
+        assert.equal(read.data.recording.capture_method, 'window-crop-v1');
+        assert.deepEqual(read.data.frames[0].context.page, page);
+        await request(
+          `/api/recordings/${recording.id}/stop`,
+          { phase: 'finish', elapsedMs: 1000, slots: 1, reason: 'Stopped' },
+          'bearer',
+        );
+        await request(
+          `/api/admin/recordings/${recording.id}/delete`,
+          {},
+          'admin',
         );
       },
     );

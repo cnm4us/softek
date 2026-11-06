@@ -1,3 +1,5 @@
+import type { CaptureContext } from './change-capture';
+import type { ImageBounds } from './page-context';
 export type CapturedFile = {
   uri: string;
   bytes: number;
@@ -5,6 +7,9 @@ export type CapturedFile = {
   capturedAt?: string;
   capturedMonotonicMs?: number;
   captureMs?: number;
+  context?: CaptureContext;
+  surface?: CaptureContext['surface'];
+  imageBounds?: ImageBounds;
 };
 export type Frame = CapturedFile & {
   sequence: number;

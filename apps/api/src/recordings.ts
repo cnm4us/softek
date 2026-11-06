@@ -11,6 +11,7 @@ import {
   chmod,
   readFile,
   writeFile,
+  lstat,
 } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import multer from 'multer';
@@ -20,6 +21,13 @@ import { z } from 'zod';
 import { projectRoot } from './config.js';
 import { customerContext, tokenHash } from './customer-context.js';
 import { HttpError } from './errors.js';
+import { frameContext, interactionBatch } from './change-capture.js';
+import { enqueueReplay, replayJob } from './replay-jobs.js';
+import {
+  replayNames,
+  replaySummary,
+  replayUsage,
+} from './recording-replay-files.js';
 
 type Row = Record<string, any>;
 const uuid = z
@@ -29,6 +37,10 @@ const uuid = z
 const idPattern = /^[a-f0-9-]{36}$/;
 const hash = (value: string | Buffer) =>
   createHash('sha256').update(value).digest('hex');
+const windowApprovals = [
+  'screenshots-window-v1',
+  'screenshots-window-canvas-v1',
+];
 export const recordingLimits = {
   frameBytes: 1_048_576,
   sessionBytes: 256 * 1_048_576,
@@ -53,14 +65,11 @@ const metadata = z
   .object({
     sequence: z.number().int().min(1).max(900),
     capturedAt: z.iso.datetime(),
-    elapsedMs: z.number().int().min(900).max(900_999),
+    elapsedMs: z.number().int().min(0).max(900_999),
     captureMs: z.number().int().min(0).max(30_000),
+    context: frameContext.optional(),
   })
-  .strict()
-  .refine(
-    (m) => Math.floor(m.elapsedMs / 1000) === m.sequence,
-    'Invalid scheduled slot',
-  );
+  .strict();
 
 export class RecordingStore {
   readonly directory: string;
@@ -116,9 +125,13 @@ export class RecordingStore {
     )
       throw new HttpError(503, 'Recording storage is low on space.');
     const [usage] = await c.query(
-      'SELECT COALESCE(SUM(stored_bytes),0) AS bytes FROM screenshot_recordings',
+      'SELECT COALESCE(SUM(stored_bytes+event_bytes),0) AS bytes FROM screenshot_recordings',
     );
-    if (Number(usage.bytes) + bytes > recordingLimits.totalBytes)
+    const replay = await replayUsage(this.directory);
+    if (
+      Number(usage.bytes) + replay.derivedBytes + replay.reservedBytes + bytes >
+      recordingLimits.totalBytes
+    )
       throw new HttpError(503, 'Recording storage limit reached.');
   }
   async validate(
@@ -150,6 +163,30 @@ export class RecordingStore {
       [id, hash(credential)],
     );
     if (!r) throw new HttpError(401, 'Recording access expired.');
+    if (
+      writable &&
+      r.approval_version === 'screenshots-window-canvas-v1' &&
+      !this.test &&
+      process.env.PAGE_CANVAS_ENABLED !== 'true'
+    )
+      throw new HttpError(
+        503,
+        'Session page reference capture is unavailable.',
+      );
+    if (
+      writable &&
+      windowApprovals.includes(r.approval_version) &&
+      !this.test &&
+      process.env.WINDOW_CAPTURE_ENABLED !== 'true'
+    )
+      throw new HttpError(409, 'Native tooltip capture is unavailable.');
+    if (
+      writable &&
+      r.capture_policy === 'changes-v2' &&
+      !this.test &&
+      process.env.CHANGE_CAPTURE_ENABLED !== 'true'
+    )
+      throw new HttpError(409, 'Change-triggered capture is unavailable.');
     if (r.state === 'deleting' || r.state === 'interrupted')
       throw new HttpError(409, 'This recording has ended.');
     if (writable && !['active', 'uploading'].includes(r.state))
@@ -179,6 +216,7 @@ export class RecordingStore {
       const expiredIds = new Set(expired.map((r) => r.id));
       const directories: string[] = [],
         temporary: string[] = [],
+        staleReplayWork: string[] = [],
         orphanFrames: string[] = [];
       const missingFrames: { id: string; sequence: number }[] = [];
       const foundDirectories = new Set<string>();
@@ -212,6 +250,11 @@ export class RecordingStore {
           if (!present.has(`${f.sequence_number}.jpg`))
             missingFrames.push({ id: entry.name, sequence: f.sequence_number });
         for (const file of files) {
+          if (file.name === '.replay-work' && file.isDirectory()) {
+            const s = await lstat(join(this.directory, entry.name, file.name));
+            if (Date.now() - s.mtimeMs > 30 * 60_000)
+              staleReplayWork.push(join(entry.name, file.name));
+          }
           if (!file.isFile()) continue;
           if (/^\.upload-[a-f0-9-]+\.tmp$/.test(file.name))
             temporary.push(join(entry.name, file.name));
@@ -257,6 +300,11 @@ export class RecordingStore {
             });
         for (const file of [...temporary, ...orphanFrames])
           await rm(join(this.directory, file), { force: true });
+        for (const folder of staleReplayWork)
+          await rm(join(this.directory, folder), {
+            recursive: true,
+            force: true,
+          });
         for (const f of missingFrames)
           await c.query(
             'DELETE FROM screenshot_frames WHERE recording_id=? AND sequence_number=?',
@@ -264,8 +312,8 @@ export class RecordingStore {
           );
         for (const id of new Set(missingFrames.map((f) => f.id))) {
           await c.query(
-            `UPDATE screenshot_recordings SET received_frames=(SELECT COUNT(*) FROM screenshot_frames WHERE recording_id=?),stored_bytes=(SELECT COALESCE(SUM(byte_length),0) FROM screenshot_frames WHERE recording_id=?),state='interrupted',stop_reason='Screenshot file recovery',finalized_at=UTC_TIMESTAMP(6) WHERE id=?`,
-            [id, id, id],
+            `UPDATE screenshot_recordings SET received_frames=(SELECT COUNT(*) FROM screenshot_frames WHERE recording_id=?),stored_bytes=(SELECT COALESCE(SUM(byte_length),0) FROM screenshot_frames WHERE recording_id=?),event_bytes=(SELECT COALESCE(SUM(OCTET_LENGTH(context_json)),0) FROM screenshot_frame_context WHERE recording_id=?)+(SELECT COALESCE(SUM(OCTET_LENGTH(payload_json)),0) FROM screenshot_events WHERE recording_id=?),state='interrupted',stop_reason='Screenshot file recovery',finalized_at=UTC_TIMESTAMP(6) WHERE id=?`,
+            [id, id, id, id, id],
           );
         }
       }
@@ -276,6 +324,7 @@ export class RecordingStore {
         temporary: temporary.length,
         orphanFrames: orphanFrames.length,
         missingFrames: missingFrames.length,
+        staleReplayWork: staleReplayWork.length,
       };
     });
     if (!dryRun) {
@@ -331,10 +380,42 @@ export function registerRecordings({
       .object({
         requestId: uuid,
         documentId: uuid,
-        approvalVersion: z.literal('screenshots-v1'),
+        approvalVersion: z.enum([
+          'screenshots-v1',
+          'screenshots-v2',
+          'screenshots-window-v1',
+          'screenshots-window-canvas-v1',
+        ]),
+        policy: z.enum(['periodic-v1', 'changes-v2']).default('periodic-v1'),
       })
       .strict()
       .parse(req.body);
+    if (
+      (b.policy === 'changes-v2') !==
+      (b.approvalVersion !== 'screenshots-v1')
+    )
+      throw new HttpError(400, 'Capture approval and policy must agree.');
+    if (
+      windowApprovals.includes(b.approvalVersion) &&
+      !test &&
+      process.env.WINDOW_CAPTURE_ENABLED !== 'true'
+    )
+      throw new HttpError(503, 'Native tooltip capture is unavailable.');
+    if (
+      b.policy === 'changes-v2' &&
+      !test &&
+      process.env.CHANGE_CAPTURE_ENABLED !== 'true'
+    )
+      throw new HttpError(503, 'Change-triggered capture is unavailable.');
+    if (
+      b.approvalVersion === 'screenshots-window-canvas-v1' &&
+      !test &&
+      process.env.PAGE_CANVAS_ENABLED !== 'true'
+    )
+      throw new HttpError(
+        503,
+        'Session page reference capture is unavailable.',
+      );
     const result = await store.locked(async (c) => {
       const run = await active(c, req);
       if (customerContext(req).source !== 'customer')
@@ -353,6 +434,8 @@ export function registerRecordings({
         if (
           old.session_hash !== sessionHash ||
           old.document_id !== b.documentId ||
+          old.capture_policy !== b.policy ||
+          old.approval_version !== b.approvalVersion ||
           old.state !== 'active'
         )
           throw new HttpError(409, 'Start a new recording.');
@@ -360,6 +443,10 @@ export function registerRecordings({
           id: old.id,
           credential: credential(old),
           limits: recordingLimits,
+          policy: old.capture_policy,
+          ...(old.approval_version === 'screenshots-window-canvas-v1'
+            ? { pageContextVersion: 1 }
+            : {}),
         };
       }
       const [recent] = await c.query(
@@ -394,8 +481,8 @@ export function registerRecordings({
       const raw = credential(r);
       await c.query(
         `INSERT INTO screenshot_recordings
-        (id,user_id,run_id,session_hash,credential_hash,request_id,document_id,approval_version,state,started_at,heartbeat_at,credential_expires_at,retained_until)
-        VALUES (?,?,?,?,?,?,?,?,'active',UTC_TIMESTAMP(6),UTC_TIMESTAMP(6),DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 16 MINUTE),DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 7 DAY))`,
+        (id,user_id,run_id,session_hash,credential_hash,request_id,document_id,approval_version,capture_policy,state,started_at,heartbeat_at,credential_expires_at,retained_until)
+        VALUES (?,?,?,?,?,?,?,?,?,'active',UTC_TIMESTAMP(6),UTC_TIMESTAMP(6),DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 16 MINUTE),DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 7 DAY))`,
         [
           r.id,
           run.user_id,
@@ -405,9 +492,18 @@ export function registerRecordings({
           b.requestId,
           b.documentId,
           b.approvalVersion,
+          b.policy,
         ],
       );
-      return { id: r.id, credential: raw, limits: recordingLimits };
+      return {
+        id: r.id,
+        credential: raw,
+        limits: recordingLimits,
+        policy: b.policy,
+        ...(b.approvalVersion === 'screenshots-window-canvas-v1'
+          ? { pageContextVersion: 1 }
+          : {}),
+      };
     });
     res.status(201).json(result);
   });
@@ -442,7 +538,7 @@ export function registerRecordings({
       store.assertEnabled();
       const id = uuid.parse(req.params.id),
         raw = bearer(req);
-      await store.validate(pool, id, raw, true);
+      const owner = await store.validate(pool, id, raw, true);
       if (uploading >= 2)
         throw new HttpError(429, 'Recording receiver is busy.');
       uploading++;
@@ -469,6 +565,34 @@ export function registerRecordings({
           throw new HttpError(400, 'Invalid screenshot metadata.');
         }
         const m = metadata.parse(parsed);
+        if (
+          owner.capture_policy === 'periodic-v1' &&
+          (m.context ||
+            m.elapsedMs < 900 ||
+            Math.floor(m.elapsedMs / 1000) !== m.sequence)
+        )
+          throw new HttpError(400, 'Invalid scheduled slot.');
+        if (owner.capture_policy === 'changes-v2' && !m.context)
+          throw new HttpError(
+            400,
+            'Change-triggered frames require capture context.',
+          );
+        if (
+          windowApprovals.includes(owner.approval_version) !==
+          Boolean(m.context?.surface)
+        )
+          throw new HttpError(
+            400,
+            'Capture provenance and approval must agree.',
+          );
+        if (
+          (owner.approval_version === 'screenshots-window-canvas-v1') !==
+          Boolean(m.context?.page)
+        )
+          throw new HttpError(
+            400,
+            'Page reference context and approval must agree.',
+          );
         const requestHash = hash(
           Buffer.concat([Buffer.from(JSON.stringify(m)), req.file.buffer]),
         );
@@ -505,6 +629,18 @@ export function registerRecordings({
             'Use a valid, single JPEG screenshot up to 1080 × 4096 pixels.',
           );
         }
+        const bounds = m.context?.page?.image;
+        if (
+          bounds &&
+          (bounds.width !== width ||
+            bounds.height !== height ||
+            Boolean(bounds.excluded.length) !==
+              m.context?.surface?.maskedKeyboard)
+        )
+          throw new HttpError(
+            400,
+            'Page reference bounds disagree with the captured image.',
+          );
         const result = await store.locked(async (c) => {
           const r = await store.validate(c, id, raw, true);
           const age = Date.now() - new Date(r.started_at).getTime();
@@ -536,11 +672,17 @@ export function registerRecordings({
             };
           }
           if (
-            Number(r.stored_bytes) + image.length >
+            Number(r.stored_bytes) +
+              Number(r.event_bytes) +
+              image.length +
+              (m.context ? Buffer.byteLength(JSON.stringify(m.context)) : 0) >
             recordingLimits.sessionBytes
           )
             throw new HttpError(413, 'Recording size limit reached.');
-          await store.capacity(c, image.length);
+          const contextBytes = m.context
+            ? Buffer.byteLength(JSON.stringify(m.context))
+            : 0;
+          await store.capacity(c, image.length + contextBytes);
           const directory = join(store.directory, id);
           await mkdir(directory, { recursive: true, mode: 0o750 });
           await chmod(directory, 0o750);
@@ -568,7 +710,7 @@ export function registerRecordings({
                   (new Date(r.started_at).getTime() + m.elapsedMs),
               ) > 5000;
             await c.query(
-              `INSERT INTO screenshot_frames VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+              `INSERT INTO screenshot_frames (recording_id,sequence_number,captured_at,received_at,elapsed_ms,capture_ms,width,height,byte_length,request_hash,image_hash,clock_skew) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
               [
                 id,
                 m.sequence,
@@ -584,9 +726,14 @@ export function registerRecordings({
                 skew,
               ],
             );
+            if (m.context)
+              await c.query(
+                'INSERT INTO screenshot_frame_context VALUES (?,?,?)',
+                [id, m.sequence, JSON.stringify(m.context)],
+              );
             await c.query(
-              'UPDATE screenshot_recordings SET received_frames=received_frames+1,stored_bytes=stored_bytes+?,scheduled_slots=GREATEST(scheduled_slots,?) WHERE id=?',
-              [image.length, m.sequence, id],
+              'UPDATE screenshot_recordings SET received_frames=received_frames+1,stored_bytes=stored_bytes+?,event_bytes=event_bytes+?,scheduled_slots=GREATEST(scheduled_slots,?) WHERE id=?',
+              [image.length, contextBytes, m.sequence, id],
             );
             return {
               sequence: m.sequence,
@@ -602,6 +749,95 @@ export function registerRecordings({
       } finally {
         uploading--;
       }
+    },
+  );
+  const eventLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 180,
+    keyGenerator: (req) => String(req.params.id).toLowerCase(),
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+  });
+  app.post(
+    '/api/recordings/:id/events',
+    async (req, _res, next) => {
+      store.assertEnabled();
+      await store.validate(pool, uuid.parse(req.params.id), bearer(req), true);
+      next();
+    },
+    eventLimiter,
+    async (req, res) => {
+      store.assertEnabled();
+      const id = uuid.parse(req.params.id),
+        raw = bearer(req);
+      await store.validate(pool, id, raw, true);
+      if (Buffer.byteLength(JSON.stringify(req.body)) > 12 * 1024)
+        throw new HttpError(413, 'Interaction batch is too large.');
+      const body = interactionBatch.parse(req.body);
+      const count = await store.locked(async (c) => {
+        const r = await store.validate(c, id, raw, true);
+        if (r.capture_policy !== 'changes-v2')
+          throw new HttpError(
+            409,
+            'Interaction events require a change-triggered recording.',
+          );
+        const age = Date.now() - new Date(r.started_at).getTime();
+        let added = 0,
+          bytes = 0;
+        for (const event of body.events) {
+          if (
+            event.elapsedMs > age + 2000 ||
+            event.elapsedMs < age - 40000 ||
+            (r.stop_elapsed_ms !== null && event.elapsedMs > r.stop_elapsed_ms)
+          )
+            throw new HttpError(
+              400,
+              'Interaction timing is outside this recording.',
+            );
+          const payload = JSON.stringify(event),
+            digest = hash(payload);
+          const [old] = await c.query(
+            'SELECT request_hash FROM screenshot_events WHERE recording_id=? AND sequence_number=?',
+            [id, event.sequence],
+          );
+          if (old) {
+            if (old.request_hash !== digest)
+              throw new HttpError(
+                409,
+                'Interaction sequence already contains different data.',
+              );
+            continue;
+          }
+          const length = Buffer.byteLength(payload);
+          bytes += length;
+          await c.query(
+            'INSERT INTO screenshot_events VALUES (?,?,?,?,?,?,?,UTC_TIMESTAMP(6))',
+            [
+              id,
+              event.sequence,
+              event.elapsedMs,
+              event.kind,
+              payload,
+              digest,
+              body.requestId,
+            ],
+          );
+          added++;
+        }
+        if (
+          Number(r.received_events) + added > 12000 ||
+          Number(r.stored_bytes) + Number(r.event_bytes) + bytes >
+            recordingLimits.sessionBytes
+        )
+          throw new HttpError(413, 'Interaction storage limit reached.');
+        if (added) await store.capacity(c, bytes);
+        await c.query(
+          'UPDATE screenshot_recordings SET received_events=received_events+?,event_bytes=event_bytes+? WHERE id=?',
+          [added, bytes, id],
+        );
+        return added;
+      });
+      res.status(count ? 201 : 200).json({ received: count });
     },
   );
   app.post('/api/recordings/:id/heartbeat', async (req, res) => {
@@ -628,6 +864,9 @@ export function registerRecordings({
         phase: z.enum(['drain', 'finish']),
         elapsedMs: z.number().int().min(0).max(901_000),
         slots: z.number().int().min(0).max(900),
+        events: z.number().int().min(0).max(12000).default(0),
+        lostEvents: z.number().int().min(0).max(12000).default(0),
+        coalesced: z.number().int().min(0).max(10_000_000).default(0),
         reason: z.enum([
           'Stopped',
           'Backgrounded',
@@ -643,18 +882,40 @@ export function registerRecordings({
       .parse(req.body);
     await store.locked(async (c) => {
       const r = await store.validate(c, uuid.parse(req.params.id), bearer(req));
-      if (r.state === 'stopped') return;
+      if (r.state === 'stopped') {
+        if (
+          b.phase === 'finish' &&
+          (test || process.env.REPLAY_WORKER_ENABLED === 'true')
+        )
+          await enqueueReplay(c, r.id);
+        return;
+      }
+      const expected = Math.max(
+        b.events,
+        Number(r.received_events),
+        Number(r.expected_events),
+      );
       await c.query(
-        `UPDATE screenshot_recordings SET state=?,capture_stopped_at=COALESCE(capture_stopped_at,UTC_TIMESTAMP(6)),stop_elapsed_ms=COALESCE(stop_elapsed_ms,?),stop_reason=COALESCE(stop_reason,?),scheduled_slots=GREATEST(scheduled_slots,?),heartbeat_at=UTC_TIMESTAMP(6),finalized_at=? WHERE id=?`,
+        `UPDATE screenshot_recordings SET state=?,capture_stopped_at=COALESCE(capture_stopped_at,UTC_TIMESTAMP(6)),stop_elapsed_ms=COALESCE(stop_elapsed_ms,?),stop_reason=COALESCE(stop_reason,?),scheduled_slots=GREATEST(scheduled_slots,?),heartbeat_at=UTC_TIMESTAMP(6),finalized_at=?,expected_events=?,lost_events=?,coalesced_triggers=GREATEST(coalesced_triggers,?) WHERE id=?`,
         [
           b.phase === 'finish' ? 'stopped' : 'uploading',
           b.elapsedMs,
           b.reason,
           b.slots,
           b.phase === 'finish' ? new Date() : null,
+          expected,
+          b.phase === 'finish'
+            ? Math.max(b.lostEvents, expected - Number(r.received_events))
+            : b.lostEvents,
+          b.coalesced,
           r.id,
         ],
       );
+      if (
+        b.phase === 'finish' &&
+        (test || process.env.REPLAY_WORKER_ENABLED === 'true')
+      )
+        await enqueueReplay(c, r.id);
     });
     res.json({ ok: true });
   });
@@ -665,7 +926,7 @@ export function registerRecordings({
       .strict()
       .parse(req.query);
     const rows = await pool.query(
-      `SELECT r.id,r.user_id,r.state,r.started_at,r.finalized_at,r.stop_reason,r.stop_elapsed_ms,r.scheduled_slots,r.received_frames,r.stored_bytes,u.username FROM screenshot_recordings r JOIN demo_users u ON u.id=r.user_id WHERE r.state<>'deleting' AND r.retained_until>UTC_TIMESTAMP(6) ORDER BY r.started_at DESC,r.id LIMIT 25 OFFSET ?`,
+      `SELECT r.id,r.user_id,r.state,r.started_at,r.finalized_at,r.stop_reason,r.stop_elapsed_ms,r.scheduled_slots,r.received_frames,r.stored_bytes,r.capture_policy,IF(r.approval_version IN ('screenshots-window-v1','screenshots-window-canvas-v1'),'window-crop-v1','view-v1') AS capture_method,r.received_events,r.expected_events,r.lost_events,r.coalesced_triggers,u.username FROM screenshot_recordings r JOIN demo_users u ON u.id=r.user_id WHERE r.state<>'deleting' AND r.retained_until>UTC_TIMESTAMP(6) ORDER BY r.started_at DESC,r.id LIMIT 25 OFFSET ?`,
       [q.page * 25],
     );
     const [usage] = await pool.query(
@@ -696,6 +957,7 @@ export function registerRecordings({
       page: q.page,
       enabled: store.enabled(),
       usage,
+      replayUsage: await replayUsage(store.directory),
       availableBytes,
       maintenance,
       lastUpload: uploads.lastUpload,
@@ -710,15 +972,119 @@ export function registerRecordings({
       .strict()
       .parse(req.query);
     const [recording] = await pool.query(
-      "SELECT id,user_id,state,started_at,finalized_at,stop_reason,stop_elapsed_ms,scheduled_slots,received_frames,stored_bytes FROM screenshot_recordings WHERE id=? AND state<>'deleting' AND retained_until>UTC_TIMESTAMP(6)",
+      "SELECT id,user_id,state,started_at,finalized_at,stop_reason,stop_elapsed_ms,scheduled_slots,received_frames,stored_bytes,capture_policy,IF(approval_version IN ('screenshots-window-v1','screenshots-window-canvas-v1'),'window-crop-v1','view-v1') AS capture_method,received_events,expected_events,lost_events,coalesced_triggers FROM screenshot_recordings WHERE id=? AND state<>'deleting' AND retained_until>UTC_TIMESTAMP(6)",
       [id],
     );
     if (!recording) throw new HttpError(404, 'Recording not found.');
     const frames = await pool.query(
-      'SELECT sequence_number,captured_at,received_at,elapsed_ms,capture_ms,width,height,byte_length,image_hash,clock_skew FROM screenshot_frames WHERE recording_id=? AND sequence_number>? ORDER BY sequence_number LIMIT 100',
+      'SELECT f.sequence_number,f.captured_at,f.received_at,f.elapsed_ms,f.capture_ms,f.width,f.height,f.byte_length,f.image_hash,f.clock_skew,c.context_json FROM screenshot_frames f LEFT JOIN screenshot_frame_context c ON c.recording_id=f.recording_id AND c.sequence_number=f.sequence_number WHERE f.recording_id=? AND f.sequence_number>? ORDER BY f.sequence_number LIMIT 100',
       [id, q.after],
     );
-    res.json({ recording, frames });
+    res.json({
+      recording,
+      frames: frames.map((f: Row) => {
+        const { context_json, ...rest } = f;
+        return {
+          ...rest,
+          context:
+            typeof context_json === 'string'
+              ? JSON.parse(context_json)
+              : (context_json ?? null),
+        };
+      }),
+      replay: await replaySummary(join(store.directory, id)),
+      replayJob: await replayJob(pool, id),
+    });
+  });
+  app.get('/api/admin/recordings/:id/events', async (req, res) => {
+    await admin(req);
+    const id = uuid.parse(req.params.id);
+    const after = z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(12000)
+      .parse(req.query.after ?? 0);
+    const [r] = await pool.query(
+      "SELECT id FROM screenshot_recordings WHERE id=? AND state<>'deleting' AND retained_until>UTC_TIMESTAMP(6)",
+      [id],
+    );
+    if (!r) throw new HttpError(404, 'Recording not found.');
+    const at =
+      req.query.at === undefined
+        ? null
+        : z.coerce.number().int().min(0).max(901000).parse(req.query.at);
+    const rows = await pool.query(
+      at === null
+        ? 'SELECT sequence_number,elapsed_ms,event_kind,payload_json,received_at FROM screenshot_events WHERE recording_id=? AND sequence_number>? ORDER BY sequence_number LIMIT 100'
+        : 'SELECT sequence_number,elapsed_ms,event_kind,payload_json,received_at FROM screenshot_events WHERE recording_id=? AND elapsed_ms BETWEEN ? AND ? ORDER BY elapsed_ms,sequence_number LIMIT 100',
+      at === null ? [id, after] : [id, Math.max(0, at - 2000), at + 2000],
+    );
+    res.json({ events: rows });
+  });
+  app.get(
+    '/api/admin/recordings/:id/page-references/:page',
+    async (req, res, next) => {
+      await admin(req);
+      const id = uuid.parse(req.params.id),
+        page = z.coerce.number().int().min(0).max(63).parse(req.params.page);
+      const [recording] = await pool.query(
+        "SELECT id FROM screenshot_recordings WHERE id=? AND state<>'deleting' AND retained_until>UTC_TIMESTAMP(6)",
+        [id],
+      );
+      if (!recording) throw new HttpError(404, 'Recording not found.');
+      const directory = join(
+          store.directory,
+          id,
+          'replay',
+          'canvas',
+          `page-${page + 1}`,
+        ),
+        file = join(directory, 'preview.png');
+      for (const path of [
+        join(store.directory, id, 'replay'),
+        join(store.directory, id, 'replay', 'canvas'),
+        directory,
+      ]) {
+        const info = await lstat(path).catch(() => null);
+        if (!info?.isDirectory())
+          throw new HttpError(404, 'Page reference unavailable.');
+      }
+      const info = await lstat(file).catch(() => null);
+      if (!info?.isFile() || info.size > 16 * 1024 ** 2)
+        throw new HttpError(404, 'Page reference unavailable.');
+      res.type('image/png').set('Cache-Control', 'no-store');
+      res.sendFile(file, { dotfiles: 'deny' }, (error) => {
+        if (error && !res.headersSent)
+          next(new HttpError(404, 'Page reference unavailable.'));
+      });
+    },
+  );
+  app.get('/api/admin/recordings/:id/replay/:name', async (req, res, next) => {
+    await admin(req);
+    const id = uuid.parse(req.params.id),
+      name = z.enum(replayNames).parse(req.params.name);
+    const [r] = await pool.query(
+      "SELECT id FROM screenshot_recordings WHERE id=? AND state<>'deleting' AND retained_until>UTC_TIMESTAMP(6)",
+      [id],
+    );
+    if (!r || !(await replaySummary(join(store.directory, id))))
+      throw new HttpError(404, 'Replay is unavailable.');
+    res.type(
+      name.endsWith('.mp4')
+        ? 'video/mp4'
+        : name.endsWith('.png')
+          ? 'image/png'
+          : 'application/json',
+    );
+    res.sendFile(
+      join(store.directory, id, 'replay', name),
+      { dotfiles: 'deny', lastModified: false, cacheControl: false },
+      (error) => {
+        if (error && !res.headersSent)
+          next(new HttpError(404, 'Replay file is unavailable.'));
+      },
+    );
   });
   app.get(
     '/api/admin/recordings/:id/frames/:sequence',
@@ -759,6 +1125,26 @@ export function registerRecordings({
       await c.beginTransaction();
       await rm(join(store.directory, id), { recursive: true, force: true });
       await c.query('DELETE FROM screenshot_recordings WHERE id=?', [id]);
+    });
+    res.json({ ok: true });
+  });
+  app.post('/api/admin/recordings/:id/replay/retry', async (req, res) => {
+    await admin(req, true);
+    z.object({}).strict().parse(req.body);
+    const id = uuid.parse(req.params.id);
+    if (!test && process.env.REPLAY_WORKER_ENABLED !== 'true')
+      throw new HttpError(503, 'Automatic video generation is paused.');
+    await store.locked(async (c) => {
+      const result = await c.query(
+        `UPDATE screenshot_replay_jobs j JOIN screenshot_recordings r ON r.id=j.recording_id
+         SET j.state='queued',j.attempts=0,j.available_at=UTC_TIMESTAMP(6),
+         j.queued_at=UTC_TIMESTAMP(6),j.started_at=NULL,j.finished_at=NULL,j.last_error=NULL
+         WHERE j.recording_id=? AND j.state='failed' AND r.state='stopped'
+         AND r.retained_until>UTC_TIMESTAMP(6)`,
+        [id],
+      );
+      if (!result.affectedRows)
+        throw new HttpError(409, 'No failed video job to retry.');
     });
     res.json({ ok: true });
   });

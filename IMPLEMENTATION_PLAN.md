@@ -32,6 +32,10 @@ verification evidence, and the resume point live in
 | 022 | [Banner CTA custom tag](plans/022-banner-cta-custom-tag.md) | CTA-01–03; directly filter banner-attributed confirmed CTAs; depends on 005/016/017/021 |
 | 023 | [Expo iOS WebView POC](plans/023-expo-ios-webview-poc.md) | IOS-01–06; separate Expo app around the hosted website, EAS preview build and iPhone acceptance; reuses existing web/API, no recording in this phase |
 | 024 | [iOS screenshot recording POC](plans/024-ios-screenshot-recording-poc.md) | REC-01–08; authorized 1 Hz native snapshots, Record/Stop, private receiver/timestamps/storage and admin review; depends on 023's installed baseline; device proof and rollout tracked in state |
+| 025 | [Change-triggered screenshots and animated video replay](plans/025-change-triggered-video-replay.md) | VID-01–07; authorized existing-image FFmpeg experiment first, then versioned change-triggered capture/gesture metadata after visual review; depends on 024's functional POC |
+| 026 | [iOS native overlay capture experiment](plans/026-ios-native-overlay-capture-experiment.md) | OVL-01–09; keyboard replay placeholder and opt-in underlying-page reconstruction, local comparison for actual validation-popover pixels, bounded owning-window crop, signed EAS preview and conditional private integration; depends on 025's working capture path; local-first implementation authorized |
+| 027 | [Session page references and image diffs](plans/027-session-page-references-and-image-diffs.md) | CAN-01–09; progressive per-recording page coverage, versioned image patches and viewport replay; partial references valid; depends on 025/026's existing capture/replay; implementation authorized after plan review |
+| 028 | [Automatic replay and 30 fps](plans/028-automatic-replay-and-30fps.md) | AUTO-01–05; durable final-Stop queue, isolated automatic renderer, admin status/retry and 30fps generated output; owner authorized directly; depends on025/027 |
 | 002 | [Clarity validation](plans/002-clarity-validation.md) | M2-01–06; final capture acceptance follows 001/004/005; settings/access review can proceed independently |
 | 003 | [Automation journeys](plans/003-automation-journeys.md) | B-012 scope outline; broader scheduling/scenario UI follows 001 and observed results from 002 |
 
@@ -56,6 +60,29 @@ work and the receiver/admin review are deployed; integrated upload, review and
 normal/offline/lifecycle device checks are accepted (REC-02/03/04/05/06).
 Profiling/operational validation remains in Plan 024. Remaining Plan 023 acceptance stays
 open. Gesture/error events, real-bank masking and support sharing remain later.
+
+Plan 025 scopes the owner's next video experiment: reconstruct motion from existing
+overlapping screenshots before changing the capture system. Its second stage plans
+change-triggered images and lightweight gesture/scroll timing. The owner authorized
+implementation and explicitly advanced from Stage A to Stage B. New receiver/web/
+native policy and event-guided replay are implemented; phone acceptance remains.
+Real-bank masking and
+support sharing remain deferred. Existing Plan 023/024 follow-ups stay tracked.
+
+Plan 026 is a focused follow-up to Plan 025's native validation-popover limitation.
+It starts with local pixel/exclusion proof before private upload/replay integration;
+remaining Plan 025 lifecycle/profiling work stays open. The owner has authorized implementation. Build the local comparison first;
+integrated private uploads depend on physical pixel/exclusion proof. The separately
+discussed image-diff/full-page direction is now scoped separately in Plan 027;
+the owner authorized its staged implementation after reviewing the plan.
+
+Plan 027 follows the owner's clarification that each recording may build a partial
+page reference from its own captured regions. It starts with an existing-image
+canvas experiment, then bounded versioned diffs and precise capture geometry before
+compatible server/native rollout and iPhone acceptance. A complete admin sweep,
+one-shot full-page capture and cross-session reuse are not prerequisites. Plan
+implementation was subsequently authorized; Plan 024–026 lifecycle/profiling
+follow-ups stay open.
 
 ## Later banking scope
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { ChevronRight, Landmark, Menu, X } from 'lucide-react';
+import { captureChange } from './capture-observer';
 
 export function AppShell({
   title,
@@ -42,7 +43,9 @@ export function AppShell({
     close(false);
     document.getElementById('main')?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
+    captureChange('route');
   }, [location.pathname]);
+  useEffect(() => captureChange('ui'), [open]);
   useEffect(() => {
     document.title = `${title ?? 'Sign in'} · Harbor Community Bank`;
   }, [title]);

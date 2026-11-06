@@ -1180,6 +1180,15 @@ tbody th {
   flex-shrink: 0;
   gap: 8px;
 }
+.recording-video {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  max-height: 72dvh;
+  margin: 12px 0 20px;
+  background: var(--color-primary);
+  border-radius: var(--radius-card);
+}
 .section-header > div:first-child {
   min-width: 0;
 }

@@ -1,0 +1,7 @@
+{
+  "name": "softek-overlay-capture",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-only Softek owning-window capture experiment",
+  "license": "UNLICENSED"
+}

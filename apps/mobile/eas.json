@@ -13,12 +13,42 @@
       "developmentClient": false,
       "distribution": "internal",
       "node": "22.21.1",
-      "env": { "EXPO_PUBLIC_CAPTURE_CHECK": "0" },
-      "ios": { "buildConfiguration": "Release" }
+      "env": {
+        "EXPO_PUBLIC_CAPTURE_CHECK": "0",
+        "EXPO_PUBLIC_OVERLAY_CHECK": "0",
+        "EXPO_PUBLIC_WINDOW_CAPTURE": "0",
+        "EXPO_PUBLIC_PAGE_CONTEXT": "0"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      }
     },
     "capture-check": {
       "extends": "preview",
-      "env": { "EXPO_PUBLIC_CAPTURE_CHECK": "1" }
+      "env": {
+        "EXPO_PUBLIC_CAPTURE_CHECK": "1"
+      }
+    },
+    "overlay-check": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_CAPTURE_CHECK": "0",
+        "EXPO_PUBLIC_OVERLAY_CHECK": "1"
+      }
+    },
+    "overlay-preview": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_CAPTURE_CHECK": "0",
+        "EXPO_PUBLIC_OVERLAY_CHECK": "0",
+        "EXPO_PUBLIC_WINDOW_CAPTURE": "1"
+      }
+    },
+    "canvas-preview": {
+      "extends": "overlay-preview",
+      "env": {
+        "EXPO_PUBLIC_PAGE_CONTEXT": "1"
+      }
     }
   }
 }

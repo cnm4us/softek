@@ -551,3 +551,111 @@ implementation after reviewing the plan; installed-device acceptance remains
 required before declaring delivery complete.
 One-second images can miss short messages and do not identify taps/swipe paths;
 semantic interaction events, real-bank masking and support sharing remain later.
+
+## Animated recording replay — Plan 025
+
+The next requested plan explores a video approximation of the user's interaction.
+The owner wants **screenshots only on meaningful changes**, with movement animated
+afterward using FFmpeg. Preserve the session's actual duration, including pauses;
+show snapshot capture times and elapsed playback time with distinct labels.
+Reconstruct scrolling where overlapping content supports it, and use timestamped
+gesture metadata for tap/swipe graphics. Do not infer real gestures from old images
+that have no event data or present unseen content as observed.
+
+First validate a short animated scroll example and then a full replay using existing
+recordings; no app rebuild is needed for this experiment. Review its visual quality
+before changing capture. The later stage adds change triggers and lightweight
+scroll/gesture timing while retaining explicit Record approval, Stop/lifecycle
+behavior, private admin review and the independent browser website. Existing 1 Hz
+recordings/builds remain supported during transition. Real-bank masking and support
+sharing remain deferred. [Plan 025](plans/025-change-triggered-video-replay.md) owns
+the staged tasks/acceptance. The owner reviewed Stage A and explicitly requested
+continuing to change-triggered capture. Stage B is implemented for the new iOS
+preview, with signed-device acceptance still required. Idle screens produce no
+new images; interaction timing supports reconstructed motion and gesture marks.
+Previous app builds and recordings keep their original behavior.
+
+## Native overlay capture experiment — Plan 026
+
+The owner requested a focused plan to test capture of the actual iOS/WebKit
+required-field validation bubble, which is absent from current screenshots despite
+successful error detection. Compare the current content-view capture with a broader
+app-owned hierarchy cropped to the banking area, first in a local fictional fixture,
+then through the existing private receiver/replay only after device pixel proof.
+Preserve explicit approval, change-only scheduling, lifecycle stops, readable text,
+coordinates and a known baseline fallback. Keyboard/system/other-app pixels remain
+excluded; inline form validation and typing policy are unchanged. Success requires
+repeated actual bubble capture with verified exclusions and no material interaction
+regression. An unsuccessful candidate is a valid experimental finding, not delivered
+overlay support. [Plan 026](plans/026-ios-native-overlay-capture-experiment.md) owns
+tasks/acceptance. The owner has authorized the local-first implementation;
+physical pixel/exclusion proof precedes integrated candidate uploads. The local
+gate has passed. A capable experimental banking build now offers explicit native
+tooltip coverage alongside the default page capture, fixed per approved session.
+Integrated upload/replay and lifecycle/resource acceptance remain separate checks.
+
+The owner subsequently selected a labeled keyboard placeholder for derived replay
+video: explain the excluded area as “Keyboard area / Not captured.” Preserve the
+original screenshots and keyboard exclusion. This is an explanatory overlay, not
+a reconstruction of keys or obscured banking content; no new app build is needed.
+
+The owner accepted the labeled placeholder and authorized trying reconstruction
+of the page beneath the keyboard (OVL-09). The experiment may borrow matching page
+pixels from nearby screenshots, with explicit reconstruction/source-time labeling.
+Preserve the actually captured upper page, native tooltip, originals and timeline.
+Unrecoverable pixels retain the exclusion explanation. Borrowed hidden content
+may differ from its state at that moment; this experiment does not capture keys
+or establish full-page/diff capture.
+
+
+## Session page references and image diffs — Plan 027
+
+The owner requested an implementation plan for a reference image that grows from
+what each user actually views during an approved recording. A partial reference
+is valid: users need not start at the top, reach the bottom, or complete an admin
+sweep. Some recordings will cover the whole page; others will cover only visited
+regions. The earlier admin-sweep idea is an optional test, not a dependency.
+
+Each recording owns its page references, preserving that user's rendered text,
+layout and fictional data. New views add captured regions; image diffs record
+new/changed/erased content with timestamps and source provenance. Replay can move
+through these page versions and reuse matching captured regions. Unknown areas
+remain unavailable. Top/bottom observations and measured page extent support
+coverage reporting, but complete coverage requires no gaps within a compatible
+layout. Page changes and reflow must not transplant incompatible content.
+
+Original screenshots and actual tooltip/error observations remain authoritative.
+Historical page states must remain reproducible; a later captured footer may aid
+an explicitly labeled reconstruction of an earlier moment, not become evidence
+that the earlier hidden state was identical. Keyboard imagery remains excluded.
+Keep explicit Record approval, idle suppression, Stop/lifecycle behavior, private
+admin review and existing capture/replay compatibility.
+
+[Plan 027](plans/027-session-page-references-and-image-diffs.md) scopes the staged
+existing-image experiment, session canvas/diffs, capture metadata, review and device
+checks. The owner subsequently authorized implementation after reviewing the plan.
+A one-shot full-page capture, cross-session/admin reference library and patch-only
+uploads remain deferred. Current implementation/device evidence is in PROJECT_STATE.
+
+
+A complete upload can still produce partial reference coverage: some regions may
+be unseen, obscured or unsafe to place. References distinguish spatial coverage
+from freshness and historical page state. “Complete” applies to the supported
+page area for one layout; the scrollbar gutter is treated separately, while full
+original screenshots remain available. Capture metadata and actual device behavior
+must be verified before accepting the new mode.
+
+
+## Automatic recording replay — Plan 028
+
+After the app sends final Stop and finishes its upload drain, the server queues
+video generation automatically for a retained recording with screenshots and a
+measured duration. No operator render request or new native build is needed.
+Admin review shows queued/rendering/failed status, updates to the video when ready,
+and offers an authenticated retry after failure. Screenshot review stays available.
+
+New/rebuilt sample and full videos use **30 fps** for reconstructed animation;
+change-triggered screenshot cadence remains unchanged. Existing accepted exports
+retain their original encoding until explicitly regenerated. A durable bounded
+background worker preserves source privacy, timestamps, retention and deletion.
+[Plan 028](plans/028-automatic-replay-and-30fps.md) owns acceptance and rollout.

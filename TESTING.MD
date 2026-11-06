@@ -718,6 +718,50 @@ Mocked native tests cannot establish WebView image fidelity. Loopback API tests
 cannot establish Nginx multipart/body limits or systemd write permissions. Inspect
 the actual uploaded image/hash and independent capture/receipt timestamps.
 
+## Animated replay verification — Plan 025
+
+Implemented focused checks:
+
+```bash
+node --import tsx --test tests/recording-replay.test.ts tests/recordings.test.ts
+npx playwright test -c playwright.recording.config.ts
+npm run typecheck
+npm run build
+npm run format:check
+```
+
+The replay tests check initial absence, elapsed ordering, missing legacy slots and
+Stop, known forward/reverse pixel alignment (including just one-quarter viewport
+overlap), exact preservation of the source crop,
+rejection of changed pages/fixed-layer mismatch, and actual FFmpeg encode/ffprobe/
+decode of whole and clipped timelines within one output frame. Generated imagery
+uses fictional fixture shapes/text. Replacement tests exercise a real Linux atomic
+directory exchange and prove missing/invalid staging does not remove the prior
+export. Six replay cases pass after the source 14→15/15→16 jump correction;
+encoding now generates 24 frames/second from the same screenshots.
+Quota tests count derived files and work
+reservations without filling the disk. Receiver integration adds admin-only replay
+reads, range responses, no-store, expiry rejection and abandoned-work cleanup.
+
+The eight existing recording browser cases now also use a generated normal H.264
+MP4, metadata loading, seeking, responsive video layout and denial after deletion,
+on Chromium 360/390/1440px and WebKit 440px. The initial fragmented fixture could
+not seek in WebKit; replacing it with the same normal faststart container used by
+the renderer resolves that check. This is separate from installed-iPhone acceptance.
+
+Production verification uses authenticated read-only review of an existing approved
+recording, comparing delivered MP4 hashes to private files and checking HTTPS range/
+no-store behavior. Browser requests remain on the Softek origin; no customer flow
+or vendor SDK collection is started. Temporary administrator sessions are revoked.
+Compare Clarity/Phoenix settings and original recording metadata before/after rollout.
+PROJECT_STATE records measured exports, actual check results and pending owner review.
+
+Stage A reconstructs only conservative whole-viewport vertical motion. It has no
+real tap/swipe telemetry; page/menu changes and unsupported overlap use cuts. The
+owner's short-example/full-session visual review is the next acceptance boundary
+before Stage B instrumentation. Rendered output cadence does not increase capture
+cadence. Existing Plan 023/024 profiling and operational follow-ups remain open.
+
 Use isolated `demo_test` fixtures/private test image directories for automated
 coverage, and only explicit owner-approved fictional sessions for installed-app
 acceptance. Keep Clarity/vendor traffic blocked in routine checks. Include
@@ -725,3 +769,210 @@ unauthorized image reads, credential/owner/session revocation, duplicate/conflic
 frames, queue/storage limits, timing drift, clock skew, transition races,
 interruption/cleanup and customer-deletion scope. Preserve Plan 023's remaining
 acceptance and force-close-login regression checks.
+
+
+### Change-triggered capture coverage — Plan 025 Stage B
+
+Migration 0014 probe coverage checks retained legacy data/defaults, unchanged
+12-column frame inserts, early elapsed values, sidecar/event cascades, repeated
+application and a partial-DDL failure that blocks blind retry. Both dedicated
+schemas are upgraded via the committed runner; backups/evidence are in state.
+
+```bash
+node --import tsx --test tests/change-capture-migration.test.ts
+node --import tsx --test --test-concurrency=1 tests/recordings.test.ts tests/recording-replay.test.ts
+npm test -w @softek/mobile
+npx playwright test -c playwright.recording.config.ts
+```
+
+Run API and browser suites separately: owned fixtures still share the schema's
+two-active-recording limit. Concurrent suites caused a creation-limit failure;
+sequential execution passes. The checks now include new-policy early/same-second
+frames, strict geometry/event payloads, idempotent/conflicting batches, after-Stop
+rejection, event-loss counters, private reads and cascade deletion. Legacy receiver
+coverage remains intact. There are 20 mobile core and 13 adapter/rendered checks,
+including idle capture, coalescing/spacing/error priority, separate clock origins,
+late-result disposal, next-session recovery and gesture batch drain at Stop.
+
+Twelve browser cases cover both policy controls and observation/privacy/Stop at
+360/390/1440px Chromium and 440px WebKit; dialog/menu surface geometry is included.
+Generated replay fixtures verify sparse idle holds, recorded scroll timing, encoded
+tap/swipe glyphs, a short visual viewport, and omission of a tap belonging to an
+uncaptured dialog. Routes/uncertain geometry retain safe motion fallback. These
+checks establish code/fixture behavior, not native touch/screenshot fidelity.
+
+The explicit production generated-fixture check is
+`npm run recordings:smoke -- --changes`; it must pass separately from the legacy
+smoke and clean up only its owned rows/files/session. Preserve live settings and
+keep vendor requests blocked. EAS archive/export/profile checks and actual iPhone
+idle/changes/error/Stop/lifecycle acceptance are separate VID-07 evidence. New
+session MP4 rendering remains a manual CLI action after a finalized phone upload.
+The replay suite also decodes an unstable-endpoint fallback at two pre-scroll
+times and checks that content remains still; lost events disable the onset bound.
+Alignment fixtures include independently moving scrollbar gutters while retaining
+rejection of a changed page and unsupported fixed header.
+
+## Native tooltip local comparison — Plan 026
+
+`npm test -w @softek/mobile` now includes five local comparison timing/lifecycle
+cases and four candidate-file adapter cases, plus a rendered overlay-check entry
+case. They cover coalesced invalid events, no idle captures, sequential pairing,
+Stop/eligibility loss, late files across restart, visible candidate failure,
+owned-file/size/dimension validation, and redaction of native path diagnostics.
+The shell checks verify that the local entry uses the fictional fixture, blocks
+external navigation and leaves upload requests inactive. The reset regression
+check verifies file disposal, a newly mounted empty fixture, stale-document event
+rejection, readiness gating, no automatic restart, Test 2 / Pair 1 labeling and
+remounting Review at the beginning. Existing banking tests
+still exercise the unchanged production capture path.
+
+A local WebKit/Chromium fixture check additionally verified ordinary required-field
+validation, visible inline errors, fixed-kind messages without typed values, no
+network requests and mobile layout fit; report `artifacts/overlay-fixture-check.json`.
+Mocks and desktop WebKit cannot prove UIKit popover drawing or keyboard exclusion.
+Cloud Swift compilation, signed IPA inspection and physical iPhone acceptance are
+separate evidence. Run the OVL-04 matrix in Plan 026 before integrating candidate
+uploads. Setup owns executable commands and the operator/device procedure.
+
+
+### Experimental window recording integration
+
+Receiver checks now include matching window approval/provenance, rejection of
+unapproved/missing/unknown surface fields, idempotent start approval immutability,
+private method readback and deletion. Native checks verify opt-in capability,
+fixed per-session selection, late/Stop behavior, 350 ms error settling and minimum
+500 ms capture spacing afterward. A rendered normal banking entry advertises the
+experimental capability only for the enabled profile. Replay fixtures ensure
+reported native popovers/masked keyboard/error surfaces cut and suppress page
+markers. Four browser profiles verify the coverage selector defaults to Page,
+explicit approval copy, locked selection while recording and website layout.
+
+Focused API/replay, mobile, browser and typecheck commands above remain valid.
+The generated live check `npm run recordings:smoke -- --window` writes
+`artifacts/recording-public-window-smoke.json` and must remove its owned fixtures.
+Actual integrated tooltip upload/replay, lifecycle/offline behavior and resource
+profiling remain separate signed-device evidence in PROJECT_STATE; successful
+local fixture trials and generated receiver pixels do not replace those checks.
+
+
+### Keyboard replay placeholder — OVL-08
+
+`node --import tsx --test tests/recording-replay.test.ts` covers confirmed masked
+blank-region placement, unchanged page pixels, unchanged unmasked/legacy frames,
+unsafe-region rejection and label visibility after actual FFmpeg encoding. Script
+typechecking uses `npx tsc -p tsconfig.scripts.json`. Inspect the regenerated real
+masked frame alongside the native tooltip, confirm unchanged source hashes and
+Stop duration within one frame, then verify authenticated HTTPS range/no-store
+playback in mobile WebKit and desktop Chromium. This verifies video decoration,
+not capture of keyboard keys or exact historical keyboard bounds. No new native
+build or repeated device capture is needed for this change.
+
+
+### Page reconstruction beneath the keyboard — OVL-09
+
+Run the two focused renderer suites:
+
+```bash
+node --import tsx --test tests/keyboard-replay.test.ts tests/recording-replay.test.ts
+npx tsc -p tsconfig.scripts.json
+```
+
+New tests verify exact preservation above the inferred mask boundary, exact aligned
+donor pixels below it, future/past source timing, partial recovery and remaining
+placeholder, route departures/returns, sequence gaps, zoom/container changes,
+unstable/masked/popover donors, time bounds, viewport changes, unrelated and blank
+image rejection. An actual FFmpeg encode checks both observed tooltip and borrowed
+page content against references within codec rounding, preserving measured timing.
+For the real retained recording inspect filled tooltip/error/footer frames, compare
+all source hashes, decode both generated videos and check private HTTPS hashes,
+range/no-store/anonymous denial and WebKit/Chromium playback. Visual usefulness of
+borrowed hidden content is separate owner feedback, not evidence of its past state.
+
+
+## Progressive session references — Plan 027
+
+Focused core/receiver tests (43 TAP entries in the recorded run):
+
+```bash
+node --import tsx --test --test-concurrency=1 tests/page-canvas.test.ts tests/session-reference.test.ts tests/reference-fill.test.ts tests/keyboard-replay.test.ts tests/recording-replay.test.ts tests/page-context.test.ts tests/recordings.test.ts
+npm test -w @softek/mobile
+npm run typecheck
+npx playwright test -c playwright.recording.config.ts
+```
+
+The mobile command passed 29 core and 20 rendered/adapter checks; the recording
+browser suite passed 20 cases in Chromium 360/390/1440 and WebKit 440. Routine
+vendor requests remain blocked/stubbed. The core suite exercises sparse unknown
+pixels, erasures/JPEG tolerance, immutable as-of revisions, source hashes,
+partial/complete extent and boundary semantics, layouts/font changes, independent
+references, validated moving-image placement and a registered one-pixel negative
+return near the page origin, strict API/mobile geometry parity,
+clip/provenance agreement, past-first reconstruction and labeled later fill,
+encoded visible-pixel preservation, quotas and private read/delete compatibility.
+
+Use the [operator procedure](LOCAL_SETUP.md#session-page-reference-operations--plan-027)
+to render a retained session. Compare source hashes, patch bytes/count and source
+image bytes; decode/inspect output and verify duration within one 24 fps frame.
+Generated video fps does not change screenshot cadence. Inspect the latest mosaic
+and as-of states separately: observed spatial coverage cannot prove off-screen
+content remained unchanged. Different layouts/visits must remain separate.
+
+The generated production `--canvas` smoke checks transport/validation only and
+removes its owned customer, session and files. Private HTTPS preview/video checks
+must reject anonymous requests, preserve no-store/range behavior, play/seek at
+mobile/desktop sizes and leave no temporary admin session. Production cleanup
+inspection requires the `softek` OS identity as documented in LOCAL_SETUP;
+development-user permission denial is expected and does not justify opening storage.
+
+Signed-device acceptance is still required: short partial visit, slow top-to-bottom
+sweep, return scroll, visible mutation/erasure and keyboard opening/closing. Inspect
+actual uploaded page visits/layouts, measured document extent, exact valid/excluded
+image bounds, top/bottom flags, covered islands and remaining unknown regions.
+Then render that session and compare motion/keyboard shifts and retained tooltip
+pixels to the real interaction. Check Stop/background/lock/reload/sign-out/offline
+behavior for the new capability, along with phone resource observations. Passing
+synthetic geometry/FFmpeg checks does not complete those physical checks. Exact
+results, signed build and remaining gates are recorded in PROJECT_STATE and Plan027.
+
+
+## Automatic replay and 30 fps — Plan 028
+
+```bash
+node --import tsx --test --test-concurrency=1 tests/replay-jobs.test.ts tests/recordings.test.ts tests/recording-replay.test.ts tests/reference-fill.test.ts
+npx playwright test -c playwright.recording.config.ts
+npm run typecheck
+npm run build -- --clarity
+```
+
+The focused run passed 35 TAP entries. It verifies drain vs final Stop, idempotent
+jobs, private status/admin CSRF retry, bounded backoff/terminal failure, independent
+worker connection serialization, interrupted-attempt recovery, expiration and
+cascade deletion. Actual FFmpeg encoding/ffprobe assert 30/1 output and timing within
+one 30 fps frame; existing tooltip/source-pixel checks remain. Browser coverage is 20
+cases across Chromium360/390/1440 and WebKit440, including failed→retry→queued→
+rendering→ready polling without a page reload, private playback and all previews.
+Vendor requests remain blocked. No native source changed, so native export/build
+or repeated native unit tests are not required for this server/web change.
+
+Use the two production [automatic smokes](LOCAL_SETUP.md#automatic-replay-operations--plan-028)
+to verify real final Stop→worker→private encoded output, including the page-context
+path and abandoned-work recovery, without invoking an operator render. Inspect
+report cleanup flags and the dedicated worker's role/resource limits. Verify
+retained recording/settings fingerprints, Nginx site hashes and API/DB health
+before/after deployment. Existing video fps stays historical; new/rebuilt video
+uses 30 fps. Plan 027's remaining phone acceptance stays in that plan.
+
+
+### Keyboard-transition missing tail — CAN-10
+
+`node --import tsx --test tests/reference-fill.test.ts tests/session-reference.test.ts`
+covers focus-style differences with a later verified tail, crop-only admission,
+unchanged captured tooltip pixels, past-first/later-time provenance and historical
+unknown coverage. Negative cases retain rejection without a recent keyboard,
+while moving, with incorrect geometry, after 10 seconds, under a different layout, or
+with unrelated/blank pixels. Run the existing PageCanvas/keyboard/replay suites
+when changing the registration path, then inspect the actual affected encoded
+snapshot 28 alongside its raw pixels and later donor 30. Original hashes, full
+30fps decode/Stop duration, private HTTP hashes/range/no-store and real browser
+play/seek remain the acceptance checks. No new phone recording is needed to
+verify a server-side correction to retained source images.

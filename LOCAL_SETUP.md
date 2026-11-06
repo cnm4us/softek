@@ -1015,7 +1015,7 @@ workspace defaults stay off. To rebuild/deploy this same approved profile:
 
 ```bash
 npm run build -- --clarity
-SCREENSHOT_RECORDING_ENABLED=true PHOENIX_TRACING_ENABLED=true npm run deploy -- --clarity
+SCREENSHOT_RECORDING_ENABLED=true CHANGE_CAPTURE_ENABLED=true PHOENIX_TRACING_ENABLED=true npm run deploy -- --clarity
 ```
 
 Revalidate runtime/profile settings before reusing these commands; they preserve
@@ -1030,9 +1030,13 @@ npm run recordings:cleanup -- --test
 npm run recordings:cleanup -- --test --apply
 ```
 
-After the production gate/setup and backup, `npm run recordings:cleanup` inspects
-`demo`; adding `--apply` applies retention/reconciliation only to Softek recording
-metadata/files. It cannot select an arbitrary schema or production directory.
+Production cleanup must run with the `softek` OS identity: the private store is
+intentionally inaccessible to the development user. The deployed timer is the
+normal apply path. For a read-only production inspection, use the scoped command
+in [Plan 027 operations](#session-page-reference-operations--plan-027). A bare
+`npm run recordings:cleanup` as `ubuntu` fails the private-directory permission
+check; do not loosen permissions. Cleanup cannot select an arbitrary schema or
+production directory.
 The receiver defaults are in `apps/api/src/recordings.ts`; the plan explains the
 limits and their rationale. New explicit approval replaces any unclosed recording
 for that customer, allowing immediate restart after force-close without revoking
@@ -1092,3 +1096,386 @@ files become explicit interrupted/gap metadata, with corrected counts. Inspect
 dry-run output before manual recovery. Never move screenshots into public assets.
 POC schema/data backups alone do not back up image bytes; private images are
 preserved across releases but are not promised recoverable after disk loss.
+
+## Animated replay experiment — Plan 025
+
+The existing-image renderer and authenticated admin video delivery are implemented.
+This stage does not change capture in installed app build 10. Review an exported
+recording at Admin Menu → Recordings → its recording → Animated replay experiment:
+the short example plays inline, and Full session expands the complete replay.
+Downloads use the same administrator authentication, no-store policy and retention
+as images. A recording without an export keeps its existing screenshot review.
+
+`npm run recordings:replay` now exists. It takes a retained, finalized legacy
+recording with a measured Stop boundary and overlapping vertical scroll images.
+Replace `RECORDING_UUID` below with the selected recording's ID. Production private
+files are owned by `softek`; this host's launch reads the ignored workspace settings
+and immediately drops root to `softek` before DB/file operations or encoding:
+
+```bash
+cd /home/ubuntu/softek
+sudo -n /opt/softek/runtime/bin/node --max-old-space-size=256 --import tsx scripts/recording-replay.ts --recording RECORDING_UUID
+```
+
+For an owned fixture already in `demo_test` and its test recording directory:
+
+```bash
+npm run recordings:replay -- --test --recording RECORDING_UUID
+```
+
+Optional `--sample-start-ms INTEGER` selects the short example's start. Default
+selection starts shortly before the first reliably aligned scroll and lasts up
+to 15 seconds. Both commands refuse existing exports by default. Add `--replace`
+to regenerate an existing derivative: the old complete export stays available
+throughout rendering, then Linux `renameat2(RENAME_EXCHANGE)` atomically exchanges
+the private output directories. The prior derivative is removed with the job
+workspace after success; original screenshots are untouched. A failed render or
+exchange retains the previous video. This uses installed Python 3/ctypes and the
+Ubuntu host filesystem; there is no destructive remove-then-publish fallback.
+The tool rejects unfinalized/expired sources or sources without a reliable scroll pair.
+No new recording is collected automatically. FFmpeg/ffprobe, `/usr/bin/time`, nice
+and the DejaVuSans font are installed prerequisites; no installation was needed.
+
+Outputs live at `/var/lib/softek/recordings/RECORDING_UUID/replay/`:
+`sample.mp4`, `full.mp4`, `manifest.json`, `report.json`. The manifest records source
+hashes, timing, estimated vertical offsets and fallback intervals. The report has
+duration error, dimensions, bytes, wall time and peak Node/child RSS; those separate
+peaks are not a simultaneous total-memory measurement. Timing labels use capture
+UTC and elapsed time separately. Twenty-four output frames/second are generated during
+encoding; phone capture remains the existing one-per-second policy in this stage.
+
+Only one CLI render can run per schema, guarded by a separate MariaDB advisory lock.
+Keep the receiver lock short for source copying/publication. Encoding runs at reduced
+priority with two codec threads; the CLI bounds the source, elapsed runtime and
+working/output files. Private `.replay-work` reserves 1 GiB against the global quota;
+derived files are counted separately from DB image counters. Successful/failed
+normal runs remove work. The updated cleanup removes abandoned work after 30 minutes,
+retains published replay files with their parent, and deletes everything with the
+recording/customer or seven-day retention. A crash may temporarily leave a reservation;
+inspect cleanup dry-run rather than deleting unknown directories or source frames.
+
+Stage A rollback: restore the recorded web/API release links and scoped configuration
+backup, with new recording intake disabled if returning to an API that lacks derived
+quota accounting. Keep the updated, pinned cleanup worker so retained derived bytes
+still expire. No schema migration or EAS rebuild was used; do not drop recording data.
+Exact deployed release, backup and accepted/pending evidence are in PROJECT_STATE.
+
+### Change-triggered capture — Plan 025 Stage B
+
+Migration 0014 is applied to both dedicated schemas, after its separate commit and
+scoped backup (identities in PROJECT_STATE). It preserves the frame table's
+12-column legacy insert shape and uses a frame-context sidecar. The broadened
+elapsed check permits early frames; API validation retains legacy scheduled-slot
+rules by policy. On partial DDL failure restore the scoped schema/data/ledger
+backup rather than force a success entry. Migration 0013 remains unchanged.
+
+`CHANGE_CAPTURE_ENABLED` defaults false and controls new-policy creation/uploads/
+heartbeats. The deployment command above explicitly preserves both screenshot gates
+and the existing Clarity/Phoenix profile. Disabling the new gate stops that policy
+through receiver rejection; it neither restarts capture nor changes Clarity consent.
+For rollback to an older API, disable both screenshot gates and retain the updated
+cleanup worker/metadata/files. Do not drop retained recording data.
+
+The 0.3.0 (11) preview advertises `changes-v2`; the website selects it only for
+capable clients. Build 10 continues at 1 Hz. New sessions calibrate native/web
+clocks, take an initial eligible image and then capture committed UI/page/error/
+content/viewport changes plus scroll checkpoints/end. There is no idle screenshot
+timer. Working limits: 100 ms coalescing, minimum 500 ms capture spacing, one capture
+in flight, existing photo/duration/queue budgets; aggregate scroll metadata at most
+10 Hz, 12,000 events/session, 500 events/256 KiB queued, at most 30 events/12 KiB per
+batch. The last limit fits the existing 16 KiB API JSON limit and supersedes the
+plan's tentative 24 KiB batch. Metadata shares session/global storage quotas.
+No EC2 port or Nginx body-limit change is required.
+
+Admin review holds sparse images during idle time, reports missing captures/events
+and coalescing, and loads at most 100 interactions near the selected time. Local
+observation sends fixed event kinds/geometry, never input values, DOM mutations or
+error text; screenshots still show approved fictional UI. Explicit approval and
+lifecycle stops remain independent of optional website analytics.
+
+The replay CLI supports both policies, using pixel alignment plus recorded scroll
+timing when geometry supports it. It draws recorded tap/swipe glyphs, with cuts or
+estimated motion for unsupported/uncertain intervals. Opaque menu/dialog container
+IDs prevent gestures being drawn on a different visible surface. Viewport points
+use one scale in both axes, including shorter visible viewports. Height changes are
+padded; width changes need a new segment. At most 64 markers per interval are
+rendered, with suppression counts in the report. Rendering remains an explicit CLI
+action; exports are not automatically queued for every new session.
+
+The new-policy HTTPS generated-fixture check is executable:
+
+```bash
+npm run recordings:smoke -- --changes
+```
+
+It uploads two same-second images and bounded events, checks private delivery/
+deduplication/limits, and deletes only its own recording/customer/admin session.
+Evidence: `artifacts/recording-public-changes-smoke.json`. Run the original smoke
+separately for legacy compatibility. The signed EAS identity and remaining phone
+acceptance are in PROJECT_STATE; a cloud build does not establish device fidelity.
+
+## Local native tooltip comparison — Plan 026
+
+The `overlay-check` EAS profile opens a separate, fictional local fixture and
+includes the `SoftekOverlayCapture` module from `apps/mobile/modules`. It uploads
+nothing and does not open the banking website. Use the signed internal build;
+Expo Go does not contain the custom module. Device proof is pending in PROJECT_STATE.
+The normal `preview` profile still opens banking and uses the existing view method.
+
+From the repository root, these checks/profile commands now exist:
+
+```bash
+npm run typecheck -w @softek/mobile
+npm test -w @softek/mobile
+npm run archive:check -w @softek/mobile -- overlay-check
+npm run eas -w @softek/mobile -- build --platform ios --profile overlay-check --non-interactive --no-wait
+```
+
+The archive check accepts a profile argument and explicitly requires/allowlists
+this module's package/config/Swift/podspec files; private inputs remain excluded.
+Local module discovery is configured in the mobile package's Expo autolinking
+settings. No generated `ios/` tree is committed, no SDK upgrade is needed, and
+native compilation runs on cloud macOS.
+
+On the iPhone, use Clear & reset to stop, delete local samples and reload an empty
+form without restarting capture. The fresh-test control is in the main screen and
+Review; exact signed build availability is in PROJECT_STATE. Then tap Start local
+check, leave Goal name empty, and tap Create goal.
+Leave the actual bubble visible for a second so the automatic A/B pair can finish;
+do not tap a separate capture control. Tap Stop, then Review. Compare `View baseline`
+with `Window candidate` for the same pair marked `invalid`. Read the candidate's
+fixed diagnostic if it failed. Captures are sequential, not simultaneous. The
+candidate crops to the fictional content area and blanks its known keyboard region;
+inspect that exclusion rather than assume it works. Repeat the actual bubble three
+times if the first succeeds, then test typing/inline error, dismissal and scrolling.
+The review retains at most eight samples (four pairs). Labels include the test
+number as well as the pair number; pair numbering restarts at 1 for each new test.
+Review always opens at the beginning, oldest retained entry first. Start replaces
+the prior test images; Clear & reset also resets the form/scroll/error state.
+Exit/disposal deletes files, and launch preparation reaps stale local JPEGs.
+Stop/background/one-minute expiry ends capture, with no automatic restart.
+
+To return to the existing integrated banking baseline, use the signed build-11
+installer linked in PROJECT_STATE. Installing either preview never begins recording.
+No receiver deployment, EC2 security-group/port change, migration or cleanup-worker
+change is needed for this local comparison. Integrated candidate rollout remains
+conditional on the Plan 026 pixel/exclusion checks.
+
+
+### Experimental banking with native tooltips — Plan 026
+
+After the local gate passed, `overlay-preview` was added. It opens banking with the
+existing login/reconnect behavior and advertises the optional native capture mode;
+normal `preview` stays on the baseline, and `overlay-check` remains local-only.
+Current release/build/IPA identities are in PROJECT_STATE. The build command is:
+
+```bash
+npm run archive:check -w @softek/mobile -- overlay-preview
+npm run eas -w @softek/mobile -- build --platform ios --profile overlay-preview --non-interactive --no-wait
+```
+
+Sign in using fictional demo data and decline optional website analytics. Open the
+recording control left of Menu. Capture coverage defaults to Page capture; choose
+Include native tooltips (experimental), read its scope, then tap Record. Selection
+cannot change until capture/draining ends. Native tooltips within the banking area
+are included; keyboard regions are blanked. Stop/background/reload/logout never
+switch methods or automatically restart. Admin → Recordings labels coverage and
+per-frame popover/keyboard flags. Native-only presentation changes without an
+observed web event remain a device-verification limit.
+
+No schema migration is required: approval_version and frame-context JSON hold the
+new approval/provenance. The production receiver also needs WINDOW_CAPTURE_ENABLED.
+For this host's already-enabled evaluation profile, preserve the other gate values:
+
+```bash
+SCREENSHOT_RECORDING_ENABLED=true CHANGE_CAPTURE_ENABLED=true WINDOW_CAPTURE_ENABLED=true PHOENIX_TRACING_ENABLED=true npm run deploy -- --clarity
+npm run recordings:smoke -- --window
+```
+
+The window smoke uses generated fictional pixels and cleans up its own session,
+customer/files and admin login. It verifies approval/provenance, private readback,
+UTC, retries and limits; it does not establish physical capture fidelity. Legacy
+smokes remain executable separately. Routine browser tests block vendor requests.
+
+Disable only WINDOW_CAPTURE_ENABLED to reject window starts/writes while retaining
+Stop and baseline capture; preserve other gates when deploying that rollback. The
+experimental app can select Page capture for a newly approved session. Retain
+current schema/data/cleanup; older API code cannot accept the new approval, so
+keep compatible readers/cleanup and explicitly disable the experiment before an
+older release rollback. The scoped backup/current release identities are in state.
+
+
+### Keyboard explanation in generated replay — OVL-08
+
+The existing `scripts/recording-replay.ts --recording <uuid> --replace` operator
+flow gained the placeholder in renderer revision 6; revision 7 retains it by
+default. Confirmed window keyboard-mask frames
+receive “Keyboard area / Not captured” within uniform blank pixels when safely
+identifiable, otherwise an explanatory header only. See ARCHITECTURE for inferred
+placement limits. Use the existing scoped Node/sudo replay command documented
+above; no API deployment or EAS build is required. Refresh the recording review
+page after replacement. Original JPEGs are retained without the placeholder;
+`report.json` counts labeled intervals for each video.
+
+
+### Experimental page fill beneath the keyboard — OVL-09
+
+Add `--reconstruct-keyboard` to the existing operator replay command to borrow
+aligned page strips from nearby unmasked observations. For an existing export:
+
+```bash
+sudo -n /opt/softek/runtime/bin/node --max-old-space-size=256 --import tsx scripts/recording-replay.ts --recording RECORDING_UUID --replace --reconstruct-keyboard
+```
+
+Review the short/full video after refreshing the recording page. Its per-frame
+caption identifies reconstruction and donor time; the private export note explains
+the uncertainty, and `manifest.json`
+holds the exact source/rectangle/match audit. Some fill may come from a later
+snapshot and some regions may remain unrecoverable. This does not establish what
+was hidden at that moment. No new app build or receiver deployment is needed.
+To restore the accepted placeholder-only rendering, use the same scoped command
+with `--replace` and omit `--reconstruct-keyboard`; originals remain untouched.
+
+
+## Session page reference operations — Plan 027
+
+The implemented `--session-reference` replay option assembles sparse, versioned
+references from a retained, finalized recording. It preserves full source images,
+creates per-layout previews and timestamped patch manifests, and uses supported
+reference pixels beneath excluded keyboard regions. Plan028 now queues this export automatically after final Stop/upload drain.
+The manual command below remains available for controlled regeneration.
+
+```bash
+cd /home/ubuntu/softek
+sudo -n /opt/softek/runtime/bin/node --max-old-space-size=256 --import tsx scripts/recording-replay.ts --recording RECORDING_UUID --session-reference
+```
+
+Replace `RECORDING_UUID` with the retained session's ID. Add `--replace` only to
+replace that session's existing derivatives atomically. `--sample-start-ms 6000`
+selects a short excerpt; full replay retains the measured session duration. The
+renderer loads private configuration, drops to `softek` and uses the runtime CRUD
+account. Test-store rendering uses `npm run recordings:replay -- --test --recording
+RECORDING_UUID --session-reference`. Root is unnecessary for the test store.
+
+The report and `canvas.json` are in the private session `replay/` directory, with
+hash-named tile revisions and `preview.png` under `canvas/page-N/`. Admin review
+selects page/layout previews through authenticated numeric routes; tiles have no
+public route. Previews show partial/complete supported spatial coverage, observed
+top/bottom and capture-time range where available. Older recordings cannot prove
+page extent/endpoints. Checkerboard means unobserved; a latest-observed mosaic can
+combine different capture times. A video may use later observed pixels only with
+reconstruction/source timing labels. It does not establish hidden historical state.
+The 12px scrollbar gutter is excluded from references, retained in originals.
+
+One reduced-priority renderer runs at a time. Existing output/work reservations
+apply, with at most 64 references, 4,096 tile versions and 128 MiB of nested canvas
+outputs including previews. The whole export is capped at 384 MiB. Limited mapping
+or budget exhaustion retains viewport replay with explicit unknown/fallback. PNG
+patches can add storage; this experiment does not reduce viewport upload bandwidth.
+Deletion/retention includes nested derivatives and abandoned replay work.
+
+Read-only production cleanup inspection, tested with the private store's actual
+OS identity and runtime database credentials:
+
+```bash
+sudo -n /opt/softek/runtime/bin/node --import tsx --input-type=module <<'JS'
+import mariadb from 'mariadb';
+import {databaseConfig} from './apps/api/src/config.ts';
+import {RecordingStore} from './apps/api/src/recordings.ts';
+const config=databaseConfig('runtime');
+process.setgroups([]); process.setgid('softek'); process.setuid('softek');
+const pool=mariadb.createPool({...config,connectionLimit:1,timezone:'Z'});
+try { console.log(JSON.stringify(await new RecordingStore(pool).cleanup(true))); }
+finally { await pool.end(); }
+JS
+```
+
+### Page geometry preview and rollout
+
+`canvas-preview` extends `overlay-preview` and enables `EXPO_PUBLIC_PAGE_CONTEXT=1`.
+The signed build uses the existing Expo project, Apple identity and device set.
+It opens banking; select **Include native tooltips (experimental)** before Record
+to negotiate the new `screenshots-window-canvas-v1` approval and `page-context-v1`
+metadata. Default Page coverage and older previews keep their existing contracts.
+
+```bash
+npm run archive:check -w @softek/mobile -- canvas-preview
+npm run eas -w @softek/mobile -- build --platform ios --profile canvas-preview --non-interactive --no-wait
+```
+
+The cloud build command is available but submits another build; consult
+PROJECT_STATE for the already signed artifact before using it again. Expo Go and
+Metro are unnecessary for installation. No new EC2 port/security-group rule is
+needed. Numeric page/clip metadata uses existing MariaDB JSON and approval fields;
+schema 0014 remains unchanged. It contains dimensions/font metrics/layout identities,
+not DOM text, HTML or raw field values.
+
+Deploy compatible API/readers/cleanup before new clients. PAGE_CANVAS_ENABLED
+controls new-mode starts/writes and must be explicitly preserved by deployment;
+turning it off preserves Stop/read/delete and old approvals. Preserve the existing
+SCREENSHOT_RECORDING_ENABLED, CHANGE_CAPTURE_ENABLED, WINDOW_CAPTURE_ENABLED and
+PHOENIX_TRACING_ENABLED values independently, plus the current collection build
+profile. See PROJECT_STATE for actual enabled values and release/backup IDs.
+`npm run recordings:smoke -- --canvas` tests generated-pixel HTTPS ingestion,
+strict geometry, private readback and removal of only its own fixtures. It is not
+physical device geometry proof.
+
+Rollback disables new-mode negotiation/writes and omits `--session-reference` in
+future exports; keep compatible readers/cleanup for retained new approvals and
+nested outputs until they expire. Do not blindly restore a pre-reader release.
+Original screenshots and prior exports remain recoverable within retention.
+
+
+## Automatic replay operations — Plan 028
+
+Final Stop queues a new nonempty, measured recording in MariaDB. The separate
+`softek-replay-worker.service` processes one job at a time and publishes private
+sample/full videos and page references. Admin review updates queued/rendering
+status every 3 seconds, then displays the replay; failed jobs expose **Retry video** after
+three bounded attempts. Retries wait 30 seconds then 120 seconds. Existing recordings are not
+backfilled and existing accepted videos are not replaced by deployment.
+
+All new/rebuilt output is 30 fps; screenshot cadence is unchanged. Normal use needs
+no manual render command, Expo build, Metro, new port or security-group change.
+The root `npm run build` now bundles the renderer into API dist, and deployment
+requires both that bundle and the compiled worker. The worker is pinned to its
+release, independently of the API current link. Preserve that pinned release.
+
+```bash
+systemctl status softek-replay-worker --no-pager
+sudo -n journalctl -u softek-replay-worker -n 30 --no-pager
+npm run recordings:smoke -- --auto-replay
+npm run recordings:smoke -- --auto-replay --canvas
+```
+
+These production smokes use generated fictional pixels/owned Automation fixtures,
+wait for automatic ready status, verify encoded 30 fps, decode/private delivery and
+Stop duration, then delete only their fixtures and end their admin session. The
+canvas variant also seeds an owned abandoned workspace to verify safe recovery,
+and checks a partial measured reference. Reports are ignored
+`artifacts/recording-public-auto-replay-smoke.json` and
+`artifacts/recording-public-auto-canvas-smoke.json`. They are server pipeline checks,
+not new physical phone capture acceptance.
+
+Deployment must preserve REPLAY_WORKER_ENABLED=true along with existing capture,
+page-canvas, collection and Phoenix gates. To pause automatic jobs, set only this
+flag false in the private runtime environment and restart the API and worker;
+queued rows remain durable. An immediate worker stop is also safe: its process
+group is terminated and the next enabled worker recovers interrupted jobs. Existing
+sources, videos, screenshots and Stop remain available. Deletion/retention cascades
+job rows and removes derivatives through the existing cleanup service.
+
+A manual local diagnostic uses the compiled worker after a root build:
+`node apps/api/dist/replay-worker.js --test --once`. It processes at most one job
+in `demo_test`; inspect the job status for outcome. Production uses only the
+service's `softek` OS identity and runtime CRUD account. The existing manual replay
+command still works and now generates 30 fps. `--recover-work` is for recovery under
+the renderer/recording locks; `--replace` explicitly replaces only that session's
+old derivatives. Do not use bulk manual replacement to change historical videos.
+
+Migration 0015 is one additive CREATE TABLE, committed before application; no
+historical rows are rewritten. If schema/ledger application fails, restore the
+scoped pre-0015 backup/ledger per the migration contract rather than forcing a
+checksum. For application rollback stop/disable the worker and restore the prior
+compatible Softek API/web/runtime configuration; retain schema/readers/cleanup.
+Actual release, backup and enabled settings are in PROJECT_STATE.

@@ -31,6 +31,7 @@ export const recordingRequest: RecordingPorts['request'] = async (
           capturedAt: frame.capturedAt,
           elapsedMs: frame.elapsedMs,
           captureMs: frame.captureMs,
+          ...(frame.context ? { context: frame.context } : {}),
         }),
       );
       data = form;

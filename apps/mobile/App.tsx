@@ -35,6 +35,12 @@ import { captureFile, clearCaptureFiles } from './src/capture-file';
 import { RecordingController } from './src/recording-controller';
 import { recordingRequest } from './src/recording-request';
 import { CaptureProbe } from './src/CaptureProbe';
+import { OverlayProbe } from './src/OverlayProbe';
+import {
+  captureOverlay,
+  overlayAvailable,
+  prepareOverlayCapture,
+} from './src/overlay-capture';
 
 function Action({
   label,
@@ -78,9 +84,20 @@ function Demo() {
   const captureView = useRef<ComponentRef<typeof View>>(null);
   const layout = useRef({ width: 0, height: 0 });
   const recorder = useRef<RecordingController | null>(null);
+  const windowStorage = useRef<Promise<boolean> | null>(null);
   recorder.current ??= new RecordingController({
+    pageContext: process.env.EXPO_PUBLIC_PAGE_CONTEXT === '1',
     capture: () =>
       captureFile(captureView, layout.current.width, layout.current.height),
+    ...(process.env.EXPO_PUBLIC_WINDOW_CAPTURE === '1' && overlayAvailable
+      ? {
+          windowCapture: async () => {
+            if (!(await windowStorage.current))
+              throw new Error('Window capture storage unavailable');
+            return captureOverlay(captureView);
+          },
+        }
+      : {}),
     inject: (script) => web.current?.injectJavaScript(script),
     request: recordingRequest,
   });
@@ -107,6 +124,14 @@ function Demo() {
   }
   useEffect(() => clearTimer, []);
   useEffect(() => {
+    if (process.env.EXPO_PUBLIC_WINDOW_CAPTURE === '1' && overlayAvailable) {
+      windowStorage.current = prepareOverlayCapture().catch(() => {
+        setNotice(
+          'Native tooltip capture storage is unavailable. Page capture remains available.',
+        );
+        return false;
+      });
+    }
     if (!clearCaptureFiles())
       setNotice('Screen recording storage is unavailable.');
     recorder.current?.appState(AppState.currentState === 'active');
@@ -280,7 +305,9 @@ function Demo() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      {process.env.EXPO_PUBLIC_CAPTURE_CHECK === '1' ? (
+      {process.env.EXPO_PUBLIC_OVERLAY_CHECK === '1' ? (
+        <OverlayProbe />
+      ) : process.env.EXPO_PUBLIC_CAPTURE_CHECK === '1' ? (
         <CaptureProbe />
       ) : (
         <Demo />

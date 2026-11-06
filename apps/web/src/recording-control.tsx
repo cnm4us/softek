@@ -2,9 +2,17 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Circle, Square, X } from 'lucide-react';
 import { api, ApiError, type State } from './api';
 import { Alert } from './ui';
+import {
+  captureChange,
+  captureGeometry,
+  capturePageGeometry,
+  startObserving,
+  stopObserving,
+} from './capture-observer';
 
 type Adapter = {
   version: 1;
+  capabilities?: string[];
   documentId: string;
   send: (message: Record<string, unknown>) => void;
 };
@@ -19,6 +27,7 @@ function publish() {
   });
 }
 export function suspendRecording() {
+  stopObserving();
   policy = { ...policy, allowed: false, generation: policy.generation + 1 };
   publish();
   adapter()?.send({ type: 'stop', reason: 'Signed out' });
@@ -31,6 +40,15 @@ export function RecordingControl({
   enabled: boolean;
 }) {
   const [capable, setCapable] = useState(adapter()?.version === 1),
+    [changeCapable, setChangeCapable] = useState(
+      adapter()?.capabilities?.includes('changes-v2') === true,
+    ),
+    [windowCapable, setWindowCapable] = useState(
+      adapter()?.capabilities?.includes('window-crop-v1') === true,
+    ),
+    [captureMethod, setCaptureMethod] = useState<'view-v1' | 'window-crop-v1'>(
+      'view-v1',
+    ),
     [open, setOpen] = useState(false),
     [phase, setPhase] = useState('stopped'),
     [count, setCount] = useState(0),
@@ -42,6 +60,7 @@ export function RecordingControl({
     id: string;
     identity: string;
     documentId: string;
+    captureMethod: string;
   } | null>(null);
   const allowed = Boolean(state && !state.impersonation && enabled);
   const identity = allowed ? `${state!.user.id}:${state!.runId}` : '';
@@ -60,6 +79,12 @@ export function RecordingControl({
   useEffect(() => {
     const ready = () => {
       setCapable(adapter()?.version === 1);
+      setWindowCapable(
+        adapter()?.capabilities?.includes('window-crop-v1') === true,
+      );
+      setChangeCapable(
+        adapter()?.capabilities?.includes('changes-v2') === true,
+      );
       publish();
     };
     const suspend = () => suspendRecording();
@@ -71,6 +96,10 @@ export function RecordingControl({
           type: 'probe',
           requestId: message.requestId,
           generation: policy.generation,
+          ...(changeCapable ? { geometry: captureGeometry() } : {}),
+          ...(adapter()?.capabilities?.includes('page-context-v1')
+            ? { page: capturePageGeometry() }
+            : {}),
           allowed:
             policy.allowed &&
             document.visibilityState === 'visible' &&
@@ -78,6 +107,26 @@ export function RecordingControl({
             !location.pathname.startsWith('/controls') &&
             location.pathname !== '/login',
         });
+      } else if (message.type === 'clock' && changeCapable) {
+        adapter()?.send({
+          type: 'clock-reply',
+          requestId: message.requestId,
+          generation: policy.generation,
+          webNow: performance.now(),
+          geometry: captureGeometry(),
+          ...(adapter()?.capabilities?.includes('page-context-v1')
+            ? { page: capturePageGeometry() }
+            : {}),
+        });
+      } else if (message.type === 'observe' && changeCapable) {
+        if (message.active === true)
+          startObserving(
+            (event) =>
+              adapter()?.send({ ...event, generation: policy.generation }),
+            () => policy.allowed,
+            adapter()?.capabilities?.includes('page-context-v1') === true,
+          );
+        else stopObserving();
       } else if (
         message.type === 'status' &&
         ['recording', 'uploading', 'stopped', 'error'].includes(message.phase)
@@ -99,11 +148,13 @@ export function RecordingControl({
       window.removeEventListener('customer-session-changing', suspend);
       window.removeEventListener('softek-capture-suspend', suspend);
       window.removeEventListener('pagehide', suspend);
+      stopObserving();
     };
-  }, []);
+  }, [changeCapable]);
   useEffect(() => {
     if (open) dialog.current?.showModal();
     else if (dialog.current?.open) dialog.current.close();
+    captureChange('ui');
   }, [open]);
   async function record() {
     if (!state || !allowed || !adapter()) return;
@@ -117,20 +168,41 @@ export function RecordingControl({
     if (
       !pendingRequest.current ||
       pendingRequest.current.identity !== identity ||
-      pendingRequest.current.documentId !== documentId
+      pendingRequest.current.documentId !== documentId ||
+      pendingRequest.current.captureMethod !== captureMethod
     )
       pendingRequest.current = {
         id: crypto.randomUUID(),
         identity,
         documentId,
+        captureMethod,
       };
     try {
-      const session = await api<{ id: string; credential: string }>(
+      const pageContext =
+        windowCapable &&
+        captureMethod === 'window-crop-v1' &&
+        adapter()?.capabilities?.includes('page-context-v1') === true;
+      const session = await api<{
+        id: string;
+        credential: string;
+        pageContextVersion?: 1;
+      }>(
         '/recordings',
         {
           requestId: pendingRequest.current.id,
           documentId,
           approvalVersion: 'screenshots-v1',
+          ...(changeCapable
+            ? {
+                approvalVersion:
+                  windowCapable && captureMethod === 'window-crop-v1'
+                    ? pageContext
+                      ? 'screenshots-window-canvas-v1'
+                      : 'screenshots-window-v1'
+                    : 'screenshots-v2',
+                policy: 'changes-v2',
+              }
+            : {}),
         },
         state.csrf,
         { timeoutMs: 10000 },
@@ -161,6 +233,9 @@ export function RecordingControl({
         recordingId: session.id,
         credential: session.credential,
         generation,
+        ...(changeCapable ? { policy: 'changes-v2' } : {}),
+        ...(windowCapable ? { captureMethod } : {}),
+        ...(session.pageContextVersion === 1 ? { pageContextVersion: 1 } : {}),
       });
       pendingRequest.current = null;
     } catch (e) {
@@ -209,10 +284,38 @@ export function RecordingControl({
           </button>
         </div>
         <p>
-          Record takes one screenshot per second of the visible fictional
-          banking screen and uploads it for the demo administrator to review.
+          {changeCapable
+            ? 'Record captures visible fictional banking screens when the page changes, together with tap, swipe and scroll timing, and uploads them for the demo administrator to review.'
+            : 'Record takes one screenshot per second of the visible fictional banking screen and uploads it for the demo administrator to review.'}
           Login and admin screens are excluded.
         </p>
+        {windowCapable && (
+          <>
+            <label>
+              Capture coverage
+              <select
+                aria-label="Capture coverage"
+                value={captureMethod}
+                disabled={recording || starting || phase === 'uploading'}
+                onChange={(e) =>
+                  setCaptureMethod(e.target.value as typeof captureMethod)
+                }
+              >
+                <option value="view-v1">Page capture (current)</option>
+                <option value="window-crop-v1">
+                  Include native tooltips (experimental)
+                </option>
+              </select>
+            </label>
+            {captureMethod === 'window-crop-v1' && (
+              <p>
+                Record also includes app-owned validation tooltips within the
+                banking area. The keyboard area is left blank. Other apps and
+                system screens are excluded.
+              </p>
+            )}
+          </>
+        )}
         <p>
           Tap Record to approve this session. Closing this panel keeps
           recording; Stop ends capture. Leaving the app stops capture and
@@ -237,7 +340,10 @@ export function RecordingControl({
           <button
             className="button secondary"
             disabled={!recording}
-            onClick={() => adapter()?.send({ type: 'stop', reason: 'Stopped' })}
+            onClick={() => {
+              stopObserving();
+              adapter()?.send({ type: 'stop', reason: 'Stopped' });
+            }}
           >
             Stop
           </button>

@@ -31,7 +31,12 @@ databaseConfig('runtime');
 const status = await migrationStatus();
 if (status.pending.length || status.problems.length)
   throw new Error('Resolve pending/drifted migrations before deployment.');
-for (const file of ['apps/web/dist/index.html', 'apps/api/dist/server.js'])
+for (const file of [
+  'apps/web/dist/index.html',
+  'apps/api/dist/server.js',
+  'apps/api/dist/replay-worker.js',
+  'apps/api/dist/replay-renderer.mjs',
+])
   if (!existsSync(join(projectRoot, file)))
     throw new Error('Build the application before deploying.');
 if (
@@ -78,6 +83,14 @@ try {
     RECORDING_DIR: '/var/lib/softek/recordings',
     SCREENSHOT_RECORDING_ENABLED:
       process.env.SCREENSHOT_RECORDING_ENABLED === 'true' ? 'true' : 'false',
+    CHANGE_CAPTURE_ENABLED:
+      process.env.CHANGE_CAPTURE_ENABLED === 'true' ? 'true' : 'false',
+    WINDOW_CAPTURE_ENABLED:
+      process.env.WINDOW_CAPTURE_ENABLED === 'true' ? 'true' : 'false',
+    PAGE_CANVAS_ENABLED:
+      process.env.PAGE_CANVAS_ENABLED === 'true' ? 'true' : 'false',
+    REPLAY_WORKER_ENABLED:
+      process.env.REPLAY_WORKER_ENABLED === 'true' ? 'true' : 'false',
     CLARITY_ENABLED: String(collection),
     VITE_CLARITY_ENABLED: String(collection),
     VITE_PHOENIX_TRACING_ENABLED: String(collection),
@@ -152,7 +165,7 @@ for name,source in p['recordingUnits'].items():
  target='/etc/systemd/system/'+name
  text=open(source).read()
  # Keep retention/reconciliation working across an API/web rollback.
- if name=='softek-recording-cleanup.service': text=text.replace('/opt/softek/current',release)
+ if name in ['softek-recording-cleanup.service','softek-replay-worker.service']: text=text.replace('/opt/softek/current',release)
  with open(target,'w') as f:f.write(text)
  os.chmod(target,0o644)
 nginx='/etc/nginx/sites-available/012_demo.bawebtech.com'
@@ -163,6 +176,8 @@ subprocess.run(['systemctl','daemon-reload'],check=True)
 subprocess.run(['systemctl','enable','softek-api.service'],check=True)
 subprocess.run(['systemctl','restart','softek-api.service'],check=True)
 subprocess.run(['systemctl','enable','--now','softek-recording-cleanup.timer'],check=True)
+subprocess.run(['systemctl','enable','softek-replay-worker.service'],check=True)
+subprocess.run(['systemctl','restart','softek-replay-worker.service'],check=True)
 subprocess.run(['systemctl','reload','nginx'],check=True)
 `;
   const nginxPath = join(staging, 'nginx.conf');
@@ -192,6 +207,10 @@ subprocess.run(['systemctl','reload','nginx'],check=True)
     web: join(projectRoot, 'apps/web/dist'),
     unit: join(projectRoot, 'deploy/systemd.softek-api.service'),
     recordingUnits: {
+      'softek-replay-worker.service': join(
+        projectRoot,
+        'deploy/systemd.softek-replay-worker.service',
+      ),
       'softek-recording-cleanup.service': join(
         projectRoot,
         'deploy/systemd.softek-recording-cleanup.service',

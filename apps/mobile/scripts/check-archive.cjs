@@ -16,7 +16,7 @@ const inspection = spawnSync(
     '--platform',
     'ios',
     '--profile',
-    'preview',
+    process.argv[2] || 'preview',
     '--stage',
     'archive',
     '--output',
@@ -57,7 +57,7 @@ function walk(path) {
         throw Error(`Private/generated input in upload: ${name}`);
       if (
         !rootFiles.has(name) &&
-        !/^apps\/mobile\/(?:App\.tsx|index\.ts|app\.json|eas\.json|package\.json|tsconfig\.json|(?:src|assets|scripts|tests)\/.*)$/.test(
+        !/^apps\/mobile\/(?:App\.tsx|index\.ts|app\.json|eas\.json|package\.json|tsconfig\.json|(?:src|assets|scripts|tests)\/.*|modules\/softek-overlay-capture\/(?:package\.json|expo-module\.config\.json|ios\/(?:SoftekOverlayCapture\.podspec|SoftekOverlayCaptureModule\.swift)))$/.test(
           name,
         )
       )
@@ -77,6 +77,10 @@ for (const needed of [
   'apps/mobile/tsconfig.json',
   'apps/mobile/assets/icon.png',
   'apps/mobile/assets/splash.png',
+  'apps/mobile/modules/softek-overlay-capture/package.json',
+  'apps/mobile/modules/softek-overlay-capture/expo-module.config.json',
+  'apps/mobile/modules/softek-overlay-capture/ios/SoftekOverlayCapture.podspec',
+  'apps/mobile/modules/softek-overlay-capture/ios/SoftekOverlayCaptureModule.swift',
   'apps/web/package.json',
   'apps/api/package.json',
 ]) {

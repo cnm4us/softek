@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
@@ -8,9 +8,40 @@ import { projectRoot } from '../apps/api/src/config.js';
 // Explicit, project-only production receiver check. This uploads generated noise,
 // never a real screen, and does not open a browser or contact analytics vendors.
 const origin = 'https://demo.bawebtech.com';
+const canvas = process.argv.includes('--canvas');
+const automatic = process.argv.includes('--auto-replay');
+const windowCapture = canvas || process.argv.includes('--window');
+const changes =
+  automatic || windowCapture || process.argv.includes('--changes');
+if (
+  process.argv
+    .slice(2)
+    .some(
+      (a) =>
+        !['--changes', '--window', '--canvas', '--auto-replay'].includes(a),
+    )
+)
+  throw new Error(
+    'Only --changes, --window, --canvas and --auto-replay are supported.',
+  );
+const geometry = {
+  route: '/',
+  width: 720,
+  height: 1100,
+  scale: 1,
+  offsetX: 0,
+  offsetY: 0,
+  scrollX: 0,
+  scrollY: 0,
+  container: 'document',
+  containerX: 0,
+  containerY: 0,
+};
 const report: Record<string, unknown> = {
   source: 'generated-fixture',
   startedAt: new Date().toISOString(),
+  policy: changes ? 'changes-v2' : 'periodic-v1',
+  captureMethod: windowCapture ? 'window-crop-v1' : 'view-v1',
 };
 let adminCookie = '',
   adminCsrf = '',
@@ -73,6 +104,54 @@ function imageBody(image: Uint8Array, sequence: number, elapsedMs: number) {
       capturedAt: new Date().toISOString(),
       elapsedMs,
       captureMs: 0,
+      ...(changes
+        ? {
+            context: {
+              reason: sequence === 1 ? 'start' : 'ui',
+              geometry,
+              uncertaintyMs: 1,
+              unstable: false,
+              ...(canvas
+                ? {
+                    page: {
+                      version: 1,
+                      web: {
+                        version: 1,
+                        visit: 1,
+                        layout: 1,
+                        documentWidth: 720,
+                        documentHeight: 2000,
+                        clientWidth: 720,
+                        clientHeight: 1100,
+                        scrollX: 0,
+                        scrollY: 0,
+                        fontSize: 16,
+                        lineHeight: 24,
+                        layer: 'document',
+                        top: true,
+                        bottom: false,
+                      },
+                      image: {
+                        width: 720,
+                        height: 1100,
+                        valid: { x: 0, y: 0, width: 720, height: 700 },
+                        excluded: [{ x: 0, y: 700, width: 720, height: 400 }],
+                      },
+                    },
+                  }
+                : {}),
+              ...(windowCapture
+                ? {
+                    surface: {
+                      method: 'window-crop-v1',
+                      maskedKeyboard: true,
+                      anchoredPopover: !automatic,
+                    },
+                  }
+                : {}),
+            },
+          }
+        : {}),
     }),
   );
   return body;
@@ -131,25 +210,46 @@ try {
     requestId: randomUUID(),
     documentId: randomUUID(),
     approvalVersion: 'screenshots-v1',
+    ...(changes
+      ? {
+          approvalVersion: windowCapture
+            ? canvas
+              ? 'screenshots-window-canvas-v1'
+              : 'screenshots-window-v1'
+            : 'screenshots-v2',
+          policy: 'changes-v2',
+        }
+      : {}),
   });
   check(started.status === 201, 'Receiver creation');
   const session = await started.json();
+  if (canvas)
+    check(session.pageContextVersion === 1, 'Page context negotiation');
   recordingId = uuid(session.id);
   report.recordingId = recordingId;
   credential = session.credential;
   const startMono = performance.now();
-  const image = await sharp(randomBytes(720 * 1100 * 3), {
+  const pixels = sharp(randomBytes(720 * 1100 * 3), {
     raw: { width: 720, height: 1100, channels: 3 },
-  })
-    .jpeg({ quality: 70 })
-    .toBuffer();
+  });
+  if (automatic && canvas)
+    pixels.composite([
+      {
+        input: Buffer.from(
+          '<svg width="720" height="400"><rect width="720" height="400" fill="#f5f6f1"/></svg>',
+        ),
+        left: 0,
+        top: 700,
+      },
+    ]);
+  const image = await pixels.jpeg({ quality: 70 }).toBuffer();
   check(
     image.length > 32_768 && image.length < 1_048_576,
     'Fixture must cross ordinary body limit',
   );
   await new Promise((r) => setTimeout(r, 1000));
-  const elapsedMs = Math.round(performance.now() - startMono),
-    sequence = Math.floor(elapsedMs / 1000);
+  const elapsedMs = changes ? 100 : Math.round(performance.now() - startMono),
+    sequence = changes ? 1 : Math.floor(elapsedMs / 1000);
   const uploaded = await request(
     `/api/recordings/${recordingId}/frames`,
     'bearer',
@@ -162,6 +262,64 @@ try {
     sequence,
     elapsedMs,
   };
+  if (changes) {
+    const second = await request(
+      `/api/recordings/${recordingId}/frames`,
+      'bearer',
+      imageBody(image, 2, 600),
+    );
+    check(second.status === 201, 'Same-second second capture');
+    const batch = {
+      requestId: randomUUID(),
+      events: [
+        {
+          sequence: 1,
+          elapsedMs: 500,
+          kind: 'tap',
+          geometry,
+          uncertaintyMs: 1,
+          x: 0.25,
+          y: 0.5,
+        },
+        {
+          sequence: 2,
+          elapsedMs: 650,
+          kind: 'scroll',
+          geometry,
+          uncertaintyMs: 1,
+        },
+      ],
+    };
+    const events = await request(
+      `/api/recordings/${recordingId}/events`,
+      'bearer',
+      batch,
+    );
+    check(events.status === 201, 'Public event upload');
+    check(
+      (await request(`/api/recordings/${recordingId}/events`, 'bearer', batch))
+        .status === 200,
+      'Event retry deduplicates',
+    );
+    check(
+      (await request(`/api/admin/recordings/${recordingId}/events`, 'none'))
+        .status === 401,
+      'Private interaction access',
+    );
+    const reviewed = await request(
+      `/api/admin/recordings/${recordingId}/events`,
+      'admin',
+    );
+    check(
+      reviewed.ok && (await reviewed.json()).events.length === 2,
+      'Private interaction readback',
+    );
+    report.interactions = {
+      received: 2,
+      retryDeduplicated: true,
+      anonymousDenied: true,
+    };
+  }
   const ordinary = await request('/api/recordings', 'customer', {
     oversized: 'x'.repeat(40_000),
   });
@@ -188,11 +346,24 @@ try {
     apiImage: apiLarge.status,
     proxyMultipart: proxyLarge.status,
   };
+  if (automatic && canvas) {
+    execFileSync('sudo', [
+      '-n',
+      '-u',
+      'softek',
+      'python3',
+      '-c',
+      "import pathlib,sys;p=pathlib.Path(sys.argv[1]);p.mkdir(mode=0o750);(p/'abandoned').write_text('owned smoke workspace')",
+      `/var/lib/softek/recordings/${recordingId}/.replay-work`,
+    ]);
+    report.recoveredWorkspaceSeeded = true;
+  }
   const stop = await request(`/api/recordings/${recordingId}/stop`, 'bearer', {
     phase: 'finish',
     elapsedMs: Math.round(performance.now() - startMono),
-    slots: Math.floor((performance.now() - startMono) / 1000),
+    slots: changes ? 2 : Math.floor((performance.now() - startMono) / 1000),
     reason: 'Stopped',
+    ...(changes ? { events: 2, coalesced: 1, lostEvents: 0 } : {}),
   });
   check(stop.ok, 'Finalization');
   const manifest = await request(
@@ -207,7 +378,7 @@ try {
     'Server-derived recording ownership',
   );
   check(
-    details.recording.received_frames === 1 &&
+    details.recording.received_frames === (changes ? 2 : 1) &&
       frame.sequence_number === sequence,
     'Metadata readback',
   );
@@ -250,9 +421,22 @@ try {
     fileMode === '640 softek:softek' && directoryMode === '750 softek:softek',
     'Private runtime storage ownership and permissions',
   );
+  if (windowCapture)
+    check(
+      details.recording.capture_method === 'window-crop-v1' &&
+        frame.context?.surface?.anchoredPopover === !automatic &&
+        frame.context?.surface?.maskedKeyboard === true,
+      'Window provenance readback',
+    );
+  if (canvas)
+    check(
+      frame.context?.page?.version === 1 &&
+        frame.context.page.image.valid.height === 700,
+      'Page context private readback',
+    );
   report.storage = { file: fileMode, directory: directoryMode };
   report.readback = {
-    frames: 1,
+    frames: changes ? 2 : 1,
     storedBytes: bytes.length,
     width: frame.width,
     height: frame.height,
@@ -262,6 +446,119 @@ try {
     unauthorized: unauthorized.status,
     cacheControl: delivered.headers.get('cache-control'),
   };
+  if (automatic) {
+    const states = new Set<string>();
+    let ready = details;
+    const deadline = performance.now() + 90_000;
+    while (!ready.replay && performance.now() < deadline) {
+      if (ready.replayJob?.state) states.add(ready.replayJob.state);
+      check(
+        ready.replayJob?.state !== 'failed',
+        'Automatic render must not fail',
+      );
+      await new Promise((r) => setTimeout(r, 1000));
+      const r = await request(`/api/admin/recordings/${recordingId}`, 'admin');
+      check(r.ok, 'Automatic status readback');
+      ready = await r.json();
+    }
+    check(
+      ready.replayJob?.state === 'ready' && !!ready.replay,
+      'Automatic generation completes without an operator render',
+    );
+    check(
+      ready.replay.full.fps === 30 && ready.replay.sample.fps === 30,
+      'Automatic replay reports 30 fps',
+    );
+    if (canvas) {
+      const preview = ready.replay.sessionReference?.preview;
+      check(
+        preview?.coverageStatus === 'partial' &&
+          preview.topReached &&
+          !preview.bottomReached &&
+          preview.coveragePercent > 0 &&
+          preview.coveragePercent < 100,
+        'Automatic native-context reference preserves partial coverage',
+      );
+      const r = await request(
+        `/api/admin/recordings/${recordingId}/page-references/${preview.page}`,
+        'admin',
+      );
+      check(r.ok, 'Automatically generated private page preview');
+      await r.arrayBuffer();
+      report.automaticReference = preview;
+    }
+    const verified: Record<string, unknown>[] = [];
+    for (const name of ['sample.mp4', 'full.mp4']) {
+      const path = `/api/admin/recordings/${recordingId}/replay/${name}`;
+      check(
+        (await request(path, 'none')).status === 401,
+        'Automatic video remains private',
+      );
+      const r = await request(path, 'admin');
+      check(
+        r.ok && r.headers.get('cache-control')?.includes('no-store') === true,
+        'Private automatic video delivery',
+      );
+      const bytes = Buffer.from(await r.arrayBuffer());
+      const temporary = join(
+        projectRoot,
+        'artifacts',
+        `auto-replay-${recordingId}-${name}`,
+      );
+      try {
+        await writeFile(temporary, bytes, { mode: 0o600 });
+        const probe = JSON.parse(
+          execFileSync(
+            'ffprobe',
+            [
+              '-v',
+              'error',
+              '-select_streams',
+              'v:0',
+              '-show_entries',
+              'stream=r_frame_rate:format=duration',
+              '-of',
+              'json',
+              temporary,
+            ],
+            { encoding: 'utf8' },
+          ),
+        );
+        check(
+          probe.streams[0].r_frame_rate === '30/1',
+          'Encoded automatic video is 30 fps',
+        );
+        execFileSync(
+          'ffmpeg',
+          ['-v', 'error', '-i', temporary, '-f', 'null', '-'],
+          { stdio: 'ignore' },
+        );
+        if (name === 'full.mp4')
+          check(
+            Math.abs(
+              Number(probe.format.duration) * 1000 -
+                ready.recording.stop_elapsed_ms,
+            ) <=
+              1000 / 30 + 1,
+            'Automatic full duration preserves Stop',
+          );
+        verified.push({
+          name,
+          bytes: bytes.length,
+          fps: probe.streams[0].r_frame_rate,
+          duration: Number(probe.format.duration),
+        });
+      } finally {
+        await rm(temporary, { force: true });
+      }
+    }
+    report.automaticReplay = {
+      states: [...states, 'ready'],
+      attempts: ready.replayJob.attempts,
+      files: verified,
+      manualRenderInvoked: false,
+    };
+  }
   report.passed = true;
 } catch {
   report.passed = false;
@@ -313,7 +610,20 @@ try {
   report.completedAt = new Date().toISOString();
   await mkdir(join(projectRoot, 'artifacts'), { recursive: true, mode: 0o700 });
   await writeFile(
-    join(projectRoot, 'artifacts/recording-public-smoke.json'),
+    join(
+      projectRoot,
+      automatic && canvas
+        ? 'artifacts/recording-public-auto-canvas-smoke.json'
+        : automatic
+          ? 'artifacts/recording-public-auto-replay-smoke.json'
+          : canvas
+            ? 'artifacts/recording-public-canvas-smoke.json'
+            : windowCapture
+              ? 'artifacts/recording-public-window-smoke.json'
+              : changes
+                ? 'artifacts/recording-public-changes-smoke.json'
+                : 'artifacts/recording-public-smoke.json',
+    ),
     JSON.stringify(report, null, 2) + '\n',
     { mode: 0o600 },
   );

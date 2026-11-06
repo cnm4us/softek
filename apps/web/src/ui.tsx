@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { captureChange } from './capture-observer';
 export function Card({
   title,
   children,
@@ -16,6 +17,9 @@ export function Card({
   );
 }
 export function Alert({ message }: { message: string }) {
+  useEffect(() => {
+    if (message) captureChange('error');
+  }, [message]);
   return message ? (
     <p className="alert" role="alert">
       {message}
